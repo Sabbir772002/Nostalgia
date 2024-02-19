@@ -1,4 +1,6 @@
 from django.shortcuts import render
 
-#Start Your Project
+def home(request):
+    return render(request, 'home.html')
+
 
