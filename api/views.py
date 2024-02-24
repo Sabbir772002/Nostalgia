@@ -4,6 +4,21 @@ from rest_framework.response import Response
 from .models import MyModel
 from .serializers import MyModelSerializer
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import User
+from .serializers import UserSerializer  # Assuming you have a serializer for the User model
+
+class Sign_Api(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            print("done")
+            return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class MyAPIView(views.APIView):
