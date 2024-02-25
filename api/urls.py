@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import MyModelListCreateAPIView,MyAPIView,_sign,sign,login_api,ChangePasswordAPIView,show,friends
+from .views import MyModelListCreateAPIView,MyAPIView,_sign,sign,login_api,ChangePasswordAPIView,show,friends,Owner_update,O_update
 
 urlpatterns = [
     path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
@@ -7,7 +7,8 @@ urlpatterns = [
     path('/changepassword', ChangePasswordAPIView.as_view(), name='changepassword'),
     path('/login', login_api.as_view(), name='login'),
     path('/sign', sign.as_view(), name='sign'),
-    path('/_sign', _sign.as_view(), name='_sign'),
+    path('/_sign', _sign.as_view(), name='sign_o'),
     path('/show', show.as_view(), name='show'),
-    #path('/friends', friends, name='friends'),
+    path('/owner/<int:pk>', Owner_update.as_view(), name='Owner_update'),
+    path('/over/<int:pk>', O_update.as_view(), name='O_update'),
 ]

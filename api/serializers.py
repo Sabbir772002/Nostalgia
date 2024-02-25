@@ -24,16 +24,32 @@ class UserSerializer(serializers.ModelSerializer):
         instance.nid = validated_data.get('nid', instance.nid)
         instance.p_image = validated_data.get('p_image', instance.p_image)
         instance.thana = validated_data.get('thana', instance.thana)
-        instance.walk_type = validated_data.get('walk_type', instance.walk_type)
+        #instance.walk_type = validated_data.get('walk_type', instance.walk_type)
         # instance.Location = validated_data.get('Location', instance.Location)
         # instance.Relation = validated_data.get('Relation', instance.Relation)
         instance.save()
         return instance
 
+
 class OwnerSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Owner
+        fields = UserSerializer.Meta.fields + ['walk_type']
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.walk_type = validated_data.get('walk_type', instance.walk_type)
+        instance.save()
+        return instance
 
 class OverseerSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Overseer
+        fields = UserSerializer.Meta.fields + ['Location', 'Relation']
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.Location = validated_data.get('Location', instance.Location)
+        instance.Relation = validated_data.get('Relation', instance.Relation)
+        instance.save()
+        return instance
