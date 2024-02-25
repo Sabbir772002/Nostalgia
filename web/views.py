@@ -2,43 +2,52 @@ from django.shortcuts import render
 import requests
 from django.http import HttpResponse
 from django.http import JsonResponse
+from api.models import User
+from django.contrib.auth import authenticate, login as a_login
+import json
+from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
 
-
+@csrf_exempt
 def home(request):
+    if request.method == 'POST':
+        # Access form field values from request.POST
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        # data = json.loads(request.body)
+        # username = data.get('username')
+        # password = data.get('password')
 
-    # Define the data to be sent
-    data = {
-        'name': 'Nuha',
-        'description': '20'
-    }
+        remember_me = request.POST.get('remember_me')  # Assuming you have a checkbox with the name 'remember_me'
+        # Do something with the form data (e.g., validate, authenticate user)
+        # Example: Authenticate user using Django's built-in authentication system
+        #print(username, password)
+        user = authenticate(request, username=username, password=password)
+        print(user)
 
-    # Define the URL of your Django API endpoint
-    url = 'http://localhost:8000/api/orm'
+        if user is not None:
+            a_login(request, user)  # Assuming you have imported the login function
+            if request.user.is_authenticated:
+                print("User is authenticatedd at web")  # This line will be executed if the user is authenticated
+            else:
+                print("User is not authenticated at web")
 
-    # Send a POST request with the data
-    # response = requests.post(url, json=data)
+            return render(request, 'home.html')
+        else:
+            # User authentication failed
+            return HttpResponse("mile nai vai tomar username or password")  # Example response
+    else:  
+           return render(request, 'login.html')
 
-    #Check the response status code
-    # if response.status_code == 201:
-    #     print('Data sent successfully')
-    # else:
-    #     print('Error sending data:', response.status_code)
-
-    # Sending a GET request to the external API
-    response = requests.get(url,params=data)
-    print(response.content)
+    return render(request, 'login.html')
 
 
-    # Checking if the request was successful (status code 200)
-    if response.status_code == 200:
-        # If successful, you can process the response data
-        data = response.json()  # Assuming the response is JSON
-        # Do something with the data
-        return JsonResponse(data, safe=False)
+@csrf_exempt
+def friends(request):
+    print(request.user)
+    if(request.user.is_authenticated):
+        print("Yeah, youa re boss at web friends page")
     else:
-        # If request was not successful, handle the error
-        return JsonResponse({'error': 'Failed to retrieve data from external API'}, status=500)
+        print("You are not authenticated at web friends page")
 
-    return HttpResponse("Hello, this is the home page!")
-
-
+    return HttpResponse("Hello, this is the friends page!")
