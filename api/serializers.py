@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
-from api.models import Owner, Overseer
+from api.models import Owner, Overseer, User
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -62,3 +62,35 @@ class UserLoginSerializer(serializers.Serializer):
 		if not user:
 			raise ValidationError('user not found')
 		return user
+
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    old_password = serializers.CharField(max_length=128)
+    new_password = serializers.CharField(max_length=128)
+
+    def validate(self, data):
+        username = data.get('username')
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+
+        # Check if the username exists
+        if not User.objects.filter(username=username).exists():
+            raise serializers.ValidationError("User does not exist.")
+
+        # Check if the old password matches
+        user = User.objects.get(username=username)
+        if not user.check_password(old_password):
+            raise serializers.ValidationError("Old password is incorrect.")
+
+        # You can add more validation logic here if needed
+
+        return data
+
+    def save(self, **kwargs):
+        username = self.validated_data['username']
+        new_password = self.validated_data['new_password']
+        user = User.objects.get(username=username)
+        user.set_password(new_password)
+        user.save()

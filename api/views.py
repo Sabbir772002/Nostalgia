@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User
+from api.models import User
 from .models import Owner
 from .serializers import OwnerSerializer
 from django.http import HttpResponse
@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from api.models import Owner, Overseer
-from .serializers import OwnerSerializer, OverseerSerializer
+from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -24,6 +24,22 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework import permissions
 from rest_framework.authentication import SessionAuthentication
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework import permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    permission_classes = (permissions.AllowAny,)
+
+class CustomTokenRefreshView(TokenRefreshView):
+    permission_classes = (permissions.AllowAny,)
+
+class HelloWorldView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        return Response(data={"message": "Hello, world!"})
 
 
 class O_update(APIView):
@@ -54,7 +70,6 @@ class O_update(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -90,7 +105,6 @@ class Owner_update(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class sign(APIView):
     def post(self, request):
-        print("hey done")
         serializer = OwnerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -125,10 +139,8 @@ class UserLogin(APIView):
 class login_api(views.APIView):
     def post(self, request):
         data = request.data
-        print("me hre bro")
         username = data.get('username')
         password = data.get('password')
-        print(username,password)
         if username and password:
             user = authenticate(request, username=username, password=password)
             if user is not None:
@@ -198,25 +210,27 @@ class MyModelListCreateAPIView(views.APIView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password, make_password
 
 
-class ChangePasswordAPIView(views.APIView):
+class ChangePass(views.APIView):
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
+        print(request.user)
         if serializer.is_valid():
+            print(serializer.validated_data)
+            print("YOu are in changepass class")
             old_password = serializer.validated_data['old_password']
             new_password = serializer.validated_data['new_password']
             username = serializer.validated_data['username']
-            print(username)
             user = User.objects.get(username=username)
-            user.set_password(new_password)
+            if(user.check_password(old_password)):
+                user.set_password(new_password)
+                user.save()
+                return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
             return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
 
-            # Check if the old password is correct
             if check_password(old_password, user.password):
-                # Set the new password and save the user object
                 user.set_password(new_password)
                 user.save()
                 return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
@@ -224,3 +238,16 @@ class ChangePasswordAPIView(views.APIView):
                 return Response({'error': 'Old password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FriendRequst(APIView):
+    def post(self, request):
+        data = request.data
+        print(data)
+        return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
+
+class FriendList(APIView):
+    def get(self, request):
+        data = request.data
+        print(data)
+        return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
