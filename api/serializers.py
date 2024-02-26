@@ -53,3 +53,12 @@ class OverseerSerializer(UserSerializer):
         instance.Relation = validated_data.get('Relation', instance.Relation)
         instance.save()
         return instance
+
+class UserLoginSerializer(serializers.Serializer):
+	email = serializers.EmailField()
+	password = serializers.CharField()
+	def check_user(self, clean_data):
+		user = authenticate(username=clean_data['username'], password=clean_data['password'])
+		if not user:
+			raise ValidationError('user not found')
+		return user

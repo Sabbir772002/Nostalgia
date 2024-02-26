@@ -22,6 +22,9 @@ from api.models import Owner, Overseer
 from .serializers import OwnerSerializer, OverseerSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework import permissions
+from rest_framework.authentication import SessionAuthentication
+
 
 class O_update(APIView):
     def put(self, request, pk):
@@ -105,15 +108,29 @@ class _sign(views.APIView):
 
 from django.contrib.auth import authenticate, login
 
+class UserLogin(APIView):
+	permission_classes = (permissions.AllowAny,)
+	authentication_classes = (SessionAuthentication,)
+	##
+	def post(self, request):
+		data = request.data
+		assert validate_email(data)
+		assert validate_password(data)
+		serializer = UserLoginSerializer(data=data)
+		if serializer.is_valid(raise_exception=True):
+			user = serializer.check_user(data)
+			login(request, user)
+			return Response(serializer.data, status=status.HTTP_200_OK)
+    
 class login_api(views.APIView):
     def post(self, request):
         data = request.data
+        print("me hre bro")
         username = data.get('username')
         password = data.get('password')
+        print(username,password)
         if username and password:
             user = authenticate(request, username=username, password=password)
-            print("user tomar")
-            print(user)
             if user is not None:
                 login(request,user)
                 return Response({'authenticated': True}, status=status.HTTP_200_OK)

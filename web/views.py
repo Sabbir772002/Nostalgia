@@ -24,14 +24,12 @@ def home(request):
         #print(username, password)
         user = authenticate(request, username=username, password=password)
         print(user)
-
         if user is not None:
             a_login(request, user)  # Assuming you have imported the login function
             if request.user.is_authenticated:
                 print("User is authenticatedd at web")  # This line will be executed if the user is authenticated
             else:
                 print("User is not authenticated at web")
-
             return render(request, 'home.html')
         else:
             # User authentication failed
