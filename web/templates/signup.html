@@ -1,0 +1,275 @@
+{% extends 'head.html' %} {% block content%} {% load static %}
+<link rel="stylesheet" href="{% static 'css/sign.css' %}." />
+<style></style>
+<div class="sinupdone">
+  <section class="h-100 h-custom gradient-custom-2">
+    <form action="" class="term" id="term" method="post">
+      {% csrf_token %}
+      <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+          <div class="col-12">
+            <div
+              class="card card-registration card-registration-2"
+              style="border-radius: 15px"
+            >
+              <div class="card-body p-0">
+                <div class="row g-0">
+                  <div class="GN col-lg-6">
+                    <div class="p-5">
+                      <h3 class="fw-normal mb-5" style="color: #ffffff">
+                        General Infomation
+                      </h3>
+
+                      <div class="row">
+                        <div class="col-md-6 mb-4 pb-2">
+                          <div class="form-outline">
+                            {{ form.first_name }}
+                            <!-- <input type="text" id="form3Examplev2" class="form-control form-control-lg" />
+  -->
+                            <label class="form-label" for="form3Examplev2"
+                              >First name</label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-md-6 mb-4 pb-2">
+                          <div class="form-outline">
+                            <!-- <input type="text" id="form3Examplev3" class="form-control form-control-lg" /> -->
+                            {{ form.last_name }}
+                            <label class="form-label" for="form3Examplev3"
+                              >Last name</label
+                            >
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.username }}
+                          <!-- <input type="text" id="form3Examplev4" class="form-control form-control-lg" />
+     -->
+                          <label class="form-label" for="form3Examplev4"
+                            >Username</label
+                          >
+                        </div>
+                      </div>
+
+                      <div class="mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.password }}
+                          <!--  <input type="text" id="form3Examplev4" class="form-control form-control-lg" />
+    -->
+                          <label class="form-label" for="form3Examplev4"
+                            >Password</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-6 bg-indigo text-white">
+                    <div class="p-5">
+                      <h3 class="fw-normal mb-5">Contact Details</h3>
+
+                      <div class="mb-4 pb-2">
+                        <div class="form-outline form-white">
+                          {{ form.home_address }}
+
+                          <!-- <input type="text" id="form3Examplea2" class="form-control form-control-lg" />
+     -->
+                          <label class="form-label" for="form3Examplea2"
+                            >Address</label
+                          >
+                        </div>
+                      </div>
+
+                      <div class="mb-4 pb-2">
+                        <div class="form-outline form-white">
+                          {{ form.phone }}
+
+                          <!--   <input type="text" id="form3Examplea3" class="form-control form-control-lg" />
+   -->
+                          <label class="form-label" for="form3Examplea3"
+                            >Phone</label
+                          >
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-md-5 mb-4 pb-2">
+                          <div class="form-outline form-white">
+                            {{ form.thana }}
+
+                            <!--   <input type="text" id="form3Examplea4" class="form-control form-control-lg" />
+   -->
+                            <label class="form-label" for="form3Examplea4"
+                              >Thana</label
+                            >
+                          </div>
+                        </div>
+                        <div class="col-md-7 mb-4 pb-2">
+                          <div class="form-outline form-white">
+                            {{ form.district }}
+
+                            <!--  <input type="text" id="form3Examplea5" class="form-control form-control-lg" />
+    -->
+                            <label class="form-label" for="form3Examplea5"
+                              >District</label
+                            >
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="mb-4 pb-2">
+                        <div class="form-outline form-white">
+                          {{ form.division }}
+
+                          <!--  <input type="text" id="form3Examplea6" class="form-control form-control-lg" />
+    -->
+                          <label class="form-label" for="form3Examplea6"
+                            >Division</label
+                          >
+                        </div>
+                      </div>
+
+                      <div class="mb-4">
+                        <div class="form-outline form-white">
+                          {{ form.email }}
+
+                          <!-- <input type="text" id="form3Examplea9" class="form-control form-control-lg" />
+     -->
+                          <label class="form-label" for="form3Examplea9">
+                            Email</label
+                          >
+                        </div>
+                      </div>
+                      <div class="mb-4">
+                        <div class="form-outline form-white">
+                          <label
+                            class="form-label text-white"
+                            for="form3Examplea9"
+                          >
+                            Role :
+                          </label>
+
+                          {{ form.role }}
+
+                          <!-- <input type="text" id="form3Examplea9" class="form-control form-control-lg" />
+     -->
+                        </div>
+                      </div>
+
+                      <div class="mb-4">
+                        <div class="form-outline form-white">
+                          <label
+                            class="form-label text-white"
+                            for="form3Examplea9"
+                          >
+                            Gender :</label
+                          >
+                          {{ form.gender }}
+                          <!-- <input type="text" id="form3Examplea9" class="form-control form-control-lg" /> -->
+                        </div>
+                      </div>
+
+                      <div class="mb-4">
+                        <div class="form-outline form-white">
+                          <!-- <input type="text" id="form3Examplea9" class="form-control form-control-lg" />
+     -->
+                          <label
+                            class="form-label text-white"
+                            for="form3Examplea9"
+                          >
+                            Birthdate:</label
+                          >
+                          {{ form.birthdate }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="form-check d-flex justify-content-start mb-4 pb-3"
+                      >
+                        <input
+                          class="form-check-input me-3"
+                          type="checkbox"
+                          value=""
+                          id="form2Example3c"
+                        />
+                        <label
+                          class="form-check-label text-white"
+                          for="form2Example3"
+                        >
+                          I do accept the
+                          <a href="#!" class="text-white"
+                            ><u>Terms and Conditions</u></a
+                          >
+                          of your site.
+                        </label>
+                      </div>
+                      <div>
+                        <button
+                          type="submit"
+                          id="submit"
+                          class="btn btn-light btn-lg"
+                          data-mdb-ripple-color="dark"
+                        >
+                          Register
+                        </button>
+                        <a
+                          href="{%url 'login'%}"
+                          class="text-white fw-bold text-body text-white"
+                          ><u class="'text-white">Login here</u></a
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </section>
+</div>
+<script>
+   /* $(".districtid").click(function () {
+      $(".divisionid").trigger("change");
+  });
+  $(".thanaid").click(function () {
+    $(".districtid").trigger("change");
+  });*/
+    $(".divisionid").click(function () {
+        const url = {% url 'dsign' %};
+        const division = $(this).val();
+
+        $.ajax({
+            url: url,
+            data: {
+                'division': division
+            },
+            success: function (data) {
+              $(".districtid").html("");
+              $(".districtid").html(data);
+            }
+        });
+
+    });
+
+    $(".districtid").click(function () {
+      const url = {% url 'tsign' %};
+      const district = $(".districtid").val();
+
+
+      $.ajax({
+          url: url,
+          data: {
+              'district': district
+          },
+          success: function (data) {
+            $(".thanaid").html("");
+            $(".thanaid").html(data);
+          }
+      });
+
+  });
+</script>
+{%endblock%}
