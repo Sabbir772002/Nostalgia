@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "web",
     "api",
+    'corsheaders',
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -51,6 +53,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
             'django.middleware.csrf.CsrfViewMiddleware',
 
+]
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",  
 ]
 
 ROOT_URLCONF = "nostalgia.urls"
@@ -70,6 +75,11 @@ TEMPLATES = [
         },
     },
 ]
+AUTHENTICATION_BACKENDS = [
+    # 'api.backends.UserBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 
 WSGI_APPLICATION = "nostalgia.wsgi.application"
 
@@ -134,5 +144,8 @@ STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
+AUTH_USER_MODEL = 'api.User'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+ALLOWED_HOSTS =  ['localhost', '127.0.0.1']
+SESSION_COOKIE_AGE = 180000
+
