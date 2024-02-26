@@ -49,3 +49,5 @@ def friends(request):
         print("You are not authenticated at web friends page")
 
     return HttpResponse("Hello, this is the friends page!")
+
+#csrf_exempt

@@ -186,6 +186,7 @@ class MyModelListCreateAPIView(views.APIView):
     def get(self, request):
         queryset = MyModel.objects.all()
         serializer = MyModelSerializer(queryset, many=True)
+        print(request.user)
         return Response(serializer.data)
         
     def post(self, request):

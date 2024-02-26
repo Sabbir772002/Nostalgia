@@ -11,5 +11,5 @@ urlpatterns = [
     path('/_sign', _sign.as_view(), name='sign_o'),
     path('/show', show.as_view(), name='show'),
     path('/owner/<int:pk>', Owner_update.as_view(), name='Owner_update'),
-    path('/over/<int:pk>', O_update.as_view(), name='O_update'),
+    path('/overseer/<int:pk>', O_update.as_view(), name='O_update'),
 ]
