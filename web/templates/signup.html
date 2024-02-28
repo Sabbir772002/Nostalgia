@@ -1,314 +1,276 @@
-{% load static %}
+{% extends 'head.html' %} {% block content%} {% load static %}
 <link rel="stylesheet" href="{% static 'css/sign.css' %}." />
 <style>
-  .sinupdone {
-  min-width: 992px;
-  min-height: 985px;
-}
-.GN {
-    border-bottom-left-radius: 15px;
-    border-top-left-radius: 15px;
-    background-color: #392d58;
-}
-/* above is after add */
-
-@media (min-width: 1025px) {
-  .h-custom {
-    height: 100vh !important;
-  }
-}
-.card-registration .select-input.form-control[readonly]:not([disabled]) {
-  font-size: 1rem;
-  line-height: 2.15;
-  padding-left: 0.75em;
-  padding-right: 0.75em;
-}
-.card-registration .select-arrow {
-  top: 13px;
-}
-
-.gradient-custom-2 {
-  /* fallback for old browsers */
-  background: #ffffff;
-}
-
-.bg-indigo {
-  background-color: #4835d4;
-}
-@media (min-width: 992px) {
-  .card-registration-2 .bg-indigo {
-    border-top-right-radius: 15px;
-    border-bottom-right-radius: 15px;
-  }
-}
-@media (max-width: 991px) {
-  .card-registration-2 .bg-indigo {
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-  }
-}
-
-/*Main code for template
-@media (min-width: 1025px) {
-    .h-custom {
-      height: 100vh !important;
-    }
-  }
-  .card-registration .select-input.form-control[readonly]:not([disabled]) {
-    font-size: 1rem;
-    line-height: 2.15;
-    padding-left: 0.75em;
-    padding-right: 0.75em;
-  }
-  .card-registration .select-arrow {
-    top: 13px;
-  }
-
-  .gradient-custom-2 {
-    /* fallback for old browsers */
-    background: #a1c4fd;
-
-    /* Chrome 10-25, Safari 5.1-6 */
-    background: -webkit-linear-gradient(
-      to right,
-      rgba(161, 196, 253, 1),
-      rgba(194, 233, 251, 1)
-    );
-
-    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-    background: linear-gradient(
-      to right,
-      rgba(161, 196, 253, 1),
-      rgba(194, 233, 251, 1)
-    );
-  }
-
-  .bg-indigo {
-    background-color: #4835d4;
-  }
-  @media (min-width: 992px) {
-    .card-registration-2 .bg-indigo {
-      border-top-right-radius: 15px;
-      border-bottom-right-radius: 15px;
-    }
-  }
-  @media (max-width: 991px) {
-    .card-registration-2 .bg-indigo {
-      border-bottom-left-radius: 15px;
-      border-bottom-right-radius: 15px;
-    }
+  .head {
+    color: green;
   }
 </style>
+<div class="container">
+  <div class="row my-3">
+    <div class="col-sm-6 offset-sm-3">
+      <h3 class="head">Create Account</h3>
+      <hr />
 
-<div class="sinupdone"></div>
-  <section class="h-100 h-custom gradient-custom-2">
-    <form action="{% url 'signup' %}" class="term" id="term" method="post">
-      {% csrf_token %}
-      <div class="container py-5 h-100">
-        <div class="row d-flex justify-content-center align-items-center h-100">
-          <div class="col-12">
-            <div
-              class="card card-registration card-registration-2"
-              style="border-radius: 15px"
-            >
-              <div class="card-body p-0">
-                <div class="row g-0">
-                  <div class="GN col-lg-6">
-                    <div class="p-5">
-                      <h3 class="fw-normal mb-5" style="color: #ffffff">
-                        General Infomation
-                      </h3>
-
-                      <div class="row">
-                        <div class="row">
-                          <div class="col-md-6 mb-4 pb-2">
-                            <div class="form-outline">
-                              <input type="text" id="id_first_name" name="first_name" class="form-control form-control-lg" />
-                              <label class="form-label" for="id_first_name">First name</label>
-                            </div>
-                          </div>
-    
-                        <div class="col-md-6 mb-4 pb-2">
-                          <div class="form-outline">
-                            <!-- <input type="text" id="form3Examplev3" class="form-control form-control-lg" /> -->
-                            <input type="text" id="id_last_name" name="last_name" class="form-control form-control-lg" />
-                            <label class="form-label" for="id_last_name"
-                              >Last name</label
-                            >
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="mb-4 pb-2">
-                        <div class="form-outline">
-                          <input type="text" id="id_username" name="username" class="form-control form-control-lg" />
-                          <!-- <input type="text" id="form3Examplev4" class="form-control form-control-lg" />
-     -->
-                          <label class="form-label" for="id_username"
-                            >Username</label>
-                            
-                        </div>
-                      </div>
-
-                      <div class="mb-4 pb-2">
-                        <div class="form-outline">
-                              <input type="text" id="id_username" name="password" class="form-control form-control-lg" />
-
-                          <label class="form-label" for="id_username"
-                            >Password</label
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-lg-6 bg-indigo text-white">
-                    <div class="p-5">
-                      <h3 class="fw-normal mb-5">Contact Details</h3>
-
-                      <div class="mb-4 pb-2">
-                        <div class="form-outline form-white">
-                          <input type="text" id="id_address" name="address" class="form-control form-control-lg" />
-
-                          <!-- <input type="text" id="form3Examplea2" class="form-control form-control-lg" />
-     -->
-                          <label class="form-label" for="id_address"
-                            >Address</label
-                          >
-                        </div>
-                      </div>
-
-                      <div class="mb-4 pb-2">
-                        <div class="form-outline form-white">
-                          <input type="text" id="id_phone" name="phone" class="form-control form-control-lg" />
-
-                          <!--   <input type="text" id="form3Examplea3" class="form-control form-control-lg" />
-   -->
-                          <label class="form-label" for="id_phone"
-                            >Phone</label
-                          >
-                        </div>
-                      </div>
-
-                      <div class="row">
-                        <div class="col-md-5 mb-4 pb-2">
-                          <div class="form-outline form-white">
-                            <input type="text" id="id_thana" name="thana" class="form-control form-control-lg" />
-
-                            <!--   <input type="text" id="form3Examplea4" class="form-control form-control-lg" />
-   -->
-                            <label class="form-label" for="form3Examplea4"
-                              >Thana</label
-                            >
-                          </div>
-                        </div>
-                        <div class="col-md-7 mb-4 pb-2">
-                          <div class="form-outline form-white">
-                            <input type="text" id="id_district" name="district" class="form-control form-control-lg" />
-
-                            <!--  <input type="text" id="form3Examplea5" class="form-control form-control-lg" />
-    -->
-                            <label class="form-label" for="form3Examplea5"
-                              >District</label
-                            >
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="mb-4 pb-2">
-                        <div class="form-outline form-white">
-                          <input type="text" id="id_division" name="division" class="form-control form-control-lg" />
-
-                          <!--  <input type="text" id="form3Examplea6" class="form-control form-control-lg" />
-    -->
-                          <label class="form-label" for="form3Examplea6"
-                            >Division</label
-                          >
-                        </div>
-                      </div>
-
-                      <div class="mb-4">
-                        <div class="form-outline form-white">
-                          <input type="text" id="id_email" name="email" class="form-control form-control-lg" />
-
-                          <!-- <input type="text" id="form3Examplea9" class="form-control form-control-lg" />
-     -->
-                          <label class="form-label" for="form3Examplea9">
-                            Email</label
-                          >
-                        </div>
-                      </div>
-                     
-
-                      <div class="mb-4">
-                        <div class="form-outline form-white">
-                          <label
-                            class="form-label text-white"
-                            for="form3Examplea9"
-                          >
-                            Gender :</label
-                          >
-                          <input type="text" id="id_gender" name="gender" class="form-control form-control-lg" />
-                          <!-- <input type="text" id="form3Examplea9" class="form-control form-control-lg" /> -->
-                        </div>
-                      </div>
-
-                      <div class="mb-4">
-                        <div class="form-outline form-white">
-                          <!-- <input type="text" id="form3Examplea9" class="form-control form-control-lg" />
-     -->
-                          <label
-                            class="form-label text-white"
-                            for="form3Examplea9"
-                          >
-                            Birthdate:</label
-                          >
-                          <input type="text" id="id_dob" name="dob" class="form-control form-control-lg" />
-                        </div>
-                      </div>
-
-                      <div
-                        class="form-check d-flex justify-content-start mb-4 pb-3"
-                      >
-                        <input
-                          class="form-check-input me-3"
-                          type="checkbox"
-                          value=""
-                          id="form2Example3c"
-                        />
-                        <label
-                          class="form-check-label text-white"
-                          for="form2Example3"
-                        >
-                          I do accept the
-                          <a href="#!" class="text-white"
-                            ><u>Terms and Conditions</u></a
-                          >
-                          of your site.
-                        </label>
-                      </div>
-                      <div>
-                        <button
-                          type="submit"
-                          id="submit"
-                          class="btn btn-light btn-lg"
-                          data-mdb-ripple-color="dark"
-                        >
-                          Register
-                        </button>
-                        <a
-                          href="{%url 'login'%}"
-                          class="text-white fw-bold text-body text-white"
-                          ><u class="'text-white">Login here</u></a
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <form
+        name="myForm"
+        id="myForm"
+        action=""
+        method="post"
+        novalidate
+        class="shadow p-5"
+        enctype="multipart/form-data"
+      >
+        {%csrf_token %}
+        <div class="mb-3">
+          <label for="inputEmail4" class="form-label">First Name*</label>
+          {{ form.first_name }} {% if 'first_name' in errors %}
+          <div class="alert alert-danger">
+            <ul>
+              <li>Must be filled</li>
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <label for="inputEmail4" class="form-label">Last Name*</label>
+          {{ form.last_name }}
+        </div>
+        <div class="mb-3">
+          <label for="inputEmail4" class="form-label">Username*</label>
+          {{ form.username }}
+        </div>
+        <div class="mb-3 flex">
+          <label for="inputEmail4" class="form-label">Email*</label>
+          {{ form.email }}
+        </div>
+        <div class="mb-3">
+          <label for="inputEmail4" class="form-label">Phone*</label>
+          {{ form.phone }}
+        </div>
+        <div class="mb-3">
+          <label for="inputEmail4" class="form-label">Postal Code*</label>
+          {{ form.Postal_code }}
+        </div>
+        <div class="mb-3">
+          <label for="inputEmail4" class="form-label">Address*</label>
+          {{ form.home_address }}
+        </div>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="inputEmail4" class="form-label">Division*</label>
+            {{ form.division }}
+          </div>
+          <div class="col mb-3 style='float: right'">
+            <label for="inputEmail4" class="form-label">District*</label>
+            {{ form.district }}
           </div>
         </div>
-      </div>
-    </form>
-  </section>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="inputEmail4" class="form-label">Thana*</label>
+            {{ form.thana }}
+          </div>
+          <div class="col mb-3">
+            <label for="inputEmail4" class="form-label">Role*</label>
+            {{ form.role }}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="inputEmail4" class="form-label">Gender*</label>
+            {{ form.gender }}
+          </div>
+          <div class="col mb-3 float-right">
+            <label for="inputEmail4" class="form-label">Birthdate*</label>
+            {{ form.birthdate }}
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="inputEmail4" class="form-label">Profile Photo</label>
+          {{ form.image }}
+        </div>
+        <div class="mb-3">
+          <label for="inputPassword1" class="form-label">Password*</label>
+          {{ form.password }}
+        </div>
+        <div class="mb-3">
+          <label for="inputPassword2" class="form-label"
+            >Confirm Password*</label
+          >
+          <input type="password" class="form-control" id="inputPassword2" />
+        </div>
+        <div class="row">
+          <div class="col mb-3">
+            <label for="inputEmail4" class="form-label"
+              >Verification Code*</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="verificationCode"
+              name="verificationCode"
+              placeholder="Enter verification code"
+            />
+          </div>
+          <div class="col mb-3 float-right">
+            <label
+              for="inputEmail4"
+              class="form-label"
+              style="color: transparent; background-color: transparent"
+              >Send Code Button</label
+            >
+            <button type="button" id="sendCodeButton" class="btn btn-primary">
+              Send Code
+            </button>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <button type="button" id="check" class="btn btn-danger">
+            Submit
+          </button>
+          <button
+            type="Submit"
+            id="Submit"
+            class="btn btn-danger"
+            style="display: none"
+          >
+            Submit
+          </button>
+        </div>
+        <br />
+        <div class="text-center text-primary fw-bold">
+          <small
+            >Existing User ?
+            <a href="{% url 'login' %}" class="text-danger">Login Now</a>
+          </small>
+        </div>
+        <div class="error">
+          {% if errors %} {% for error in errors %}
+          <p class="alert alert-danger my-1">*{{error}} is required</p>
+          {% endfor %} {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
+<script>
+  /* $(".districtid").click(function () {
+        $(".divisionid").trigger("change");
+    });
+    $(".thanaid").click(function () {
+      $(".districtid").trigger("change");
+    });*/
+  function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  var generatedCode;
+  $(document).ready(function () {
+    $(".divisionid").trigger("change");
+    $(".districtid").trigger("change");
+
+    $("#sendCodeButton").click(function () {
+      var emailValue = $("[name='email']").val();
+      if (!isValidEmail(emailValue)) {
+        alert("Invalid email format");
+        return;
+      }
+
+      $.ajax({
+        url: "{% url 'gvcode' %}",
+        data: { email: emailValue },
+        method: "POST",
+        success: function (data) {
+          generatedCode = data.generated_code;
+          console.log(generatedCode);
+          alert("Verification code sent");
+        },
+      });
+    });
+  });
+
+  $("#check").click(function () {
+    console.log("in check");
+    var pass2 = document.getElementById("inputPassword2");
+    var pass1 = $("[name='password']").val();
+    var pass = pass2.value;
+    console.log(pass1 + " " + pass);
+
+    var myForm = document.getElementById("myForm");
+    if (!myForm) console.log("no form");
+
+    $.ajax({
+      url: "{% url 'checkup' %}",
+      data: $("#myForm").serialize(),
+      method: "POST",
+      success: function (data) {
+        if (data.status == 1) {
+          if (pass1 != pass) {
+            alert("Password does not match");
+            return;
+          }
+          var enteredCode = $("#verificationCode").val();
+          if (enteredCode == "") {
+            alert("Please Verify Mail by clicking 'Send Code' ");
+            return;
+          }
+          if (enteredCode != generatedCode) {
+            alert("Verification code does not match");
+            return;
+          }
+
+          console.log("Form submitted successfully");
+          $("#Submit").trigger("click");
+          //window.location.href = "{% url 'login' %}";
+        } else {
+          console.log("NO");
+          var errorDiv = $(".error");
+          errorDiv.html("");
+          if (data.error) {
+            Object.entries(data.error).forEach(([field, error_message]) => {
+              var errorMessage = `*${field}: ${error_message}`;
+              errorDiv.append(
+                `<p class="alert alert-danger my-1">${errorMessage}</p>`
+              );
+            });
+          }
+        }
+      },
+    });
+  });
+
+  $(".divisionid").change(function () {
+    const url = " {% url 'dsign' %}";
+    const division = $(this).val();
+
+    $.ajax({
+      url: url,
+      data: {
+        division: division,
+      },
+      success: function (data) {
+        $(".districtid").html("");
+        $(".districtid").html(data);
+      },
+    });
+  });
+
+  $(".districtid").change(function () {
+    const url = "{% url 'tsign' %}";
+    const district = $(".districtid").val();
+
+    $.ajax({
+      url: url,
+      data: {
+        district: district,
+      },
+      success: function (data) {
+        $(".thanaid").html("");
+        $(".thanaid").html(data);
+      },
+    });
+  });
+</script>
+{%endblock%}
