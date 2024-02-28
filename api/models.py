@@ -96,3 +96,56 @@ class Overseer(User):
         # Update other common fields
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
+    
+
+class Hospital(models.Model):
+    h_id = models.AutoField(primary_key=True)
+    h_name = models.CharField(max_length=255)
+    h_location = models.CharField(max_length=255)
+    branch = models.CharField(max_length=255)
+    thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.h_name
+
+class Walk(models.Model):
+    walk_id = models.AutoField(primary_key=True)
+    walk_name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255)
+    w_propose_date = models.DateField()
+    walk_date = models.DateField()
+    privacy = models.CharField(max_length=255)
+    w_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.walk_name
+
+class CareType(models.Model):
+    type = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.type
+class Caregiver(models.Model):
+    caregiver_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    gender = models.CharField(max_length=10)
+    phone = models.PositiveIntegerField()
+    experience = models.PositiveIntegerField()
+    type = models.ForeignKey(CareType, on_delete=models.CASCADE)
+    h_id = models.ForeignKey(Hospital, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+
+
+class WalkMember(models.Model):
+    wm_id = models.AutoField(primary_key=True)
+    cancel = models.IntegerField()
+    username = models.ForeignKey(User, on_delete=models.CASCADE)
+    walk_id = models.ForeignKey(Walk, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.username} - {self.walk_id}"
+
