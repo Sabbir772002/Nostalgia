@@ -1,9 +1,16 @@
-{% extends 'base.html' %} 
-{% load static %}   
+{% load static %}
 <link rel="stylesheet" href="{% static 'css/sign.css' %}." />
-
-{% block content%}
 <style>
+  .sinupdone {
+  min-width: 992px;
+  min-height: 985px;
+}
+.GN {
+    border-bottom-left-radius: 15px;
+    border-top-left-radius: 15px;
+    background-color: #392d58;
+}
+/* above is after add */
 
 @media (min-width: 1025px) {
   .h-custom {
@@ -41,6 +48,7 @@
   }
 }
 
+/*Main code for template
 @media (min-width: 1025px) {
     .h-custom {
       height: 100vh !important;
@@ -56,7 +64,25 @@
     top: 13px;
   }
 
- 
+  .gradient-custom-2 {
+    /* fallback for old browsers */
+    background: #a1c4fd;
+
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: -webkit-linear-gradient(
+      to right,
+      rgba(161, 196, 253, 1),
+      rgba(194, 233, 251, 1)
+    );
+
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background: linear-gradient(
+      to right,
+      rgba(161, 196, 253, 1),
+      rgba(194, 233, 251, 1)
+    );
+  }
+
   .bg-indigo {
     background-color: #4835d4;
   }
@@ -74,7 +100,7 @@
   }
 </style>
 
-<div class="sinupdone">
+<div class="sinupdone"></div>
   <section class="h-100 h-custom gradient-custom-2">
     <form action="{% url 'signup' %}" class="term" id="term" method="post">
       {% csrf_token %}
@@ -286,5 +312,3 @@
     </form>
   </section>
 </div>
-</div>
-{%endblock%}
