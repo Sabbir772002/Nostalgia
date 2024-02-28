@@ -34,46 +34,38 @@
   <link rel="stylesheet" href="{% static 'css/chatbot.css' %}" />
   
 <style>
- body {
-background-color: #fbfbfb;
-}
-@media (min-width: 991.98px) {
-main {
-padding-left: 240px;
-}
-}
-
-/* Sidebar */
-.sidebar {
-position: fixed;
-top: 0;
-bottom: 0;
-left: 0;
-padding:0 0; /* Height of navbar */
-box-shadow: 0 2px 5px 0 rgb(0 0 0 / 5%), 0 2px 10px 0 rgb(0 0 0 / 5%);
-width: 240px;
-z-index: 600;
-}
-
-@media (max-width: 991.98px) {
-.sidebar {
-width: 100%;
-}
-}
-.sidebar .active {
-border-radius: 5px;
-box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
-}
-
-.sidebar-sticky {
-position: relative;
-top: 0;
-height: calc(100vh - 48px);
-padding-top: 0.5rem;
-overflow-x: hidden;
-overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-}
+ 
+    body {
+        background-color: #fbfbfb;
+        overflow-x: hidden; /* Prevent horizontal overflow */
+    }
+    /* Main Navigation */
+    header {
+        overflow: hidden; /* Prevent vertical overflow */
+    }
+    /* Sidenav */
+    .sidenav {
+        overflow-y: auto; /* Enable vertical scrolling */
+        max-height: 100vh; /* Set maximum height to full viewport height */
+    }
+    /* Navbar */
+    #main-navbar {
+        overflow: hidden; /* Prevent vertical overflow */
+    }
+    .navbar-nav {
+        flex-wrap: nowrap; /* Prevent items from wrapping */
+        overflow-x: auto; /* Enable horizontal scrolling */
+    }
+    /* Adjustments for small screens */
+    @media (max-width: 768px) {
+        .navbar-nav {
+            flex-wrap: wrap; /* Allow items to wrap on small screens */
+            overflow-x: hidden; /* Hide horizontal scrollbar */
+        }
+    }
 </style>
+
+
 
 <!-- Navbar-->
 <header>
