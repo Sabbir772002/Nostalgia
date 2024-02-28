@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+{%load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple HTML HomePage</title>
+  <link rel="stylesheet" href="{% static 'css/head.css' %}.">
+  <link rel="icon" href="{% static 'images/logo.png'%}" type="image/x-icon" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+/>
+<link rel="stylesheet" href="{% static 'css/styles.css' %}." />
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <!-- Google Fonts Roboto -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"/>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <!-- MDB -->
+  <link rel="stylesheet" href="{% static 'css/mdb.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/chatbot.css' %}" />
+  
+<style>
+    body {
+  background-color: #fbfbfb;
+}
+</style>
+
+<!--Main Navigation-->
+<header>
+    <!-- Sidenav -->
+    <div id="sidenav-1" class="sidenav" data-mdb-color="dark" role="navigation" data-mdb-hidden="false"
+      data-mdb-accordion="true">
+      <a class="ripple d-flex justify-content-center py-3" href="#!" data-mdb-ripple-color="primary">
+        <img id="MDB-logo" src="https://mdbootstrap.com/wp-content/uploads/2018/06/logo-mdb-jquery-small.png"
+          alt="MDB Logo" draggable="false" height="25" />
+      </a>
+      <ul class="sidenav-menu">
+        <li class="sidenav-item">
+          <a class="sidenav-link active">
+            <i class="fas fa-home fa-fw me-3"></i><span>Home</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-fire fa-fw me-3"></i><span>Trending</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fab fa-youtube-square fa-fw me-3"></i><span>Subscriptions</span>
+          </a>
+        </li>
+      </ul>
+      <hr>
+      <ul class="sidenav-menu">
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-caret-square-right fa-fw me-3"></i><span>Library</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-history fa-fw me-3"></i><span>History</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="far fa-caret-square-right fa-fw me-3"></i><span>Your videos</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-clock fa-fw me-3"></i><span>Watch later</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-thumbs-up fa-fw me-3"></i><span>Liked videos</span>
+          </a>
+        </li>
+      </ul>
+      <hr>
+      <ul class="sidenav-menu">
+        <h6 class="text-muted text-uppercase ps-4">Subscriptions</h6>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <img src="https://mdbootstrap.com/img/Photos/Avatars/img (31).jpg" class="rounded-circle me-3" height="25"
+              alt="" loading="lazy" /><span>The Jazz Hop Cafe</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <img src="https://mdbootstrap.com/img/Photos/Avatars/img (32).jpg" class="rounded-circle me-3" height="25"
+              alt="" loading="lazy" /><span>MDB Youth</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <img src="https://mdbootstrap.com/img/Photos/Avatars/img (33).jpg" class="rounded-circle me-3" height="25"
+              alt="" loading="lazy" /><span>Travels by Bus Around the World</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <img src="https://mdbootstrap.com/img/Photos/Avatars/img (30).jpg" class="rounded-circle me-3" height="25"
+              alt="" loading="lazy" /><span>The Awesome</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <img src="https://mdbootstrap.com/img/Photos/Avatars/img (28).jpg" class="rounded-circle me-3" height="25"
+              alt="" loading="lazy" /><span>SheriffUSA</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link" data-mdb-toggle="collapse" role="button" aria-expanded="false"
+            aria-controls="collapseExample">
+            <i class="fas fa-chevron-down fa-fw me-3"></i><span>Show 2 more</span>
+          </a>
+        </li>
+      </ul>
+      <hr>
+      <ul class="sidenav-menu">
+        <h6 class="text-muted text-uppercase ps-4">More from youtube</h6>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fab fa-youtube fa-fw me-3"></i><span>YouTube Premium</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-film fa-fw me-3"></i><span>Movies</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-gamepad fa-fw me-3"></i><span>Gaming</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-broadcast-tower fa-fw me-3"></i><span>Live</span>
+          </a>
+        </li>
+      </ul>
+      <hr>
+      <ul class="sidenav-menu">
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-cog fa-fw me-3"></i><span>Settings</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-flag fa-fw me-3"></i><span>Report history</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-question-circle fa-fw me-3"></i><span>Help</span>
+          </a>
+        </li>
+        <li class="sidenav-item">
+          <a class="sidenav-link">
+            <i class="fas fa-comment-alt fa-fw me-3"></i><span>Send feedback</span>
+          </a>
+        </li>
+      </ul>
+      <hr>
+      <div class="ps-4 mb-3">
+        <a href="" class="text-body small me-3">About</a>
+        <a href="" class="text-body small me-3">Press</a>
+        <a href="" class="text-body small me-3">Copyright</a>
+        <a href="" class="text-body small me-3">Contact us</a>
+        <a href="" class="text-body small me-3">Creators</a>
+        <a href="" class="text-body small me-3">Advertise</a>
+        <a href="" class="text-body small me-3">Developers</a>
+      </div>
+      <div class="ps-4 mb-4 pb-2">
+        <a href="" class="text-body small me-3">Terms</a>
+        <a href="" class="text-body small me-3">Privacy</a>
+        <a href="" class="text-body small me-3">Policy & Safety</a>
+        <a href="" class="text-body small me-3">How YouTube works</a>
+        <a href="" class="text-body small me-3">Test new features</a>
+      </div>
+      <p class="small text-muted ps-4">© 2020 MDBootstrap</p>
+    </div>
+    <!-- Sidenav -->
+  
+    <!-- Navbar -->
+    <nav id="main-navbar" class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+      <!-- Container wrapper -->
+      <div class="container-fluid">
+        <!-- Toggler -->
+        <button data-mdb-toggle="sidenav" data-mdb-target="#sidenav-1" class="btn shadow-0 p-0 me-3 d-block d-xxl-none"
+          aria-controls="#sidenav-1" aria-haspopup="true">
+          <i class="fas fa-bars fa-lg"></i>
+        </button>
+  
+        <!-- Search form -->
+        <form class="d-none d-md-flex justify-content-center mx-auto input-group w-auto my-auto">
+          <input autocomplete="off" type="search" class="form-control rounded" placeholder='Search'
+            style="min-width: 225px;" />
+          <span class="input-group-text border-0"><i class="fas fa-search"></i></span>
+        </form>
+  
+        <!-- Right links -->
+        <ul class="navbar-nav d-flex align-items-center flex-row">
+          <li class="nav-item">
+            <a class="nav-link me-3 py-1" href="#" data-mdb-toggle="tooltip" title="Create">
+              <i class="fas fa-video"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link me-3 py-1" href="#" data-mdb-toggle="tooltip" title="YouTube apps">
+              <i class="fas fa-th"></i>
+            </a>
+          </li>
+          <li class="nav-item me-3">
+            <a class="nav-link py-1" href="#" data-mdb-toggle="tooltip" title="Notifications">
+              <i class="fas fa-bell"></i>
+            </a>
+          </li>
+  
+          <!-- Avatar -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle hidden-arrow d-flex align-items-center py-1" href="#"
+              id="navbarDropdownMenuLink" role="button" data-mdb-toggle="dropdown" aria-expanded="false">
+              <img src="https://mdbootstrap.com/img/Photos/Avatars/img (31).jpg" class="rounded-circle" height="30"
+                alt="" loading="lazy" />
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink"
+              style="min-width: 19rem;">
+              <li>
+                <div class="px-3 pt-3 d-flex">
+                  <img src="https://mdbootstrap.com/img/Photos/Avatars/img (31).jpg" class="rounded-circle me-3"
+                    height="40" alt="" loading="lazy" />
+                  <div>
+                    <h6 class="mb-0">Marie Campbell</h6>
+                    <p class="mb-2">mariecampbell@example.com</p>
+                    <a class="mb-0" href="">Manage your Google Account</a>
+                  </div>
+                </div>
+                <hr class="mb-2">
+              </li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle fa-fw me-3"></i><span>Your
+                    channel</span></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-dollar-sign fa-fw me-3"></i><span>Paid
+                    memberships</span></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-play-circle fa-fw me-3"></i><span>YouTube
+                    Studio</span></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-users-cog fa-fw me-3"></i><span>Switch
+                    account</span><i class="fas fa-chevron-right float-end mt-1"></i></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a>
+              </li>
+              <hr class="my-2">
+              <li><a class="dropdown-item" href="#"><i class="fas fa-sun fa-fw me-3"></i><span>Appearance: Device
+                    theme</span><i class="fas fa-chevron-right float-end mt-1"></i></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-language fa-fw me-3"></i><span>Language:
+                    English</span><i class="fas fa-chevron-right float-end mt-1"></i></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-globe fa-fw me-3"></i><span>Location: United
+                    Kingdom</span><i class="fas fa-chevron-right float-end mt-1"></i></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-cog fa-fw me-3"></i><span>Settings</span></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-shield-alt fa-fw me-3"></i><span>Your data in
+                    YouTube</span></a></li>
+              <li><a class="dropdown-item" href="#"><i
+                    class="fas fa-question-circle fa-fw me-3"></i><span>Help</span></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-comment-alt fa-fw me-3"></i><span>Send
+                    feedback</span></a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-keyboard fa-fw me-3"></i><span>Keyboard
+                    shortcuts</span></a></li>
+              <hr class="my-2">
+              <li><a class="dropdown-item mb-2" href="#"><span>Restricted Mode: Off</span><i
+                    class="fas fa-chevron-right float-end mt-1"></i></a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <!-- Container wrapper -->
+    </nav>
+    <!-- Navbar -->
+  </header>
+  <!--Main Navigation-->
+
+           {%block content%}
+           {%endblock%}
+ <script type="text/javascript" src="{% static 'js/mdb.min.js'%}"></script>
+<script type="text/javascript"></script>
+ </body>
+
+
+ <div class="footer">
+ <footer>
+    <div class="row py-3">
+      <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+        <h6 class="text-uppercase font-weight-bold mb-4">About</h6>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2"><a href="" class="text-muted">Contact Us</a></li>
+          <li class="mb-2"><a href="" class="text-muted">About Us</a></li>
+          <li class="mb-2"><a href="#" class="text-muted">Stories</a></li>
+          <li class="mb-2"><a href="#" class="text-muted">Press</a></li>
+        </ul>
+      </div>
+
+        <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+          <h6 class="text-uppercase font-weight-bold mb-4">Important Link</h6>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><a href="" class="text-muted">Became CareGiver</a></li>
+            <li class="mb-2"><a href="" class="text-muted">Became Expert</a></li>
+            <li class="mb-2"><a href="" class="text-muted">Became Trainer</a></li>
+            <li class="mb-2"><a href="#" class="text-muted">Make Team</a></li>
+          </ul>
+        </div>
+      
+      <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+        <h6 class="text-uppercase font-weight-bold mb-4">Policy</h6>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2"><a href="#" class="text-muted">Return Policy</a></li>
+          <li class="mb-2"><a href="#" class="text-muted">Terms Of Use</a></li>
+          <li class="mb-2"><a href="#" class="text-muted">Security</a></li>
+          <li class="mb-2"><a href="#" class="text-muted">Privacy</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+        <h6 class="text-uppercase font-weight-bold mb-4">Company</h6>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2"><a href="{%url 'login'%}" class="text-muted ">Login</a></li>
+          <li class="mb-2"><a href="" class="text-muted">Add Blog</a></li>
+          <li class="mb-2"><a href="" class="text-muted">Post Job</a></li>
+          <li class="mb-2"><a href="" class="text-muted">Add Event</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+        <h6 class="text-uppercase font-weight-bold mb-4">Registered Office Address</h6>
+        <p class="text-muted mb-4">Here , write the complete address of the Registered office address along with telephone number.</p>
+        <ul class="list-inline mt-4">
+          <li class="list-inline-item"><a href="#" target="_blank" title="twitter"><i class="fab  fa-2x fa-twitter"></i></a></li>
+          <li class="list-inline-item"><a href="#" target="_blank" title="facebook"><i class="fab fa-2x fa-facebook-f"></i></a></li>
+          <li class="list-inline-item"><a href="#" target="_blank" title="instagram"><i class="fab fa-2x fa-instagram"></i></a></li>
+          <li class="list-inline-item"><a href="#" target="_blank" title="pinterest"><i class="fab fa-2x fa-youtube"></i></a></li>
+          <li class="list-inline-item"><a href="#" target="_blank" title="vimeo"><i class="fab fa-2x fa-google"></i></a></li>
+        </ul>
+         <div class="container">
+           <div class="chatbox">
+              <div class="chatbox__support">
+                <div class="chatbox__header">
+                  <div class="chatbox__image--header">
+                    <img
+                      src="https://img.icons8.com/color/48/000000/circled-user-female-skin-type-5--v1.png"
+                      alt="image"
+                    />
+                  </div>
+                <div class="chatbox__content--header">
+                  <h4 class="chatbox__heading--header">Chat support</h4>
+                  <p class="chatbox__description--header">
+                    Hi. My name is Sam. How can I help you?
+                  </p>
+                </div>
+                        </div>
+                <div class="chatbox__messages">
+                  <div></div>
+                </div>
+                <div class="chatbox__footer">
+                  <input type="text" placeholder="Write a message..." />
+                  <button class="chatbox__send--footer send__button">Send</button>
+                </div>
+              </div>
+              <div class="chatbox__button">
+                    <button><img src="{% static 'images/chatbot.svg' %}" /></button>
+                    </div>
+                  </div>
+                </div>
+                <script type="text/javascript" src="{% static 'js/app.js'%}"></script>
+              </div>
+            </div>
+          </div>
+  <hr class="p-0 m-0 b-0">
+  <div class="py-2">
+    <div class="container text-center">
+      <p class="text-muted mb-0 py-2">&copy; 2023 Nostalgia. All risghts reserved.</p>
+      
+      </div>
+    </div>
+</footer>
+</div>
+    <script>
+      $("#autocomplete-results").on("click", ".autocomplete-item", function () {
+        var selectedValue = $(this).text();
+        $("#search-input").val(selectedValue);
+        $("#autocomplete-results").removeClass("show");
+      });
+
+      $(document).ready(function () {
+        $("#search-input").on("input", function () {
+          var prefix = $(this).val();
+          $.ajax({
+            url: "/autocomplete/",
+            method: "POST",
+            data: { prefix: prefix },
+            dataType: "html",
+            success: function (data) {
+              $("#autocomplete-results").html(data).addClass("show");
+            },
+          });
+        });
+      });
+    </script>
+
+
+</html>

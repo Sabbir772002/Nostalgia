@@ -32,9 +32,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "django.contrib.admin",
-    "web",
-    "api",
-    'corsheaders',
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -44,32 +41,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-            'django.middleware.csrf.CsrfViewMiddleware',
-
 ]
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8000",  
-]
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-]
-
-
-SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('Bearer',),
-}
 
 ROOT_URLCONF = "nostalgia.urls"
 
@@ -88,11 +66,6 @@ TEMPLATES = [
         },
     },
 ]
-AUTHENTICATION_BACKENDS = [
-    # 'api.backends.UserBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
-
 
 WSGI_APPLICATION = "nostalgia.wsgi.application"
 
@@ -100,21 +73,10 @@ WSGI_APPLICATION = "nostalgia.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'nostalgia',
-        'USER': 'root',
-        'PASSWORD':'',
-        'HOST': 'localhost',    # Or your MySQL host address
-        'PORT': '3306',         # Or your MySQL port
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -157,9 +119,5 @@ STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-AUTH_USER_MODEL = 'api.User'
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-ALLOWED_HOSTS =  ['localhost', '127.0.0.1','http://localhost:3000',  # Your React app's URL
-]
-SESSION_COOKIE_AGE = 180000
-CORS_ORIGIN_ALLOW_ALL = True
