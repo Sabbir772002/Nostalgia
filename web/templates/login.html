@@ -1,5 +1,6 @@
-{% load static %} 
-    <div class="row justify-content-center mt-5">
+{% extends 'base.html' %} 
+{% block content%}
+{% load static %}    <div class="row justify-content-center mt-5">
   <div class="col-md-4">
     <form method="post" action="{% url 'home' %}">
         {% csrf_token %}
@@ -30,4 +31,133 @@
     
   </div>
 </div>
-</div> 
+</div>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+      <form method="post" action="{% url 'home' %}">
+          {% csrf_token %}
+          <div class="form-outline mb-4">
+              <label class="form-label" for="username">Username</label>
+              <input type="text" id="username" name="username" class="form-control">
+          </div>
+          <div class="form-outline mb-4">
+              <label class="form-label" for="password">Password</label>
+              <input type="password" id="password" name="password" class="form-control">
+          </div>
+          <div class="row mb-4">
+              <div class="col d-flex justify-content-center">
+                  <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="" id="remember_me" name="remember_me" checked>
+                      <label class="form-check-label" for="remember_me"> Remember me </label>
+                  </div>
+              </div>
+              <div class="col">
+                  <a href="#!">Forgot password?</a>
+              </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
+          <div class="text-center">
+              <p>Not a member? <a href="{% url 'signup' %}">Register</a></p>
+          </div>
+      </form>
+      
+    </div>
+  </div>
+  </div>
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+      <form method="post" action="{% url 'home' %}">
+          {% csrf_token %}
+          <div class="form-outline mb-4">
+              <label class="form-label" for="username">Username</label>
+              <input type="text" id="username" name="username" class="form-control">
+          </div>
+          <div class="form-outline mb-4">
+              <label class="form-label" for="password">Password</label>
+              <input type="password" id="password" name="password" class="form-control">
+          </div>
+          <div class="row mb-4">
+              <div class="col d-flex justify-content-center">
+                  <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="" id="remember_me" name="remember_me" checked>
+                      <label class="form-check-label" for="remember_me"> Remember me </label>
+                  </div>
+              </div>
+              <div class="col">
+                  <a href="#!">Forgot password?</a>
+              </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
+          <div class="text-center">
+              <p>Not a member? <a href="{% url 'signup' %}">Register</a></p>
+          </div>
+      </form>
+      
+    </div>
+  </div>
+  </div>
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+      <form method="post" action="{% url 'home' %}">
+          {% csrf_token %}
+          <div class="form-outline mb-4">
+              <label class="form-label" for="username">Username</label>
+              <input type="text" id="username" name="username" class="form-control">
+          </div>
+          <div class="form-outline mb-4">
+              <label class="form-label" for="password">Password</label>
+              <input type="password" id="password" name="password" class="form-control">
+          </div>
+          <div class="row mb-4">
+              <div class="col d-flex justify-content-center">
+                  <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="" id="remember_me" name="remember_me" checked>
+                      <label class="form-check-label" for="remember_me"> Remember me </label>
+                  </div>
+              </div>
+              <div class="col">
+                  <a href="#!">Forgot password?</a>
+              </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
+          <div class="text-center">
+              <p>Not a member? <a href="{% url 'signup' %}">Register</a></p>
+          </div>
+      </form>
+      
+    </div>
+  </div>
+  </div>
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+      <form method="post" action="{% url 'home' %}">
+          {% csrf_token %}
+          <div class="form-outline mb-4">
+              <label class="form-label" for="username">Username</label>
+              <input type="text" id="username" name="username" class="form-control">
+          </div>
+          <div class="form-outline mb-4">
+              <label class="form-label" for="password">Password</label>
+              <input type="password" id="password" name="password" class="form-control">
+          </div>
+          <div class="row mb-4">
+              <div class="col d-flex justify-content-center">
+                  <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="" id="remember_me" name="remember_me" checked>
+                      <label class="form-check-label" for="remember_me"> Remember me </label>
+                  </div>
+              </div>
+              <div class="col">
+                  <a href="#!">Forgot password?</a>
+              </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
+          <div class="text-center">
+              <p>Not a member? <a href="{% url 'signup' %}">Register</a></p>
+          </div>
+      </form>
+      
+    </div>
+  </div>
+  </div>
+{%endblock%}

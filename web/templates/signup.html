@@ -1,10 +1,9 @@
-{% load static %}
+{% extends 'base.html' %} 
+{% block content%}
+{% load static %}   
 <link rel="stylesheet" href="{% static 'css/sign.css' %}." />
 <style>
-  .sinupdone {
-  min-width: 992px;
-  min-height: 985px;
-}
+  
 .GN {
     border-bottom-left-radius: 15px;
     border-top-left-radius: 15px;
@@ -312,3 +311,4 @@
     </form>
   </section>
 </div>
+{%endblock%}

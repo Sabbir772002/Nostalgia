@@ -11,5 +11,5 @@ urlpatterns = [
     path('friends', views.friends, name='friends'),
     path('signup', views.signup, name='signup'),
     path('logout', views.logout_view, name='logout'),
-    path('log_in', views.log_in, name='log_in'),
+    path('login', views.log_in, name='log_in'),
 ]
