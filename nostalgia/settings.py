@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "web",
     "api",
-    #'corsheaders',
+    'corsheaders',
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
