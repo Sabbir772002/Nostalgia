@@ -90,7 +90,6 @@ def signup(request):
             return redirect('home')
         else:
             print("Failed to register:", response.text)
-            print("amra tomake khujssi")
                     
         return render(request, 'signup.html')
 
