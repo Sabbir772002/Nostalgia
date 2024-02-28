@@ -109,9 +109,9 @@ def signup(request):
             'walk_type': walk_type,
             'gender': gender,
             'phone': phone,
-            'dob': '2022-01-01',
+            'dob': dob,
             'address': address,
-            'nid': '1234567890',
+            'nid': nid,
             'thana':1,
             #'p_image': 'http://example.com/image.jpg',
         }
