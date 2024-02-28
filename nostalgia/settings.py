@@ -148,12 +148,10 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
-
+LOGIN_URL = 'log_in'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -163,3 +161,12 @@ ALLOWED_HOSTS =  ['localhost', '127.0.0.1','http://localhost:3000',  # Your Reac
 ]
 SESSION_COOKIE_AGE = 180000
 CORS_ORIGIN_ALLOW_ALL = True
+
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = 'media'
+import os
+# Define the directories where Django will look for static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static/'),  # Add the 'static' folder to the list
+]
