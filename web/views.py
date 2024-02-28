@@ -87,6 +87,7 @@ def signup(request):
         response = requests.post(url, data=data)
         if response.status_code == 201:
             print("Registration successful!")
+            print("that not the case")
             return redirect('home')
         else:
             print("Failed to register:", response.text)

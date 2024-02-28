@@ -1,0 +1,84 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f5f5;
+}
+
+.header .logo {
+  font-size: 25px;
+  font-family: "Sriracha", cursive;
+  color: #000;
+  text-decoration: none;
+  margin-left: 30px;
+}
+
+.nav-items {
+  display: flex;
+  justify-content: space-around;
+  align-items: right;
+  margin-left: 20px;
+}
+
+.nav-items a {
+  text-decoration: none;
+  color: #000;
+  padding: 35px 20px;
+}
+.spacer {
+  padding: 20px;
+}
+@import url("https://fonts.googleapis.com/css2?family=Titillium+Web:wght@700&display=swap");
+body {
+  background-color: #f3f6fd;
+  font-size: 13px;
+  font-weight: bold;
+  color: rgb(189, 196, 203);
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul > li {
+  padding: 4px;
+  color: #c5cae9;
+}
+
+ul > li:hover {
+  color: #957bda;
+  cursor: pointer;
+}
+
+hr {
+  border-width: 3px;
+}
+
+.card {
+  padding: 2% 7%;
+}
+
+.social > i {
+  padding: 1%;
+  font-size: 15px;
+}
+
+.social > i:hover {
+  color: #957bda;
+  cursor: pointer;
+}
+
+.policy > div {
+  padding: 4px;
+}
+
+.heading {
+  font-family: "Titillium Web", sans-serif;
+  color: black;
+}
+
+.divider {
+  border-top: 2px solid;
+}
