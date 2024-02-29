@@ -152,19 +152,6 @@ class Hospital(models.Model):
 
     def __str__(self):
         return self.h_name
-    
-class Caregiver(models.Model):
-    caregiver_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-    gender = models.CharField(max_length=10)
-    phone = models.PositiveIntegerField()
-    experience = models.PositiveIntegerField()
-    type = models.ForeignKey(Type, on_delete=models.CASCADE)
-    h_id = models.ForeignKey(Hospital, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.name
-
 
 class CareType(models.Model):
     type = models.CharField(max_length=255)
@@ -172,15 +159,17 @@ class CareType(models.Model):
     def __str__(self):
         return self.type
 
-class WalkMember(models.Model):
-    wm_id = models.AutoField(primary_key=True)
-    cancel = models.IntegerField()
-    username = models.ForeignKey(User, on_delete=models.CASCADE)
-    walk_id = models.ForeignKey(Walk, on_delete=models.CASCADE)
+class Caregiver(models.Model):
+    caregiver_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    gender = models.CharField(max_length=10)
+    phone = models.PositiveIntegerField()
+    experience = models.PositiveIntegerField()
+    type = models.ForeignKey(CareType, on_delete=models.CASCADE)  
+    h_id = models.ForeignKey(Hospital, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.username} - {self.walk_id}"
-
+        return self.name
 
 class Walk(models.Model):
     walk_id = models.AutoField(primary_key=True)
@@ -193,3 +182,14 @@ class Walk(models.Model):
 
     def __str__(self):
         return self.walk_name
+    
+class WalkMember(models.Model):
+    wm_id = models.AutoField(primary_key=True)
+    cancel = models.IntegerField()
+    username = models.ForeignKey(User, on_delete=models.CASCADE)
+    walk_id = models.ForeignKey(Walk, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.username} - {self.walk_id}"
+
+
