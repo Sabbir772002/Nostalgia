@@ -1,10 +1,7 @@
-from django.contrib.auth.models import AbstractBaseUser,Group, BaseUserManager,AbstractUser,Permission,PermissionsMixin
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager,Group,Permission
 from django.db import models
-
-class MyModel(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.hashers import make_password
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -26,121 +23,79 @@ class UserManager(BaseUserManager):
 
         return self.create_user(username, password, **extra_fields)
 
-class User(AbstractUser,PermissionsMixin):
+
+class User(AbstractBaseUser, PermissionsMixin):
     groups = models.ManyToManyField(
         Group,
         verbose_name=_('groups'),
         blank=True,
-        related_name='api_user_groups'
+        related_name='custom_user_groups'  # Change this to a unique related_name
     )
     user_permissions = models.ManyToManyField(
         Permission,
         verbose_name=_('user permissions'),
         blank=True,
-        related_name='api_user_permissions'
+        related_name='custom_user_permissions'  # Change this to a unique related_name
     )
-
+    # Your
+    email = models.EmailField(unique=True)
     username = models.CharField(max_length=100, unique=True)
-    f_name = models.CharField(max_length=100)
-    l_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
     gender = models.CharField(max_length=10)
-    email = models.EmailField()
     phone = models.CharField(max_length=20)
     dob = models.DateField()
     address = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)  # Storing passwords as plain integers is insecure
+    password = models.CharField(max_length=255)
     nid = models.CharField(max_length=20)
-    p_image = models.ImageField(upload_to='image/',null=True)  # ImageField for login image
-    walk_type = models.CharField(max_length=100)
+    p_image = models.ImageField(upload_to='image/', null=True)
     thana = models.ForeignKey('Thana', on_delete=models.CASCADE)
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['f_name', 'email', 'phone', 'dob', 'thana', 'nid']
+    REQUIRED_FIELDS = ['email']
 
     objects = UserManager()
 
     def __str__(self):
         return self.username
 
+    class Meta:
+        verbose_name = _('User')
+        verbose_name_plural = _('Users')
+
+
 class Thana(models.Model):
-    # Define Thana fields
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
 
-class OverseerManager(BaseUserManager):
-    def create_user(self, username, password=None, **extra_fields):
-        if not username:
-            raise ValueError('The Username field must be set')
-        user = self.model(username=username, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
 
-    def create_superuser(self, username, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+class Owner(User):
+    walk_type = models.CharField(max_length=100)
 
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+    class Meta:
+        verbose_name = _('Owner')
+        verbose_name_plural = _('Owners')
 
-        return self.create_user(username, password, **extra_fields)
+    def save(self, *args, **kwargs):
+        # Update other common fields
+        self.password = make_password(self.password)
+        super().save(*args, **kwargs)
 
-class Overseer(AbstractBaseUser):
-    username = models.CharField(max_length=100, unique=True)
-    Name = models.CharField(max_length=255)
-    Phone = models.CharField(max_length=20)
-    Email = models.EmailField()
+
+class Overseer(User):
     Location = models.CharField(max_length=255)
-    NID = models.CharField(max_length=20)
     Relation = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
-    Gender = models.CharField(max_length=10)
-    thana = models.ForeignKey('Thana', on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = _('Overseer')
+        verbose_name_plural = _('Overseers')
 
-    USERNAME_FIELD = 'username'
-    # Add any additional fields required for authentication
-    # Example:
-    # REQUIRED_FIELDS = ['email']
-
-    objects = OverseerManager()
-
-    def __str__(self):
-        return self.username
-    
-
-class Friend(models.Model):
-    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user1_friends')
-    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user2_friends')
-    f_created_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user1.username} - {self.user2.username}"
-    
-
-class Medication(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    med_name = models.ForeignKey('MedName', on_delete=models.CASCADE)
-    meds_start_date = models.DateField()
-    meds_end_date = models.DateField()
-    dose = models.PositiveIntegerField()
-    times = models.PositiveIntegerField()
-
-    def __str__(self):
-        return f"{self.med_name} - {self.user.username}"
-
-class Medicine(models.Model):
-    med_id = models.AutoField(primary_key=True)
-    disease = models.CharField(max_length=255)
-    content = models.CharField(max_length=255)
-    med_name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.med_name
+    def save(self, *args, **kwargs):
+        # Update other common fields
+        self.password = make_password(self.password)
+        super().save(*args, **kwargs)
     
 
 class Hospital(models.Model):
@@ -153,24 +108,47 @@ class Hospital(models.Model):
     def __str__(self):
         return self.h_name
 
+<<<<<<< HEAD
+=======
+class Walk(models.Model):
+    walk_id = models.AutoField(primary_key=True)
+    walk_name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255)
+    w_propose_date = models.DateField()
+    walk_date = models.DateField()
+    privacy = models.CharField(max_length=255)
+    w_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.walk_name
+
+>>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
 class CareType(models.Model):
     type = models.CharField(max_length=255)
 
     def __str__(self):
         return self.type
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
 class Caregiver(models.Model):
     caregiver_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     gender = models.CharField(max_length=10)
     phone = models.PositiveIntegerField()
     experience = models.PositiveIntegerField()
+<<<<<<< HEAD
     type = models.ForeignKey(CareType, on_delete=models.CASCADE)  
+=======
+    type = models.ForeignKey(CareType, on_delete=models.CASCADE)
+>>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
     h_id = models.ForeignKey(Hospital, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
+<<<<<<< HEAD
 class Walk(models.Model):
     walk_id = models.AutoField(primary_key=True)
     walk_name = models.CharField(max_length=255)
@@ -183,6 +161,11 @@ class Walk(models.Model):
     def __str__(self):
         return self.walk_name
     
+=======
+
+
+
+>>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
 class WalkMember(models.Model):
     wm_id = models.AutoField(primary_key=True)
     cancel = models.IntegerField()
@@ -192,4 +175,7 @@ class WalkMember(models.Model):
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
