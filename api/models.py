@@ -108,8 +108,6 @@ class Hospital(models.Model):
     def __str__(self):
         return self.h_name
 
-<<<<<<< HEAD
-=======
 class Walk(models.Model):
     walk_id = models.AutoField(primary_key=True)
     walk_name = models.CharField(max_length=255)
@@ -122,50 +120,23 @@ class Walk(models.Model):
     def __str__(self):
         return self.walk_name
 
->>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
 class CareType(models.Model):
     type = models.CharField(max_length=255)
 
     def __str__(self):
         return self.type
-<<<<<<< HEAD
-
-=======
->>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
 class Caregiver(models.Model):
     caregiver_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     gender = models.CharField(max_length=10)
     phone = models.PositiveIntegerField()
     experience = models.PositiveIntegerField()
-<<<<<<< HEAD
-    type = models.ForeignKey(CareType, on_delete=models.CASCADE)  
-=======
     type = models.ForeignKey(CareType, on_delete=models.CASCADE)
->>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
     h_id = models.ForeignKey(Hospital, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
-<<<<<<< HEAD
-class Walk(models.Model):
-    walk_id = models.AutoField(primary_key=True)
-    walk_name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
-    w_propose_date = models.DateField()
-    walk_date = models.DateField()
-    privacy = models.CharField(max_length=255)
-    w_creator = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.walk_name
-    
-=======
-
-
-
->>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
 class WalkMember(models.Model):
     wm_id = models.AutoField(primary_key=True)
     cancel = models.IntegerField()
@@ -174,8 +145,38 @@ class WalkMember(models.Model):
 
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
+    
+class Friend(models.Model):
+    f_id = models.AutoField(primary_key=True)
+    f_created_date = models.IntegerField()
+    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user1_friends')
+    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user2_friends')
 
-<<<<<<< HEAD
+    def __str__(self):
+        return f"Friendship between {self.user1.username} and {self.user2.username}"
+    
+class Medication(models.Model):
+    medication_id = models.AutoField(primary_key=True)
+    meds_start_date = models.DateField()
+    meds_end_date = models.DateField()
+    dose = models.IntegerField()
+    times = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    med_name = models.ForeignKey('MedName', on_delete=models.CASCADE)
 
-=======
->>>>>>> 0b256f02864e78f91ca74f4ad886df2c71c25311
+    def __str__(self):
+        return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
+class Medicine(models.Model):
+    med_id = models.AutoField(primary_key=True)
+    disease = models.CharField(max_length=255)
+    content = models.CharField(max_length=255)
+    med_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.med_name} - {self.disease}"
+
+class MedName(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
