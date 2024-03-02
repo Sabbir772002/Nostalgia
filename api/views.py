@@ -6,19 +6,16 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from api.models import User
-from .models import Owner
 from .serializers import OwnerSerializer
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer
 from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer
+from api.models import Owner, Overseer,Friend
 from .serializers import OwnerSerializer, OverseerSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -240,10 +237,21 @@ class ChangePass(views.APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FriendRequst(APIView):
+class add_fnf(APIView):
     def post(self, request):
         data = request.data
-        print(data)
+        if(str(data['user_id']) == str(data['friend_id'])):
+            return Response({"message": "You can't add yourself as friend"}, status=status.HTTP_400_BAD_REQUEST)
+
+        fnd=Friend.objects.filter(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']))
+        if(len(fnd) > 0 and fnd[0].is_fnf == 1):
+            return Response({"message": "You are already friend"}, status=status.HTTP_400_BAD_REQUEST)
+        #check who send fnd request(future work)
+        if(len(fnd) > 0):
+            return Response({"message": "Your request for friend send"}, status=status.HTTP_400_BAD_REQUEST)
+        from django.utils import timezone
+        fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),f_created_date=timezone.now(),is_fnf=0)
+        fnd.save()
         return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
 
 class FriendList(APIView):

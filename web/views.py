@@ -2,7 +2,7 @@ from django.shortcuts import render
 import requests
 from django.http import HttpResponse
 from django.http import JsonResponse
-from api.models import User, Owner, Thana,Overseer
+from api.models import User, Owner, Thana,Overseer,Friend
 from django.contrib.auth import authenticate, login as a_login
 import json
 from django.shortcuts import redirect
@@ -129,7 +129,23 @@ def signup(request):
         return render(request, 'signup.html')
     
 def profile(request):
-    return render(request, 'profile.html')
+    user=Owner.objects.get(username=request.user.username)
+    friends=Owner.objects.all()
+    return render(request, 'profile.html',{"profile":user,"friends":friends})    
+
+def add_friend(request,id):
+    url="http://127.0.0.1:8000/api/add_fnf"
+    data={
+        "user_id":request.user.id,
+        "friend_id":id    
+    }
+    response = requests.post(url, data=data)
+    #fnd should be a list of friends from api, make it later...
+    fnd=Friend.objects.filter(user1=id,is_fnf=1)
+    friends=Owner.objects.filter(id__in=fnd)
+    print(response.json())
+
+    return render(request, 'profile.html',{"profile":Owner.objects.get(id=id),"friends":friends})
 
 import os
 from django.conf import settings
