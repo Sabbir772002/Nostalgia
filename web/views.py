@@ -2,7 +2,7 @@ from django.shortcuts import render
 import requests
 from django.http import HttpResponse
 from django.http import JsonResponse
-from api.models import User
+from api.models import User, Owner, Thana,Overseer
 from django.contrib.auth import authenticate, login as a_login
 import json
 from django.shortcuts import redirect
@@ -130,8 +130,112 @@ def signup(request):
         return render(request, 'signup.html')
     
 def profile(request):
-    return render(request, 'profile.html') 
-    
+    return render(request, 'profile.html')
+
+from django.http import HttpResponse
+from PIL import Image
+import os
+from django.conf import settings
+
+def read_image(image_path):
+    # Construct the full path to the image
+    full_image_path = os.path.join(settings.MEDIA_ROOT, image_path)
+
+    try:
+        # Open the image using PIL
+        with open(full_image_path, 'rb') as img_file:
+            image_data = img_file.read()
+        
+        # You can do any processing with the image data here, 
+        # such as resizing, cropping, etc., using PIL or any other library
+
+        # Finally, return the image data as an HTTP response
+        return HttpResponse(image_data, content_type="image/jpeg")  # Adjust content_type according to your image type
+    except FileNotFoundError:
+        return HttpResponse("Image not found", status=404)
+
+def load_image_as_binary(image_path):
+        try:
+            with open(image_path, 'rb') as img_file:
+                binary_data = img_file.read()
+            return binary_data
+        except FileNotFoundError:
+            print("Image not found.")
+            return None
+
+def read_image_file_as_binary(image_path):
+    try:
+        # Open the image file
+        with open(image_path, 'rb') as img_file:
+            # Read the binary data from the file
+            binary_data = img_file.read()
+        return binary_data
+    except FileNotFoundError:
+        print("Image file not found.")
+        return None
+
+def read_image(image_path):
+    try:
+        # Open the image file
+        with open(image_path, 'rb') as img_file:
+            # Use Pillow to open the image
+            image = Image.open(img_file)
+            return image
+    except FileNotFoundError:
+        print("Image file not found.")
+        return None
+
+import requests
+
+# Read image files as binary data
+def read_image_file_as_binary(image_path):
+    try:
+        with open(image_path, 'rb') as img_file:
+            binary_data = img_file.read()
+        return binary_data
+    except FileNotFoundError:
+        print("Image file not found.")
+        return None
+def match(request):
+    image_path1 = r"D:\DEV\Django\Nostalgia\media\bb.png"
+    image_path2 = r"D:\DEV\Django\Nostalgia\media\bb.png"
+
+    # Read the image files
+    binary_image_data1 = read_image_file_as_binary(image_path1)
+    binary_image_data2 = read_image_file_as_binary(image_path2)
+    import imageio as iio
+    import cv2
+    img2 = cv2.imread(image_path2)
+    img1 = cv2.imread(image_path1)
+ 
+# read an image 
+    # img = Image.open(image_path1)
+    # img2=Image.open(image_path2)
+    # print(img.format)
+    # print(img2.format)
 
 
 
+    # API endpoint
+    url = "https://api-us.faceplusplus.com/facepp/v3/compare"
+
+    # API Key and Secret
+    api_key = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
+    api_secret = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
+
+    # Prepare the payload
+    payload = {
+        "api_key": api_key,
+        "api_secret": api_secret,
+        # "face_token1": "50da07384227fd1480595303ac83ff29",
+        # "face_token2": "6fd9b603e6cdb3920480eb8c2cbc6f05",
+        "image_file1":img1,
+        "image_file2":img2,
+    }
+
+    # Send the POST request
+    response = requests.post(url, data=payload)
+
+    # Print the response
+    print(response.json())
+    return JsonResponse(response.json())

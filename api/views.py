@@ -251,8 +251,3 @@ class FriendList(APIView):
         data = request.data
         print(data)
         return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
-class profile(APIView):
-    def get(self, request):
-        data = request.data
-        print(data)
-        return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)

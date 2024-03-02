@@ -112,7 +112,7 @@ class Walk(models.Model):
     walk_id = models.AutoField(primary_key=True)
     walk_name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
-    w_propose_date = models.DateField()
+    propose_date = models.DateField()
     walk_date = models.DateField()
     privacy = models.CharField(max_length=255)
     w_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
@@ -161,8 +161,8 @@ class Medication(models.Model):
     meds_end_date = models.DateField()
     dose = models.IntegerField()
     times = models.IntegerField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    med_name = models.ForeignKey('MedName', on_delete=models.CASCADE)
+    user = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
@@ -174,5 +174,8 @@ class Medicine(models.Model):
 
     def __str__(self):
         return f"{self.med_name} - {self.disease}"
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> f2a39aec1714df3666fcbd78f5910dda9d6ddf63
