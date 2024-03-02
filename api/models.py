@@ -174,8 +174,4 @@ class Medicine(models.Model):
 
     def __str__(self):
         return f"{self.med_name} - {self.disease}"
-<<<<<<< HEAD
 
-
-=======
->>>>>>> f2a39aec1714df3666fcbd78f5910dda9d6ddf63
