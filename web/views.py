@@ -188,10 +188,6 @@ def match(request):
     print(response.json())
     return JsonResponse(response.json())
 
-
-from django.shortcuts import render, redirect
-import mimetypes
-import imghdr
 def upload_image(request):
     api_key = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
     api_secret = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
@@ -200,7 +196,7 @@ def upload_image(request):
     if request.method == 'POST':
         image_path1 = request.FILES.get('image')
         image_path2 = request.FILES.get('image2')
-        print(image_path1, image_path2)
+        #print(image_path1, image_path2)
         if image_path1 and image_path2:
                 # image_type1 = imghdr.what(None, image_path1.read())
                 # image_type2 = imghdr.what(None, image_path2.read())
@@ -218,6 +214,8 @@ def upload_image(request):
                 image_path20 = r"bb.png"
                 full_path = os.path.join(settings.MEDIA_ROOT, image_path10)
                 full_path2 = os.path.join(settings.MEDIA_ROOT, image_path20)
+                print(full_path)
+                print(full_path2)
                 import base64
                 file_contents = image_path1.read()
                 file_content = image_path2.read()
