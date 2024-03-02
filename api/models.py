@@ -161,7 +161,7 @@ class Medication(models.Model):
     meds_end_date = models.DateField()
     dose = models.IntegerField()
     times = models.IntegerField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(Owner, on_delete=models.CASCADE)
     med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
 
     def __str__(self):
