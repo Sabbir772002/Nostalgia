@@ -193,29 +193,30 @@ from django.shortcuts import render, redirect
 
 def upload_image(request):
     if request.method == 'POST':
-        image_file = request.FILES.get('image')
-        image_file2 = request.FILES.get('image2')
-        if image_file and image_file2:
+        image_path1 = request.FILES.get('image')
+        image_path2 = request.FILES.get('image2')
+        print(image_path1, image_path2 )
+        if image_path1 and image_path2:
                 api_key = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
                 api_secret = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
-                image_path1 = r"5.png"
-                image_path2 = r"bb.png"
+                # image_path1 = r"5.png"
+                # image_path2 = r"bb.png"
                 # API endpoint
                 url = "https://api-us.faceplusplus.com/facepp/v3/compare"
 
                 # API Key and Secret
 
-                full_path = os.path.join(settings.MEDIA_ROOT, image_path1)
-                full_path2 = os.path.join(settings.MEDIA_ROOT, image_path2)
-                import base64
+                # full_path = os.path.join(settings.MEDIA_ROOT, image_path1)
+                # full_path2 = os.path.join(settings.MEDIA_ROOT, image_path2)
+                # import base64
 
-                with open(full_path, 'rb') as img_file:
-                    image_content = img_file.read()
-                    base64_image = base64.b64encode(image_content).decode('utf-8')
+                # with open(full_path, 'rb') as img_file:
+                #     image_content = img_file.read()
+                #     base64_image = base64.b64encode(image_content).decode('utf-8')
 
-                with open(full_path2, 'rb') as img_file2:
-                    image_content2 = img_file2.read()
-                    base64_image2 = base64.b64encode(image_content2).decode('utf-8')
+                # with open(full_path2, 'rb') as img_file2:
+                #     image_content2 = img_file2.read()
+                #     base64_image2 = base64.b64encode(image_content2).decode('utf-8')
 
                 # Prepare the payload
                 payload = {
@@ -223,11 +224,14 @@ def upload_image(request):
                     "api_secret": api_secret,
                     # "face_token1": "50da07384227fd1480595303ac83ff29",
                     # "face_token2": "6fd9b603e6cdb3920480eb8c2cbc6f05",
-                    "image_base64_1":base64_image,
-                    "image_base64_2":base64_image2,
+                    # "image_base64_1":base64_image,
+                    # "image_base64_2":base64_image2,
+                    "image_file1": image_path1,
+                    "image_file2": image_path2,
                 }
                 # Send the POST request
                 response = requests.post(url, data=payload)
+                print(response.json())
 
                 # Print the response
                 #print(response.json())
