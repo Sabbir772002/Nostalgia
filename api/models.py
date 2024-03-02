@@ -175,8 +175,4 @@ class Medicine(models.Model):
     def __str__(self):
         return f"{self.med_name} - {self.disease}"
 
-class MedName(models.Model):
-    name = models.CharField(max_length=255)
 
-    def __str__(self):
-        return self.name
