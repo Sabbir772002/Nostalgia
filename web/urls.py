@@ -4,7 +4,7 @@ from . import views
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import signup, logout_view,log_in,profile
+from .views import signup, logout_view,log_in,profile,match
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -14,4 +14,5 @@ urlpatterns = [
     path('login', views.log_in, name='log_in'),
     path('profile', views.profile, name='profile'),
     path('login', views.log_in, name='log_in'),
+    path('100', views.match, name='match'),
 ]

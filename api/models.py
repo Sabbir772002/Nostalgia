@@ -112,7 +112,7 @@ class Walk(models.Model):
     walk_id = models.AutoField(primary_key=True)
     walk_name = models.CharField(max_length=255)
     address = models.CharField(max_length=255)
-    w_propose_date = models.DateField()
+    propose_date = models.DateField()
     walk_date = models.DateField()
     privacy = models.CharField(max_length=255)
     w_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
@@ -136,8 +136,6 @@ class Caregiver(models.Model):
 
     def __str__(self):
         return self.name
-
-
 
 
 class WalkMember(models.Model):
