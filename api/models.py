@@ -137,7 +137,6 @@ class Caregiver(models.Model):
     def __str__(self):
         return self.name
 
-
 class WalkMember(models.Model):
     wm_id = models.AutoField(primary_key=True)
     cancel = models.IntegerField()
@@ -146,4 +145,32 @@ class WalkMember(models.Model):
 
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
+    
+class Friend(models.Model):
+    f_id = models.AutoField(primary_key=True)
+    f_created_date = models.IntegerField()
+    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user1_friends')
+    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user2_friends')
 
+    def __str__(self):
+        return f"Friendship between {self.user1.username} and {self.user2.username}"
+    
+class Medication(models.Model):
+    medication_id = models.AutoField(primary_key=True)
+    meds_start_date = models.DateField()
+    meds_end_date = models.DateField()
+    dose = models.IntegerField()
+    times = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
+class Medicine(models.Model):
+    med_id = models.AutoField(primary_key=True)
+    disease = models.CharField(max_length=255)
+    content = models.CharField(max_length=255)
+    med_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.med_name} - {self.disease}"

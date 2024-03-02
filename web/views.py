@@ -119,6 +119,7 @@ def signup(request):
         response = requests.post(url, data=data)
         if response.status_code == 201:
             print("Registration successful!")
+            print("that not the case")
             return redirect('home')
         else:
             print("Failed to register:", response.text)
@@ -127,11 +128,9 @@ def signup(request):
 
     else:
         return render(request, 'signup.html')
-
+    
 def profile(request):
-    profile=Owner.objects.get(username=request.user.username)
-    friends=Owner.objects.all()
-    return render(request, 'profile.html',{'profile':profile,'friends':friends})
+    return render(request, 'profile.html')
 
 from django.http import HttpResponse
 from PIL import Image
