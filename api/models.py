@@ -145,7 +145,6 @@ class WalkMember(models.Model):
 
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
-    
 class Friend(models.Model):
     f_id = models.AutoField(primary_key=True)
     f_created_date = models.IntegerField()
