@@ -1,5 +1,8 @@
+
+{% extends 'base.html' %} 
+{% block content%}
 {% load static %}
-  <link rel="stylesheet" href="{% static 'css/ExpertList.css' %}." />
+<link rel="stylesheet" href="{% static 'css/ExpertList.css' %}." />
 
   <link
     href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
@@ -65,14 +68,14 @@
   </style>
   <div class="container bg-light">
     <div class="row flex">
-      {%for expert in page_obj %}
+      {%for fnd in context.page_obj %}
       <div class="col-lg-4">
         <div class="text-center card-box">
           <div class="member-card pt-2 pb-2">
             <div class="thumb-lg member-thumb mx-auto">
               <img
               {% if expert.ExpertUser.image %}
-              src="{{ expert.ExpertUser.image.url }}"
+              src="{{ fnd.image.url }}"
           {% else %}
               src="https://bootdey.com/img/Content/avatar/avatar1.png"
           {% endif %}
@@ -82,9 +85,9 @@
               />
             </div>
             <div class="">
-              <h4>{{ expert.ExpertUser.first_name}} {{ expert.ExpertUser.last_name}}</h4>
+              <h4>{{ fnd.first_name}} {{ fnd.last_name}}</h4>
               <p class="text-muted">
-                @{{ expert.ExpertUser}} <span><!--| </span
+                @{{ fnd.username}} <span><!--| </span
                 ><span><a href="#" class="text-pink">websitename.com</a></span>-->
               </p>
             </div>
@@ -128,7 +131,7 @@
             data-placement="top"
             data-toggle="tooltip"
             class="tooltips"
-            href="{% url 'add' expert.ExpertUser_id|default:'Asif' %}"
+            href=""}"
             >
             <button
               type="button"
@@ -139,12 +142,11 @@
             <button
             type="button"
             class="btn btn-secondary mt-3 btn-rounded waves-effect w-md waves-light"
-          ><a
-                title=""
+          ><a title=""
                 data-placement="top"
                 data-toggle="tooltip"
                 class="tooltips"
-                href="{% url 'profile' expert.ExpertUser_id|default:'Asif' %}"
+                href=""
                 >View Profile</i
               ></a> 
           </button>
@@ -158,19 +160,19 @@
                   <div class="mt-3 text-danger">
                     <h4>{{expert.Rating|floatformat:"2"}}</h4>
                   {%endif%}
-                    <p class="mb-0 text-muted">Rating</p>
+                    <p class="mb-0 text-muted">Age: {{fnd.birthdate}}</p>
                   </div>
                 </div>
                 <div class="col-4">
                   <div class="mt-3">
-                    <h4>50</h4>
+                    <h4>WDK</h4>
                     <p class="mb-0 text-muted">Total Work</p>
                   </div>
                 </div>
                 <div class="col-4">
                   <div class="mt-3">
-                    <h4>{{expert.HourlyPay}}</h4>
-                    <p class="mb-0 text-muted">Hourly Pay</p>
+                    <h4>{{fnd.address}}</h4>
+                    <p class="mb-0 text-muted">Address:</p>
                   </div>
                 </div>
               </div>
@@ -183,14 +185,14 @@
     <div  class=" row paginatorright">
       <div class="col-4">
         <div class="text-right">
-          {% if page_obj.has_other_pages %}
+          {% if context.page_obj.has_other_pages %}
   <div id="pagination" class="pagination btn-group" role="group" aria-label="Item pagination">
-      {% if page_obj.has_previous %}
+      {% if context.page_obj.has_previous %}
           <a href="page={{page_obj.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
       {% endif %}
 
-      {% for page_number in page_numbers_range %}
-          {% if page_obj.number == page_number %}
+      {% for context.page_number in page_numbers_range %}
+          {% if context.page_obj.number == page_number %}
               <button class="btn btn-outline-primary active">
                   <span>{{ page_number }} <span class="sr-only">(current)</span></span>
               </button>
@@ -200,7 +202,7 @@
               </a>
           {% endif %}
       {% endfor %}
-      {% if page_obj.has_next %}
+      {% if context.page_obj.has_next %}
           <a href="page={{page_obj.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
       {% endif %}
             </div>
@@ -216,4 +218,4 @@
   </div>
   </div>
 </div>
-  
+  {%endblock%}

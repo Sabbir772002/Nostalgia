@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import MyModelListCreateAPIView,MyAPIView,_sign,sign,login_api,ChangePass,show,friends,Owner_update,O_update,UserLogin
-from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView
+from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView,add_fnf
 
 urlpatterns = [
     path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
@@ -16,5 +16,6 @@ urlpatterns = [
     path('/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('/hello/', HelloWorldView.as_view(), name='hello_world'),
+    path('/add_fnf', add_fnf.as_view(), name='add_fnf'),
 
 ]

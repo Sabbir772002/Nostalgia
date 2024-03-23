@@ -96,7 +96,6 @@ class Overseer(User):
         # Update other common fields
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
-    
 
 class Hospital(models.Model):
     h_id = models.AutoField(primary_key=True)
@@ -140,17 +139,17 @@ class Caregiver(models.Model):
 class WalkMember(models.Model):
     wm_id = models.AutoField(primary_key=True)
     cancel = models.IntegerField()
-    username = models.ForeignKey(User, on_delete=models.CASCADE)
+    username = models.ForeignKey(Owner, on_delete=models.CASCADE)
     walk_id = models.ForeignKey(Walk, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
 class Friend(models.Model):
     f_id = models.AutoField(primary_key=True)
-    f_created_date = models.IntegerField()
-    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user1_friends')
-    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user2_friends')
-
+    f_created_date = models.DateField()
+    is_fnf= models.IntegerField()
+    user1 = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='user1_friends')
+    user2 = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='user2_friends')
     def __str__(self):
         return f"Friendship between {self.user1.username} and {self.user2.username}"
     
