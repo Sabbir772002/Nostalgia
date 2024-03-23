@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from api.models import Owner, Overseer,Friend
-from .serializers import OwnerSerializer, OverseerSerializer
+from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework import permissions
@@ -102,10 +102,13 @@ class Owner_update(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class sign(APIView):
     def post(self, request):
+        print(request.data)
         serializer = OwnerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else :
+            print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -138,13 +141,19 @@ class login_api(views.APIView):
         data = request.data
         username = data.get('username')
         password = data.get('password')
+        #serializer = UserLoginSerializer(data=data)
+
         if username and password:
             user = authenticate(request, username=username, password=password)
+            
             if user is not None:
                 login(request,user)
-                return Response({'authenticated': True}, status=status.HTTP_200_OK)
+                user=Owner.objects.get(username=username)
+                serializer = OwnerSerializer(user)
+
+                return Response({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
         
-        return Response({'authenticated': False}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'auth': False}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class show(views.APIView):
