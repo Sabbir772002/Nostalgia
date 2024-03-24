@@ -275,7 +275,6 @@ class Profile(APIView):
     def get(self, request, username):
         try:
             user = Owner.objects.get(username=username)
-            #print(user)
             user=OwnerSerializer(user)
             #print(user)
            # if(user.is_valid()):
