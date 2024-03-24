@@ -6,20 +6,17 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from api.models import User
-from .models import Owner
 from .serializers import OwnerSerializer
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer
 from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer
-from .serializers import OwnerSerializer, OverseerSerializer
+from api.models import Owner, Overseer,Friend
+from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework import permissions
@@ -107,10 +104,13 @@ class Owner_update(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class sign(APIView):
     def post(self, request):
+        print(request.data)
         serializer = OwnerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else :
+            print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -143,13 +143,19 @@ class login_api(views.APIView):
         data = request.data
         username = data.get('username')
         password = data.get('password')
+        #serializer = UserLoginSerializer(data=data)
+
         if username and password:
             user = authenticate(request, username=username, password=password)
+            
             if user is not None:
                 login(request,user)
-                return Response({'authenticated': True}, status=status.HTTP_200_OK)
+                user=Owner.objects.get(username=username)
+                serializer = OwnerSerializer(user)
+
+                return Response({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
         
-        return Response({'authenticated': False}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'auth': False}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class show(views.APIView):
@@ -242,10 +248,21 @@ class ChangePass(views.APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FriendRequst(APIView):
+class add_fnf(APIView):
     def post(self, request):
         data = request.data
-        print(data)
+        if(str(data['user_id']) == str(data['friend_id'])):
+            return Response({"message": "You can't add yourself as friend"}, status=status.HTTP_400_BAD_REQUEST)
+
+        fnd=Friend.objects.filter(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']))
+        if(len(fnd) > 0 and fnd[0].is_fnf == 1):
+            return Response({"message": "You are already friend"}, status=status.HTTP_400_BAD_REQUEST)
+        #check who send fnd request(future work)
+        if(len(fnd) > 0):
+            return Response({"message": "Your request for friend send"}, status=status.HTTP_400_BAD_REQUEST)
+        from django.utils import timezone
+        fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),f_created_date=timezone.now(),is_fnf=0)
+        fnd.save()
         return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
 
 class FriendList(APIView):
