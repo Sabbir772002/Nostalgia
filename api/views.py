@@ -28,7 +28,9 @@ from rest_framework.views import APIView
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
-
+    
+    def get(self, request):
+        return Response(data={"message": "Hello, world!"})
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = (permissions.AllowAny,)
 
