@@ -158,8 +158,8 @@ class Chat(models.Model):
     msgID = models.AutoField(primary_key=True)
     message_time = models.DateTimeField()
     Msg = models.CharField(max_length=255)
-    Sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
-    Receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
+    Sender = models.ForeignKey(Owner, related_name='sent_messages', on_delete=models.CASCADE)
+    Receiver = models.ForeignKey(Owner, related_name='received_messages', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Chat message {self.msgID}"
@@ -190,7 +190,7 @@ class Blog(models.Model):
     content = models.TextField()
     title = models.CharField(max_length=255)
     blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -201,7 +201,7 @@ class GroupPost(models.Model):
     GPost_Time = models.DateTimeField()               # Used DateTimeField instead of IntegerField for more precise date time
     GPost_date = models.DateTimeField()               # Our Scehma has it as interger
     GPost_image = models.CharField(max_length=255)
-    G_username = models.ForeignKey('User', on_delete=models.CASCADE)  # Assuming User model exists
+    G_username = models.ForeignKey(Owner, on_delete=models.CASCADE)  # Assuming User model exists
 
     def __str__(self):
         return f"Group Post {self.GPost_id}"
@@ -212,7 +212,7 @@ class IndividualPost(models.Model):
     Post_date = models.DateField()
     Image = models.CharField(max_length=255)
     PostTime = models.DateTimeField()
-    Username = models.ForeignKey('User', on_delete=models.CASCADE)  # Assuming User model exists
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)  # Assuming User model exists
 
     def __str__(self):
         return f"Individual Post {self.PostID}"
@@ -223,7 +223,7 @@ class Group(models.Model):
     CreatedDate = models.DateTimeField()
     Topic = models.CharField(max_length=255)
     Privacy = models.CharField(max_length=255)
-    Creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.Name
@@ -233,8 +233,8 @@ class GroupMember(models.Model):
     JoinDate = models.DateTimeField()
     isAdmin = models.CharField(max_length=10)  # Assuming 'isAdmin' can be 'True' or 'False'
     Block = models.BooleanField(default=False)  # Assuming 'Block' can be True or False
-    G_username = models.ForeignKey('Group', on_delete=models.CASCADE)
-    member = models.ForeignKey(User, on_delete=models.CASCADE)
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
+    member = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.member.username} in {self.G_username}"
@@ -260,13 +260,22 @@ class PlanTrip(models.Model):
     Trip_end_date = models.DateField()
     Trip_propose_date = models.DateField()
     Privacy = models.CharField(max_length=255)
-    Creator = models.ForeignKey(User, related_name='planned_trips', on_delete=models.CASCADE)
+    Creator = models.ForeignKey(Owner, related_name='planned_trips', on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
     Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Trip {self.TripID}: {self.Location}"
     
+class Agency(models.Model):
+    Agency_ID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=255)
+    A_Location = models.CharField(max_length=255)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Name
+
 class Guide(models.Model):
     G_ID = models.AutoField(primary_key=True)
     Phone = models.IntegerField()
@@ -280,20 +289,44 @@ class Guide(models.Model):
     def __str__(self):
         return self.G_name
     
-class Agency(models.Model):
-    Agency_ID = models.AutoField(primary_key=True)
-    Name = models.CharField(max_length=255)
-    A_Location = models.CharField(max_length=255)
-    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.Name
-    
 class TripMember(models.Model):
     TM_id = models.AutoField(primary_key=True)
     cancel_member = models.IntegerField()
-    TripID = models.ForeignKey(Trip, on_delete=models.CASCADE)
-    T_member = models.ForeignKey(User, on_delete=models.CASCADE)
+    TripID = models.ForeignKey(PlanTrip, on_delete=models.CASCADE)
+    T_member = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Trip Member {self.TM_id}"
+    
+class Blog(models.Model):
+    BlogID = models.AutoField(primary_key=True)
+    Blog_post_date = models.DateField()
+    Content = models.CharField(max_length=255)
+    Title = models.CharField(max_length=255)
+    Blog_IMG = models.CharField(max_length=255)  # Assuming this stores image path or reference
+    Author = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Title
+    
+class Comment(models.Model):
+    CommentID = models.AutoField(primary_key=True)
+    Content = models.TextField()
+    time = models.DateTimeField(auto_now_add=True)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    BlogPost = models.ForeignKey(Blog, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Comment {self.CommentID} by {self.Username}"
+
+
+class Reply(models.Model):
+    replyID = models.AutoField(primary_key=True)
+    content = models.TextField()
+    time = models.DateTimeField(auto_now_add=True)
+    CommentID = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Reply {self.replyID} by {self.Username}"
+    
