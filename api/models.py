@@ -175,12 +175,12 @@ class Medicine(models.Model):
         return f"{self.med_name} - {self.disease}"
 
 class Blog(models.Model):
-    BlogID = models.AutoField(primary_key=True)
+    blogid = models.AutoField(primary_key=True)
     post_date = models.DateField()
+    post_time=models.TimeField()
     content = models.TextField()
-    title = models.CharField(max_length=255)
-    blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    blog_img = models.ImageField(upload_to='images/', null=True, blank=True) 
+    author = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
