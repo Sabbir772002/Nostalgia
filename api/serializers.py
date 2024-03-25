@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
-from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
+from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -95,7 +95,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = User.objects.get(username=username)
         user.set_password(new_password)
         user.save()
-        
+
 from rest_framework.serializers import ModelSerializer
 
 class ProfileSerilazier(ModelSerializer):
