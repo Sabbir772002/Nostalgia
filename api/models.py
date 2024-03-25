@@ -489,7 +489,7 @@ class Guide(models.Model):
     G_name = models.CharField(max_length=255)
     Gender = models.CharField(max_length=10)
     DOB = models.DateField()
-    Agency_ID = models.ForeignKey(Agency, on_delete=models.CASCADE)
+    Agency_ID = models.ForeignKey(Agency, on_delete=models.CASCADE) #foreign key
 
     def __str__(self):
         return self.G_name
