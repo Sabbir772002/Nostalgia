@@ -174,7 +174,14 @@ class Medicine(models.Model):
     def __str__(self):
         return f"{self.med_name} - {self.disease}"
     
+class Agency(models.Model):
+    Agency_ID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=255)
+    A_Location = models.CharField(max_length=255)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.Name
 class Guide(models.Model):
     G_ID = models.AutoField(primary_key=True)
     Phone = models.IntegerField()
@@ -183,19 +190,11 @@ class Guide(models.Model):
     G_name = models.CharField(max_length=255)
     Gender = models.CharField(max_length=10)
     DOB = models.DateField()
-    Agency_ID = models.ForeignKey('Agency', on_delete=models.CASCADE)
+    Agency_ID = models.ForeignKey(Agency, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.G_name
     
-class Agency(models.Model):
-    Agency_ID = models.AutoField(primary_key=True)
-    Name = models.CharField(max_length=255)
-    A_Location = models.CharField(max_length=255)
-    Thana = models.ForeignKey('Thana', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.Name
     
 class PlanTrip(models.Model):
     TripID = models.AutoField(primary_key=True)
@@ -204,9 +203,9 @@ class PlanTrip(models.Model):
     Trip_end_date = models.DateField()
     Trip_propose_date = models.DateField(default=timezone.now)
     Privacy = models.CharField(max_length=255)
-    Creator = models.ForeignKey('YourUserModel', on_delete=models.CASCADE, related_name='created_trips')
-    Thana = models.ForeignKey('YourThanaModel', on_delete=models.CASCADE)
-    Guide = models.ForeignKey('GuideModel', on_delete=models.CASCADE)
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'Trip ID: {self.TripID}, Location: {self.Location}'
@@ -214,8 +213,8 @@ class PlanTrip(models.Model):
 class TripMember(models.Model):
     TM_id = models.AutoField(primary_key=True)
     cancel_member = models.IntegerField()
-    TripID = models.ForeignKey('PlanTrip', on_delete=models.CASCADE)
-    T_member = models.ForeignKey('YourUserModel', on_delete=models.CASCADE)
+    TripID = models.ForeignKey(PlanTrip, on_delete=models.CASCADE)
+    T_member = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
@@ -225,8 +224,8 @@ class GroupMember(models.Model):
     JoinDate = models.DateField(default=timezone.now)
     isAdmin = models.CharField(max_length=10)
     Block = models.IntegerField()
-    G_username = models.ForeignKey('YourUserModel', on_delete=models.CASCADE, related_name='group_memberships')
-    member = models.ForeignKey('YourUserModel', on_delete=models.CASCADE, related_name='groups')
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
+    member = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'Member ID: {self.MemberID}, Username: {self.G_username.username}'
