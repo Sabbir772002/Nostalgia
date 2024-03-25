@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer
+from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,7 +28,9 @@ from rest_framework.views import APIView
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
-
+    
+    def get(self, request):
+        return Response(data={"message": "Hello, world!"})
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = (permissions.AllowAny,)
 
@@ -42,7 +44,7 @@ class HelloWorldView(APIView):
 class O_update(APIView):
     def put(self, request, pk):
         try:
-            # Retrieve the overseer object to be updated
+            #Retrieve the overseer object to be updated
             overseer = Overseer.objects.get(pk=pk)
         except Overseer.DoesNotExist:
             return Response({"error": "Overseer not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -269,6 +271,22 @@ class FriendList(APIView):
         data = request.data
         print(data)
         return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
+
+class Profile(APIView):
+    def get(self, request, username):
+        try:
+            user = Owner.objects.get(username=username)
+            user=OwnerSerializer(user)
+            #print(user)
+           # if(user.is_valid()):
+           # print(user.data)
+            return Response(user.data, status=status.HTTP_200_OK)
+            # print(user.errors)
+            # return Response({"message": "User not serialize"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Owner.DoesNotExist:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 from rest_framework.views import APIView
 from rest_framework.response import Response

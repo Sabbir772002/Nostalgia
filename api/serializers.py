@@ -94,3 +94,9 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = User.objects.get(username=username)
         user.set_password(new_password)
         user.save()
+from rest_framework.serializers import ModelSerializer
+
+class ProfileSerilazier(ModelSerializer):
+    class Meta:
+        model = Owner
+        fields = '__all__'
