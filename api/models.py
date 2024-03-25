@@ -173,24 +173,14 @@ class Medicine(models.Model):
 
     def __str__(self):
         return f"{self.med_name} - {self.disease}"
-    
-class Agency(models.Model):
-    Agency_ID = models.AutoField(primary_key=True)
-    Name = models.CharField(max_length=255)
-    A_Location = models.CharField(max_length=255)
-    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.Name
-class Guide(models.Model):
-    G_ID = models.AutoField(primary_key=True)
-    Phone = models.IntegerField()
-    Email = models.EmailField(max_length=255)
-    Experience = models.IntegerField()
-    G_name = models.CharField(max_length=255)
-    Gender = models.CharField(max_length=10)
-    DOB = models.DateField()
-    Agency_ID = models.ForeignKey(Agency, on_delete=models.CASCADE)
+class Blog(models.Model):
+    blogid = models.AutoField(primary_key=True)
+    post_date = models.DateField()
+    post_time=models.TimeField()
+    content = models.TextField()
+    blog_img = models.ImageField(upload_to='images/', null=True, blank=True) 
+    author = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.G_name
