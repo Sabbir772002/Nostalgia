@@ -247,7 +247,7 @@ class GroupPost(models.Model):
     GPost_contents = models.TextField()
     GPost_Time = models.IntegerField()
     GPost_date = models.IntegerField()
-    GPost_image = models.CharField(max_length=255, null=True, blank=True)
+    GPost_image = models.ImageField(upload_to='image/', null=True)
     G_username = models.ForeignKey('YourUserModel', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -257,7 +257,7 @@ class IndividualPost(models.Model):
     PostID = models.AutoField(primary_key=True)
     Post_contents = models.TextField()
     Post_date = models.DateField()
-    Image = models.IntegerField()
+    Image = models.ImageField(upload_to='image/', null=True)
     PostTime = models.IntegerField()
     Username = models.ForeignKey('YourUserModel', on_delete=models.CASCADE)
 
