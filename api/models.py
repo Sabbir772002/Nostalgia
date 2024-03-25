@@ -154,6 +154,16 @@ class Friend(models.Model):
     def __str__(self):
         return f"Friendship between {self.user1.username} and {self.user2.username}"
     
+class Chat(models.Model):
+    msgID = models.AutoField(primary_key=True)
+    message_time = models.DateTimeField()
+    Msg = models.CharField(max_length=255)
+    Sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    Receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Chat message {self.msgID}"
+    
 class Medication(models.Model):
     medication_id = models.AutoField(primary_key=True)
     meds_start_date = models.DateField()
@@ -184,3 +194,48 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.title
+    
+class GroupPost(models.Model):
+    GPost_id = models.AutoField(primary_key=True)
+    GPost_contents = models.CharField(max_length=255)
+    GPost_Time = models.DateTimeField()               # Used DateTimeField instead of IntegerField for more precise date time
+    GPost_date = models.DateTimeField()               # Our Scehma has it as interger
+    GPost_image = models.CharField(max_length=255)
+    G_username = models.ForeignKey('User', on_delete=models.CASCADE)  # Assuming User model exists
+
+    def __str__(self):
+        return f"Group Post {self.GPost_id}"
+
+class IndividualPost(models.Model):
+    PostID = models.AutoField(primary_key=True)
+    Post_contents = models.CharField(max_length=255)
+    Post_date = models.DateField()
+    Image = models.CharField(max_length=255)
+    PostTime = models.DateTimeField()
+    Username = models.ForeignKey('User', on_delete=models.CASCADE)  # Assuming User model exists
+
+    def __str__(self):
+        return f"Individual Post {self.PostID}"
+    
+class Group(models.Model):
+    G_username = models.CharField(max_length=255)
+    Name = models.CharField(max_length=255)
+    CreatedDate = models.DateTimeField()
+    Topic = models.CharField(max_length=255)
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Name
+    
+class GroupMember(models.Model):
+    MemberID = models.AutoField(primary_key=True)
+    JoinDate = models.DateTimeField()
+    isAdmin = models.CharField(max_length=10)  # Assuming 'isAdmin' can be 'True' or 'False'
+    Block = models.BooleanField(default=False)  # Assuming 'Block' can be True or False
+    G_username = models.ForeignKey('Group', on_delete=models.CASCADE)
+    member = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.member.username} in {self.G_username}"
+    
