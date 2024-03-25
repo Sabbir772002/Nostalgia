@@ -239,3 +239,61 @@ class GroupMember(models.Model):
     def __str__(self):
         return f"{self.member.username} in {self.G_username}"
     
+class Division(models.Model):
+    division = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.division
+
+class District(models.Model):
+    district_name = models.CharField(max_length=255)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.district_name
+    
+
+class PlanTrip(models.Model):
+    TripID = models.AutoField(primary_key=True)
+    Location = models.CharField(max_length=255)
+    Trip_start_date = models.DateField()
+    Trip_end_date = models.DateField()
+    Trip_propose_date = models.DateField()
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(User, related_name='planned_trips', on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Trip {self.TripID}: {self.Location}"
+    
+class Guide(models.Model):
+    G_ID = models.AutoField(primary_key=True)
+    Phone = models.IntegerField()
+    Email = models.EmailField(max_length=255)
+    Experience = models.IntegerField()
+    G_name = models.CharField(max_length=255)
+    Gender = models.CharField(max_length=10)
+    DOB = models.DateField()
+    Agency_ID = models.ForeignKey(Agency, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.G_name
+    
+class Agency(models.Model):
+    Agency_ID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=255)
+    A_Location = models.CharField(max_length=255)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Name
+    
+class TripMember(models.Model):
+    TM_id = models.AutoField(primary_key=True)
+    cancel_member = models.IntegerField()
+    TripID = models.ForeignKey(Trip, on_delete=models.CASCADE)
+    T_member = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Trip Member {self.TM_id}"
