@@ -137,9 +137,6 @@ class Caregiver(models.Model):
     def __str__(self):
         return self.name
 
-
-
-
 class WalkMember(models.Model):
     wm_id = models.AutoField(primary_key=True)
     cancel = models.IntegerField()
@@ -148,4 +145,224 @@ class WalkMember(models.Model):
 
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
+    
+class Friend(models.Model):
+    f_id = models.AutoField(primary_key=True)
+    f_created_date = models.DateField()
+    user1 = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='user1_friends')
+    user2 = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='user2_friends')
+    def __str__(self):
+        return f"Friendship between {self.user1.username} and {self.user2.username}"
+    
+class Chat(models.Model):
+    msgID = models.AutoField(primary_key=True)
+    message_time = models.DateTimeField()
+    Msg = models.CharField(max_length=255)
+    Sender = models.ForeignKey(Owner, related_name='sent_messages', on_delete=models.CASCADE)
+    Receiver = models.ForeignKey(Owner, related_name='received_messages', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Chat message {self.msgID}"
+    
+class Medication(models.Model):
+    medication_id = models.AutoField(primary_key=True)
+    meds_start_date = models.DateField()
+    meds_end_date = models.DateField()
+    dose = models.IntegerField()
+    times = models.IntegerField()
+    user = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
+class Medicine(models.Model):
+    med_id = models.AutoField(primary_key=True)
+    disease = models.CharField(max_length=255)
+    content = models.CharField(max_length=255)
+    med_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.med_name} - {self.disease}"
+
+class Blog(models.Model):
+    BlogID = models.AutoField(primary_key=True)
+    post_date = models.DateField()
+    content = models.TextField()
+    title = models.CharField(max_length=255)
+    blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
+    author = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
+    
+class GroupPost(models.Model):
+    GPost_id = models.AutoField(primary_key=True)
+    GPost_contents = models.CharField(max_length=255)
+    GPost_Time = models.DateTimeField()               # Used DateTimeField instead of IntegerField for more precise date time
+    GPost_date = models.DateTimeField()               # Our Scehma has it as interger
+    GPost_image = models.CharField(max_length=255)
+    G_username = models.ForeignKey(Owner, on_delete=models.CASCADE)  # Assuming User model exists
+
+    def __str__(self):
+        return f"Group Post {self.GPost_id}"
+
+class IndividualPost(models.Model):
+    PostID = models.AutoField(primary_key=True)
+    Post_contents = models.CharField(max_length=255)
+    Post_date = models.DateField()
+    Image = models.CharField(max_length=255)
+    PostTime = models.DateTimeField()
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)  # Assuming User model exists
+
+    def __str__(self):
+        return f"Individual Post {self.PostID}"
+    
+class Group(models.Model):
+    G_username = models.CharField(max_length=255)
+    Name = models.CharField(max_length=255)
+    CreatedDate = models.DateTimeField()
+    Topic = models.CharField(max_length=255)
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Name
+    
+class GroupMember(models.Model):
+    MemberID = models.AutoField(primary_key=True)
+    JoinDate = models.DateTimeField()
+    isAdmin = models.CharField(max_length=10)  # Assuming 'isAdmin' can be 'True' or 'False'
+    Block = models.BooleanField(default=False)  # Assuming 'Block' can be True or False
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
+    member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.member.username} in {self.G_username}"
+    
+class Division(models.Model):
+    division = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.division
+
+class District(models.Model):
+    district_name = models.CharField(max_length=255)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.district_name
+    
+
+    
+class Agency(models.Model):
+    Agency_ID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=255)
+    A_Location = models.CharField(max_length=255)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Name
+
+class Guide(models.Model):
+    G_ID = models.AutoField(primary_key=True)
+    Phone = models.IntegerField()
+    Email = models.EmailField(max_length=255)
+    Experience = models.IntegerField()
+    G_name = models.CharField(max_length=255)
+    Gender = models.CharField(max_length=10)
+    DOB = models.DateField()
+    Agency_ID = models.ForeignKey(Agency, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.G_name
+    
+class PlanTrip(models.Model):
+    TripID = models.AutoField(primary_key=True)
+    Location = models.CharField(max_length=255)
+    Trip_start_date = models.DateField()
+    Trip_end_date = models.DateField()
+    Trip_propose_date = models.DateField()
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(Owner, related_name='planned_trips', on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Trip {self.TripID}: {self.Location}"
+class TripMember(models.Model):
+    TM_id = models.AutoField(primary_key=True)
+    cancel_member = models.IntegerField()
+    TripID = models.ForeignKey(PlanTrip, on_delete=models.CASCADE)
+    T_member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Trip Member {self.TM_id}"
+    
+class Blog(models.Model):
+    BlogID = models.AutoField(primary_key=True)
+    Blog_post_date = models.DateField()
+    Content = models.CharField(max_length=255)
+    Title = models.CharField(max_length=255)
+    Blog_IMG = models.CharField(max_length=255)  # Assuming this stores image path or reference
+    Author = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Title
+
+class Upvote(models.Model):
+    UpvoteID = models.AutoField(primary_key=True)
+    BlogID = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Upvote {self.UpvoteID} by {self.Username} for Blog {self.BlogID}"
+
+class Comment(models.Model):
+    CommentID = models.AutoField(primary_key=True)
+    Content = models.TextField()
+    time = models.DateTimeField(auto_now_add=True)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    BlogPost = models.ForeignKey(Blog, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Comment {self.CommentID} by {self.Username}"
+
+
+class Reply(models.Model):
+    replyID = models.AutoField(primary_key=True)
+    content = models.TextField()
+    time = models.DateTimeField(auto_now_add=True)
+    CommentID = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Reply {self.replyID} by {self.Username}"
+    
+class PlanEvent(models.Model):
+    EventID = models.AutoField(primary_key=True)
+    Description = models.TextField()
+    Event_title = models.CharField(max_length=255)
+    Event_start_time = models.TimeField()
+    Event_end_time = models.TimeField()
+    Event_start_date = models.DateField()
+    Event_end_date = models.DateField()
+    Address = models.CharField(max_length=255)
+    Event_create_date = models.DateField()
+    Event_Approve = models.BooleanField(default=False)
+    E_type = models.CharField(max_length=255)
+    Image = models.CharField(max_length=255)  # Assuming this stores image path or reference
+    E_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Event_title
+
+class JoinEvent(models.Model):
+    JoinID = models.AutoField(primary_key=True)
+    ApproveMember = models.IntegerField()
+    Event_Member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    EventID = models.ForeignKey(PlanEvent, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Join Event {self.JoinID} for Event {self.EventID}"
 
