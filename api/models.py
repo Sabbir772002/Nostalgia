@@ -308,7 +308,15 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.Title
-    
+
+class Upvote(models.Model):
+    UpvoteID = models.AutoField(primary_key=True)
+    BlogID = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Upvote {self.UpvoteID} by {self.Username} for Blog {self.BlogID}"
+
 class Comment(models.Model):
     CommentID = models.AutoField(primary_key=True)
     Content = models.TextField()
@@ -330,3 +338,30 @@ class Reply(models.Model):
     def __str__(self):
         return f"Reply {self.replyID} by {self.Username}"
     
+class PlanEvent(models.Model):
+    EventID = models.AutoField(primary_key=True)
+    Description = models.TextField()
+    Event_title = models.CharField(max_length=255)
+    Event_start_time = models.TimeField()
+    Event_end_time = models.TimeField()
+    Event_start_date = models.DateField()
+    Event_end_date = models.DateField()
+    Address = models.CharField(max_length=255)
+    Event_create_date = models.DateField()
+    Event_Approve = models.BooleanField(default=False)
+    E_type = models.CharField(max_length=255)
+    Image = models.CharField(max_length=255)  # Assuming this stores image path or reference
+    E_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Event_title
+
+class JoinEvent(models.Model):
+    JoinID = models.AutoField(primary_key=True)
+    ApproveMember = models.IntegerField()
+    Event_Member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    EventID = models.ForeignKey(PlanEvent, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Join Event {self.JoinID} for Event {self.EventID}"
