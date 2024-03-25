@@ -305,7 +305,6 @@ def wbuddy(request):
     data = paginator.get_page(page)
     return render(request, "wbuddyList.html", {'context': context})
 
-
 def send_email(request):
  if request.method == "POST":
     with get_connection(
@@ -353,5 +352,6 @@ def send_email(request):
         #  recipient_list, connection=connection).send()
 
         return render(request, 'index.html')
+
 
                         

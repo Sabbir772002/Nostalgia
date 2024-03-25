@@ -269,3 +269,38 @@ class FriendList(APIView):
         data = request.data
         print(data)
         return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.mail import send_mail
+from django.conf import settings
+import requests
+import random
+import string
+
+class EmailVerificationAPIView(APIView):
+    def post(self, request):
+        # Extract the email address from the request data
+        email_address = request.data.get('email')
+
+        # Verify the email address using an email verification API (optional)
+        # You can skip the verification API and directly send the email
+        # is_email_valid = self.verify_email(email_address)
+
+        # Generate a verification code
+        verification_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+        # Send verification email with the verification code
+        self.send_verification_email(email_address, verification_code)
+
+        return Response({"message": "Verification email sent successfully", "verification_code": verification_code}, status=status.HTTP_200_OK)
+
+    def send_verification_email(self, email_address, verification_code):
+        # Send verification email using Django's email functionality
+        subject = 'Email Verification'
+        message = f'Your verification code is: {verification_code}'
+        from_email = settings.EMAIL_HOST_USER
+        recipient_list = [email_address]
+
+        send_mail(subject, message, from_email, recipient_list)
