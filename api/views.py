@@ -322,3 +322,55 @@ class EmailVerificationAPIView(APIView):
         recipient_list = [email_address]
 
         send_mail(subject, message, from_email, recipient_list)
+class profile(APIView):
+    def get(self, request):
+        data = request.data
+        print(data)
+        return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .models import Friend
+from .serializers import FriendSerializer
+from django.core.paginator import Paginator
+from rest_framework.response import Response
+from rest_framework import status
+
+class FriendListView(generics.ListAPIView):
+    serializer_class = FriendSerializer
+    #permission_classes = [IsAuthenticated]  # Requires authentication
+    paginate_by = 10  # Number of items per page (adjust as needed)
+
+    def get_queryset(self):
+        # Get the current user from the request
+        user = self.request.user
+
+        # Filter friends where the user is either user1 or user2 (excluding the current user)
+        queryset = Friend.objects.filter(user1=user) | Friend.objects.filter(user2=user)
+        queryset = queryset.exclude(user1=user) | queryset.exclude(user2=user)
+        
+        return queryset
+    
+    def get(self, request, *args, **kwargs):
+        # Check if the request is for paginated data
+        page_number = request.query_params.get('page')
+        if page_number:
+            return self.list(request, *args, **kwargs)  # Call list method for paginated response
+        else:
+            # Handle non-paginated GET request (e.g., retrieve specific friend details)
+            friend_id = kwargs.get('pk')  # Get the friend ID from URL parameters
+            try:
+                friend = Friend.objects.get(pk=friend_id)
+            except Friend.DoesNotExist:
+                return Response({"error": "Friend not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if the current user is user1 or user2 in the friendship
+            current_user = request.user
+            if friend.user1 == current_user:
+                friend_owner = friend.user2
+            else:
+                friend_owner = friend.user1
+
+            # Serialize the friend owner object
+            owner_serializer = OwnerSerializer(friend_owner)  # Assuming you have a UserSerializer
+            return Response(owner_serializer.data)

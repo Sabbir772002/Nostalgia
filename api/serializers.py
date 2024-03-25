@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
+from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -94,9 +95,32 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = User.objects.get(username=username)
         user.set_password(new_password)
         user.save()
+        
 from rest_framework.serializers import ModelSerializer
 
 class ProfileSerilazier(ModelSerializer):
     class Meta:
         model = Owner
+
+class FriendSerializer(serializers.ModelSerializer):
+    user1 = OwnerSerializer(read_only=True)
+    user2 = OwnerSerializer(read_only=True)
+
+    class Meta:
+        model = Friend
+        fields = ['f_id', 'f_created_date', 'user1', 'user2']
+
+    def create(self, validated_data):
+        user1_data = validated_data.pop('user1')
+        user2_data = validated_data.pop('user2')
+
+        user1 = Owner.objects.get(pk=user1_data['id'])
+        user2 = Owner.objects.get(pk=user2_data['id'])
+
+        friend = Friend.objects.create(user1=user1, user2=user2, **validated_data)
+        return friend
+    
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
         fields = '__all__'
