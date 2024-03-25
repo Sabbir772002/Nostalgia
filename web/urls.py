@@ -16,6 +16,7 @@ urlpatterns = [
     path('login', views.log_in, name='log_in'),
     path('100', views.match, name='match'),
     path('add_friend/<int:id>', views.add_friend, name='add_friend'),
-    path('upload', upload_image, name='upload_image'),
+    path('upload', views.upload_image, name='upload_image'),
+    path('wbuddy', views.wbuddy, name='wbuddy'),
 
 ]

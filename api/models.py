@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -144,7 +145,6 @@ class WalkMember(models.Model):
 
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
-    
 class Friend(models.Model):
     f_id = models.AutoField(primary_key=True)
     f_created_date = models.DateField()
@@ -181,6 +181,94 @@ class Blog(models.Model):
     content = models.TextField()
     blog_img = models.ImageField(upload_to='images/', null=True, blank=True) 
     author = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    
+class Agency(models.Model):
+    Agency_ID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=255)
+    A_Location = models.CharField(max_length=255)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return self.Name
+class Guide(models.Model):
+    G_ID = models.AutoField(primary_key=True)
+    Phone = models.IntegerField()
+    Email = models.EmailField(max_length=255)
+    Experience = models.IntegerField()
+    G_name = models.CharField(max_length=255)
+    Gender = models.CharField(max_length=10)
+    DOB = models.DateField()
+    Agency_ID = models.ForeignKey(Agency, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.G_name
+    
+    
+class PlanTrip(models.Model):
+    TripID = models.AutoField(primary_key=True)
+    Location = models.CharField(max_length=255)
+    Trip_start_date = models.DateField()
+    Trip_end_date = models.DateField()
+    Trip_propose_date = models.DateField(default=timezone.now)
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Trip ID: {self.TripID}, Location: {self.Location}'
+    
+class TripMember(models.Model):
+    TM_id = models.AutoField(primary_key=True)
+    cancel_member = models.IntegerField()
+    TripID = models.ForeignKey(PlanTrip, on_delete=models.CASCADE)
+    T_member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
+    
+class GroupMember(models.Model):
+    MemberID = models.AutoField(primary_key=True)
+    JoinDate = models.DateField(default=timezone.now)
+    isAdmin = models.CharField(max_length=10)
+    Block = models.IntegerField()
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
+    member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Member ID: {self.MemberID}, Username: {self.G_username.username}'
+
+
+class Group(models.Model):
+    G_username = models.CharField(max_length=255)
+    Name = models.CharField(max_length=255)
+    CreatedDate = models.DateField(default=timezone.now)
+    Topic = models.CharField(max_length=255)
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Name
+    
+class GroupPost(models.Model):
+    GPost_id = models.AutoField(primary_key=True)
+    GPost_contents = models.TextField()
+    GPost_Time = models.IntegerField()
+    GPost_date = models.IntegerField()
+    GPost_image = models.ImageField(upload_to='image/', null=True)
+    G_username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Group Post ID: {self.GPost_id}, Contents: {self.GPost_contents}'    
+
+class IndividualPost(models.Model):
+    PostID = models.AutoField(primary_key=True)
+    Post_contents = models.TextField()
+    Post_date = models.DateField()
+    Image = models.ImageField(upload_to='image/', null=True)
+    PostTime = models.IntegerField()
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Post ID: {self.PostID}, Contents: {self.Post_contents}'
+        

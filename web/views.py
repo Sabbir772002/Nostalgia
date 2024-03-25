@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login as a_login
 import json
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import EmailMessage, get_connection
 
 @csrf_exempt
 def home(request):
@@ -142,7 +143,7 @@ def add_friend(request,id):
     response = requests.post(url, data=data)
     #fnd should be a list of friends from api, make it later...
     fnd=Friend.objects.filter(user1=id,is_fnf=1)
-    friends=Owner.objects.filter(id__in=fnd)
+    friends=Owner.objects.exclude(id__in=fnd)
     print(response.json())
 
     return render(request, 'profile.html',{"profile":Owner.objects.get(id=id),"friends":friends})
@@ -280,4 +281,77 @@ def upload_image(request):
 
                 return HttpResponse(http_response)
     return render(request, 'home.html')
+from django.db.models import Q
+from django.core.paginator import Paginator 
+def wbuddy(request):
+    fnd = Friend.objects.filter(Q(user1=request.user.id) | Q(user2=request.user.id))#, is_fnf=1)
+    friends=Owner.objects.filter(id__in=fnd)
+    # for expert in experts_users:
+    #     expert.save()
+    # for expert in friends:
+    #         print(expert.first_name)
+    print(friends)
+
+    paginator = Paginator(friends,1)
+    page = request.GET.get('page', 1)
+    page = int(page)
+    context = {
+        'paginator': paginator,
+        'page_obj': paginator.get_page(page),
+        'page_numbers_range': range(
+            max(1, page - 2), min(paginator.num_pages, page + 2) + 1
+        ),
+    }
+    data = paginator.get_page(page)
+    return render(request, "wbuddyList.html", {'context': context})
+
+def send_email(request):
+ if request.method == "POST":
+    with get_connection(
+        host=settings.EMAIL_HOST,
+        port=settings.EMAIL_PORT,
+        username=settings.EMAIL_HOST_USER,
+        password=settings.EMAIL_HOST_PASSWORD,
+        use_tls=settings.EMAIL_USE_TLS
+    ) as connection:
+        subject = "From Nostalgia"  
+        request.POST.get("subject")
+        email_from = settings.EMAIL_HOST_USER
+        [request.POST.get("email"), ]
+        mail = "sabbir772002@gmail.com"
+        recipient_list = [mail,"nhossain213005@bscse.uiu.ac.bd"]
+        message = request.POST.get("message")
+        context = {
+            "user": request.user
+        }
+        html_message = render_to_string('mail.html', {
+            'context': context})
+        mail = EmailMessage(subject, html_message, email_from,
+                            recipient_list, connection=connection)
+        image_path = os.path.join(settings.MEDIA_ROOT, request.user.image.path)
+
+        # with open(image_path, 'rb') as image_file:
+        #                       mail.attach_file(image_path)
+        
+        # image_content_id = mail.attachments[0][0]
+        # image_reference = f'cid:{image_content_id}'
+        # print(image_reference)
+
+        # html_content_with_cid = html_message.replace(
+        #     request.user.image.url, image_reference)
+
+        #mail.body = html_content_with_cid
+        mail.content_subtype = 'html'
+        mail.send()
+
+        # html_message = "<p>Hey how are you?</p>"
+
+        # msg.content_subtype = "html"
+        # msg.send()
+        # EmailMessage(subject, message, email_from,
+        #  recipient_list, connection=connection).send()
+
+        return render(request, 'index.html')
+
+
                         
