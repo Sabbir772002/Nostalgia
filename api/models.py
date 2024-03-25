@@ -195,3 +195,79 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.title
+    blog_img = models.ImageField(upload_to='images/', null=True, blank=True) 
+    author = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.G_name
+
+    
+
+    
+class GroupMember(models.Model):
+    MemberID = models.AutoField(primary_key=True)
+    JoinDate = models.DateField(default=timezone.now)
+    isAdmin = models.CharField(max_length=10)
+    Block = models.IntegerField()
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
+    member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Member ID: {self.MemberID}, Username: {self.G_username.username}'
+
+
+class Group(models.Model):
+    G_username = models.CharField(max_length=255)
+    Name = models.CharField(max_length=255)
+    CreatedDate = models.DateField(default=timezone.now)
+    Topic = models.CharField(max_length=255)
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Name
+
+class PlanTrip(models.Model):
+    TripID = models.AutoField(primary_key=True)
+    Location = models.CharField(max_length=255)
+    Trip_start_date = models.DateField()
+    Trip_end_date = models.DateField()
+    Trip_propose_date = models.DateField(default=timezone.now)
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    #Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Trip ID: {self.TripID}, Location: {self.Location}'
+
+class TripMember(models.Model):
+    TM_id = models.AutoField(primary_key=True)
+    cancel_member = models.IntegerField()
+    TripID = models.ForeignKey(PlanTrip, on_delete=models.CASCADE)
+    T_member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
+class GroupPost(models.Model):
+    GPost_id = models.AutoField(primary_key=True)
+    GPost_contents = models.TextField()
+    GPost_Time = models.IntegerField()
+    GPost_date = models.IntegerField()
+    GPost_image = models.ImageField(upload_to='image/', null=True)
+    G_username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Group Post ID: {self.GPost_id}, Contents: {self.GPost_contents}'    
+
+class IndividualPost(models.Model):
+    PostID = models.AutoField(primary_key=True)
+    Post_contents = models.TextField()
+    Post_date = models.DateField()
+    Image = models.ImageField(upload_to='image/', null=True)
+    PostTime = models.IntegerField()
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Post ID: {self.PostID}, Contents: {self.Post_contents}'
+        
