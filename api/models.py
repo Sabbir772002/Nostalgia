@@ -270,4 +270,34 @@ class IndividualPost(models.Model):
 
     def __str__(self):
         return f'Post ID: {self.PostID}, Contents: {self.Post_contents}'
+    
+
+class PlanEvent(models.Model):
+    EventID = models.AutoField(primary_key=True)
+    Description = models.CharField(max_length=255)
+    Event_title = models.CharField(max_length=255)
+    Event_start_time = models.IntegerField()
+    Event_end_time = models.IntegerField()
+    Event_start_date = models.DateField()
+    Event_end_date = models.DateField()
+    Address = models.CharField(max_length=255)
+    Event_create_date = models.DateField()
+    Event_Approve = models.IntegerField()
+    E_type = models.CharField(max_length=255)
+    Image = models.IntegerField()
+    E_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.Event_title
+    
+class JoinEvent(models.Model):
+    JoinID = models.AutoField(primary_key=True)
+    ApproveMember = models.IntegerField()
+    Event_Member = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='joined_events')
+    EventID = models.ForeignKey(PlanEvent, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Join ID: {self.JoinID}, Event ID: {self.EventID}'    
+
         
