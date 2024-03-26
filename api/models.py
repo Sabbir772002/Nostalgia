@@ -154,6 +154,16 @@ class Friend(models.Model):
     def __str__(self):
         return f"Friendship between {self.user1.username} and {self.user2.username}"
     
+class Chat(models.Model):
+    msgID = models.AutoField(primary_key=True)
+    message_time = models.DateTimeField()
+    Msg = models.CharField(max_length=255)
+    Sender = models.ForeignKey(Owner, related_name='sent_messages', on_delete=models.CASCADE)
+    Receiver = models.ForeignKey(Owner, related_name='received_messages', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Chat message {self.msgID}"
+    
 class Medication(models.Model):
     medication_id = models.AutoField(primary_key=True)
     meds_start_date = models.DateField()
@@ -179,35 +189,20 @@ class Blog(models.Model):
     post_date = models.DateField()
     post_time=models.TimeField()
     content = models.TextField()
+    title = models.CharField(max_length=255)
+    blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
     blog_img = models.ImageField(upload_to='images/', null=True, blank=True) 
     author = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.G_name
-    
-    
-class PlanTrip(models.Model):
-    TripID = models.AutoField(primary_key=True)
-    Location = models.CharField(max_length=255)
-    Trip_start_date = models.DateField()
-    Trip_end_date = models.DateField()
-    Trip_propose_date = models.DateField(default=timezone.now)
-    Privacy = models.CharField(max_length=255)
-    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
-    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
-    Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f'Trip ID: {self.TripID}, Location: {self.Location}'
     
-class TripMember(models.Model):
-    TM_id = models.AutoField(primary_key=True)
-    cancel_member = models.IntegerField()
-    TripID = models.ForeignKey(PlanTrip, on_delete=models.CASCADE)
-    T_member = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
     
 class GroupMember(models.Model):
     MemberID = models.AutoField(primary_key=True)
@@ -231,7 +226,29 @@ class Group(models.Model):
 
     def __str__(self):
         return self.Name
-    
+
+class PlanTrip(models.Model):
+    TripID = models.AutoField(primary_key=True)
+    Location = models.CharField(max_length=255)
+    Trip_start_date = models.DateField()
+    Trip_end_date = models.DateField()
+    Trip_propose_date = models.DateField(default=timezone.now)
+    Privacy = models.CharField(max_length=255)
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    #Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Trip ID: {self.TripID}, Location: {self.Location}'
+
+class TripMember(models.Model):
+    TM_id = models.AutoField(primary_key=True)
+    cancel_member = models.IntegerField()
+    TripID = models.ForeignKey(PlanTrip, on_delete=models.CASCADE)
+    T_member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
 class GroupPost(models.Model):
     GPost_id = models.AutoField(primary_key=True)
     GPost_contents = models.TextField()
