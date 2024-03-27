@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier
+from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier,OwnwerUpdateSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -25,6 +25,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import os
+from django.shortcuts import render
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
@@ -73,18 +75,21 @@ class O_update(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Owner_update(APIView):
-    def put(self, request, pk):
+    def put(self, request, username):
         try:
+           #print(request.data)
             # Retrieve the user object to be updated
-            owner = Owner.objects.get(pk=pk)
+            owner = Owner.objects.get(username=username)
         except Owner.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Deserialize the incoming data
-        serializer = OwnerSerializer(owner, data=request.data)
+        serializer = OwnwerUpdateSerializer(owner, data=request.data)
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
+       #print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
@@ -104,8 +109,9 @@ class Owner_update(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class sign(APIView):
     def post(self, request):
-        print(request.data)
+        #print(request.data)
         serializer = OwnerSerializer(data=request.data)
+        print("why didnt working?")
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -127,7 +133,6 @@ from django.contrib.auth import authenticate, login
 class UserLogin(APIView):
 	permission_classes = (permissions.AllowAny,)
 	authentication_classes = (SessionAuthentication,)
-	##
 	def post(self, request):
 		data = request.data
 		assert validate_email(data)
@@ -137,19 +142,22 @@ class UserLogin(APIView):
 			user = serializer.check_user(data)
 			login(request, user)
 			return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        
+from django.contrib.auth import logout
+
 class login_api(views.APIView):
     def post(self, request):
         data = request.data
         username = data.get('username')
         password = data.get('password')
         #serializer = UserLoginSerializer(data=data)
+        print(data)
+        #logout(request)
 
         if username and password:
             user = authenticate(request, username=username, password=password)
-            
+            print(user)
             if user is not None:
-                print(user)
                 login(request,user)
                 user=Owner.objects.get(username=username)
                 serializer = OwnerSerializer(user)
@@ -277,7 +285,7 @@ class Profile(APIView):
         try:
             user = Owner.objects.get(username=username)
             user=OwnerSerializer(user)
-            #print(user)
+            print(user.data)
            # if(user.is_valid()):
            # print(user.data)
             return Response(user.data, status=status.HTTP_200_OK)
@@ -376,5 +384,79 @@ class FriendListView(generics.ListAPIView):
             return Response(owner_serializer.data)
 
 
-#search code.....
+def upload_image(request):
+    api_key = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
+    api_secret = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
+    url = "https://api-us.faceplusplus.com/facepp/v3/compare"
 
+    if request.method == 'POST':
+        image_path1 = request.FILES.get('image')
+        image_path2 = request.FILES.get('image2')
+        #print(image_path1, image_path2)
+        if image_path1 and image_path2:
+                # image_type1 = imghdr.what(None, image_path1.read())
+                # image_type2 = imghdr.what(None, image_path2.read())
+
+                # if image_type1:
+                #     print("File 1 is an image of type:", image_type1)
+                # else:
+                #     print("File 1 is not an image.")
+                # if image_type2:
+                #     print("File 2 is an image of type:", image_type2)
+                # else:
+                #   print("File 2 is not an image.")
+              
+                image_path10 = r"5.png"
+                image_path20 = r"bb.png"
+                full_path = os.path.join(settings.MEDIA_ROOT, image_path10)
+                full_path2 = os.path.join(settings.MEDIA_ROOT, image_path20)
+                print(full_path)
+                print(full_path2)
+                import base64
+                file_contents = image_path1.read()
+                file_content = image_path2.read()
+
+                # Now you can use 'file_contents' as a bytes-like object
+                # For example, if you want to write it to a file:
+                with open(full_path, 'wb') as f:
+                    f.write(file_contents)
+                with open(full_path2, 'wb') as f:
+                    f.write(file_content)
+                with open(full_path, 'rb') as img_file:
+                    image_content = img_file.read()
+                    base64_image = base64.b64encode(image_content).decode('utf-8')
+
+                with open(full_path2, 'rb') as img_file2:
+                    image_content2 = img_file2.read()
+                    base64_image2 = base64.b64encode(image_content2).decode('utf-8')
+
+                # Prepare the payload
+                payload = {
+                    "api_key": api_key,
+                    "api_secret": api_secret,
+                    # "image_file1": image_path1,
+                    # "image_file2": image_path2,
+                    # "face_token1": "50da07384227fd1480595303ac83ff29",
+                    # "face_token2": "6fd9b603e6cdb3920480eb8c2cbc6f05",
+                    "image_base64_1":base64_image,
+                    "image_base64_2":base64_image2,
+
+                }
+                # Send the POST request
+                response = requests.post(url, data=payload)
+                print(response.json())
+
+                # Print the response
+                #print(response.json())
+                response=response.json()
+                confidence = response['confidence']
+                threshold = 50
+
+                if confidence >= threshold:
+                        http_response = "<b>Match between two photos is successful with confidence: {:.2f}</b>".format(confidence)
+                else:
+                    http_response = "<b>Match between two photos is not successful. Confidence is too low: {:.2f}</b>".format(confidence)
+                    print(http_response)
+
+                return HttpResponse(http_response)
+    return render(request, 'home.html')

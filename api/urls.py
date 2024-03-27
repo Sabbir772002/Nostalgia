@@ -4,23 +4,28 @@ from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorld
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView
 from . import views
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView,add_fnf
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path, include
 
 urlpatterns = [
     path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
-    path('/orm', MyAPIView.as_view(), name='MyAPIView'),
-    path('/changepass', ChangePass.as_view(), name='changepass'),
-    path('/login', login_api.as_view(), name='login'),
-    path('/log', UserLogin.as_view(), name='log'),
-    path('/sign', sign.as_view(), name='sign'),
-    path('/_sign', _sign.as_view(), name='sign_o'),
-    path('/show', show.as_view(), name='show'),
-    path('/owner/<int:pk>', Owner_update.as_view(), name='Owner_update'),
-    path('/overseer/<int:pk>', O_update.as_view(), name='O_update'),
-    path('/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
-    path('/hello/', HelloWorldView.as_view(), name='hello_world'),
-    path('/friends/', views.FriendListView.as_view(), name='friend-list'),
-    path('/add_fnf', add_fnf.as_view(), name='add_fnf'),
-    path('/profile/<username>', Profile.as_view(), name='profile'),
+    path('orm', MyAPIView.as_view(), name='MyAPIView'),
+    path('changepass', ChangePass.as_view(), name='changepass'),
+    path('login', login_api.as_view(), name='login'),
+    path('log', UserLogin.as_view(), name='log'),
+    path('sign', sign.as_view(), name='sign'),
+    path('_sign', _sign.as_view(), name='sign_o'),
+    path('show', show.as_view(), name='show'),
+    path('owner/<username>', Owner_update.as_view(), name='Owner_update'),
+    path('overseer/<int:pk>', O_update.as_view(), name='O_update'),
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
+    path('hello/', HelloWorldView.as_view(), name='hello_world'),
+    path('friends/', views.FriendListView.as_view(), name='friend-list'),
+    path('add_fnf', add_fnf.as_view(), name='add_fnf'),
+    path('profile/<username>', Profile.as_view(), name='profile'),
 
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
