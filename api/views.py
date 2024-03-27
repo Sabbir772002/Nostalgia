@@ -376,9 +376,8 @@ class FriendListView(generics.ListAPIView):
                 friend_owner = friend.user1
 
             # Serialize the friend owner object
-            owner_serializer = OwnerSerializer(friend_owner)  # Assuming you have a UserSerializer
+            owner_serializer = OwnerSerializer(friend_owner  
             return Response(owner_serializer.data)
 
 
-#search code.....
 
