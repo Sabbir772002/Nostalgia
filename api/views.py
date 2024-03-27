@@ -384,79 +384,48 @@ class FriendListView(generics.ListAPIView):
             return Response(owner_serializer.data)
 
 
-def upload_image(request):
-    api_key = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
-    api_secret = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
-    url = "https://api-us.faceplusplus.com/facepp/v3/compare"
+import os
+import base64
+import requests
 
-    if request.method == 'POST':
-        image_path1 = request.FILES.get('image')
-        image_path2 = request.FILES.get('image2')
-        #print(image_path1, image_path2)
-        if image_path1 and image_path2:
-                # image_type1 = imghdr.what(None, image_path1.read())
-                # image_type2 = imghdr.what(None, image_path2.read())
+class FaceCompareAPI:
+    def __init__(self, api_key, api_secret):
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.url = "https://api-us.faceplusplus.com/facepp/v3/compare"
 
-                # if image_type1:
-                #     print("File 1 is an image of type:", image_type1)
-                # else:
-                #     print("File 1 is not an image.")
-                # if image_type2:
-                #     print("File 2 is an image of type:", image_type2)
-                # else:
-                #   print("File 2 is not an image.")
-              
-                image_path10 = r"5.png"
-                image_path20 = r"bb.png"
-                full_path = os.path.join(settings.MEDIA_ROOT, image_path10)
-                full_path2 = os.path.join(settings.MEDIA_ROOT, image_path20)
-                print(full_path)
-                print(full_path2)
-                import base64
-                file_contents = image_path1.read()
-                file_content = image_path2.read()
+    def compare_images(self, image_path1, image_path2):
+        # Read image files and convert them to base64 strings
+        base64_image1 = self.encode_image_to_base64(image_path1)
+        base64_image2 = self.encode_image_to_base64(image_path2)
 
-                # Now you can use 'file_contents' as a bytes-like object
-                # For example, if you want to write it to a file:
-                with open(full_path, 'wb') as f:
-                    f.write(file_contents)
-                with open(full_path2, 'wb') as f:
-                    f.write(file_content)
-                with open(full_path, 'rb') as img_file:
-                    image_content = img_file.read()
-                    base64_image = base64.b64encode(image_content).decode('utf-8')
+        # Prepare the payload
+        payload = {
+            "api_key": self.api_key,
+            "api_secret": self.api_secret,
+            "image_base64_1": base64_image1,
+            "image_base64_2": base64_image2,
+        }
 
-                with open(full_path2, 'rb') as img_file2:
-                    image_content2 = img_file2.read()
-                    base64_image2 = base64.b64encode(image_content2).decode('utf-8')
+        # Send the POST request to Face++ API
+        response = requests.post(self.url, data=payload)
+        response_json = response.json()
 
-                # Prepare the payload
-                payload = {
-                    "api_key": api_key,
-                    "api_secret": api_secret,
-                    # "image_file1": image_path1,
-                    # "image_file2": image_path2,
-                    # "face_token1": "50da07384227fd1480595303ac83ff29",
-                    # "face_token2": "6fd9b603e6cdb3920480eb8c2cbc6f05",
-                    "image_base64_1":base64_image,
-                    "image_base64_2":base64_image2,
+        # Process the response and return the result
+        return self.process_response(response_json)
 
-                }
-                # Send the POST request
-                response = requests.post(url, data=payload)
-                print(response.json())
+    def encode_image_to_base64(self, image_path):
+        with open(image_path, 'rb') as img_file:
+            image_content = img_file.read()
+            base64_image = base64.b64encode(image_content).decode('utf-8')
+        return base64_image
 
-                # Print the response
-                #print(response.json())
-                response=response.json()
-                confidence = response['confidence']
-                threshold = 50
+    def process_response(self, response_json):
+        confidence = response_json.get('confidence', 0)
+        threshold = 50
+        if confidence >= threshold:
+            return "Match between two photos is successful with confidence: {:.2f}".format(confidence)
+        else:
+            return "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
 
-                if confidence >= threshold:
-                        http_response = "<b>Match between two photos is successful with confidence: {:.2f}</b>".format(confidence)
-                else:
-                    http_response = "<b>Match between two photos is not successful. Confidence is too low: {:.2f}</b>".format(confidence)
-                    print(http_response)
 
-                return HttpResponse(http_response)
-    return render(request, 'home.html')
