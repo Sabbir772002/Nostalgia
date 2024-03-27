@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier
+from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier,OwnwerUpdateSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -73,18 +73,21 @@ class O_update(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class Owner_update(APIView):
-    def put(self, request, pk):
+    def put(self, request, username):
         try:
+           #print(request.data)
             # Retrieve the user object to be updated
-            owner = Owner.objects.get(pk=pk)
+            owner = Owner.objects.get(username=username)
         except Owner.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Deserialize the incoming data
-        serializer = OwnerSerializer(owner, data=request.data)
+        serializer = OwnwerUpdateSerializer(owner, data=request.data)
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
+       #print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
@@ -104,8 +107,9 @@ class Owner_update(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class sign(APIView):
     def post(self, request):
-        print(request.data)
+        #print(request.data)
         serializer = OwnerSerializer(data=request.data)
+        print("why didnt working?")
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -277,7 +281,7 @@ class Profile(APIView):
         try:
             user = Owner.objects.get(username=username)
             user=OwnerSerializer(user)
-            #print(user)
+            print(user.data)
            # if(user.is_valid()):
            # print(user.data)
             return Response(user.data, status=status.HTTP_200_OK)

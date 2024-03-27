@@ -43,6 +43,22 @@ class OwnerSerializer(UserSerializer):
         instance.save()
         return instance
 
+class OwnwerUpdateSerializer(UserSerializer):
+    walk_type = serializers.CharField(max_length=100)
+
+    class Meta(UserSerializer.Meta):
+        model = Owner
+        fields = UserSerializer.Meta.fields + ['walk_type']
+        extra_kwargs = {
+            'password': {'read_only': True},  # Exclude password from response
+        }
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.walk_type = validated_data.get('walk_type', instance.walk_type)
+        instance.save()
+        return instance
+
 class OverseerSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Overseer
