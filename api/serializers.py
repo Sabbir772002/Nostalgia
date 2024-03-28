@@ -3,10 +3,14 @@ from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
 from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
 
+
+
+#duplicate it for Oversee
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owner  # Setting it to Owner, as both Owner and Overseer inherit from User
-        fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name', 'gender', 'phone', 'dob', 'address', 'nid', 'p_image', 'thana']
+        fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name','gender', 'phone', 'dob', 'address','p_image', 'nid', 'thana']
+        #fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name', 'phone',  'address']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
