@@ -15,7 +15,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend
+from api.models import Owner, Overseer,Friend,Thana
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -25,6 +25,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import os
+from django.shortcuts import render
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
@@ -131,7 +133,6 @@ from django.contrib.auth import authenticate, login
 class UserLogin(APIView):
 	permission_classes = (permissions.AllowAny,)
 	authentication_classes = (SessionAuthentication,)
-	##
 	def post(self, request):
 		data = request.data
 		assert validate_email(data)
@@ -141,19 +142,22 @@ class UserLogin(APIView):
 			user = serializer.check_user(data)
 			login(request, user)
 			return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        
+from django.contrib.auth import logout
+
 class login_api(views.APIView):
     def post(self, request):
         data = request.data
         username = data.get('username')
         password = data.get('password')
         #serializer = UserLoginSerializer(data=data)
+        print(data)
+        #logout(request)
 
         if username and password:
             user = authenticate(request, username=username, password=password)
-            
+            print(user)
             if user is not None:
-                print(user)
                 login(request,user)
                 user=Owner.objects.get(username=username)
                 serializer = OwnerSerializer(user)
@@ -270,11 +274,30 @@ class add_fnf(APIView):
         fnd.save()
         return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
 
+
 class FriendList(APIView):
     def get(self, request):
-        data = request.data
-        print(data)
-        return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
+        users = Owner.objects.all()
+        # Serialize the data
+        serialized_data = []
+        for user in users:
+            serialized_data.append({
+                'id': user.id,
+                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                'first_name': user.first_name,
+                'username': user.username,
+                'last_name': user.last_name,
+                'email': user.email,
+                'gender': user.gender,
+                'phone': user.phone,
+                'dob': user.dob,
+                'address': user.address,
+                'nid': user.nid,
+                'thana': Thana.objects.get(id=user.thana_id).name,
+            })
+        
+        return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+
 
 class Profile(APIView):
     def get(self, request, username):
@@ -332,6 +355,7 @@ class profile(APIView):
         print(data)
         return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
 
+
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from .models import Friend
@@ -376,8 +400,83 @@ class FriendListView(generics.ListAPIView):
                 friend_owner = friend.user1
 
             # Serialize the friend owner object
-            owner_serializer = OwnerSerializer(friend_owner  
+            owner_serializer = OwnerSerializer(friend_owner)
             return Response(owner_serializer.data)
 
 
+def upload_image(request):
+    api_key = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
+    api_secret = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
+    url = "https://api-us.faceplusplus.com/facepp/v3/compare"
 
+    if request.method == 'POST':
+        image_path1 = request.FILES.get('image')
+        image_path2 = request.FILES.get('image2')
+        #print(image_path1, image_path2)
+        if image_path1 and image_path2:
+                # image_type1 = imghdr.what(None, image_path1.read())
+                # image_type2 = imghdr.what(None, image_path2.read())
+
+                # if image_type1:
+                #     print("File 1 is an image of type:", image_type1)
+                # else:
+                #     print("File 1 is not an image.")
+                # if image_type2:
+                #     print("File 2 is an image of type:", image_type2)
+                # else:
+                #   print("File 2 is not an image.")
+              
+                image_path10 = r"5.png"
+                image_path20 = r"bb.png"
+                full_path = os.path.join(settings.MEDIA_ROOT, image_path10)
+                full_path2 = os.path.join(settings.MEDIA_ROOT, image_path20)
+                print(full_path)
+                print(full_path2)
+                import base64
+                file_contents = image_path1.read()
+                file_content = image_path2.read()
+
+                # Now you can use 'file_contents' as a bytes-like object
+                # For example, if you want to write it to a file:
+                with open(full_path, 'wb') as f:
+                    f.write(file_contents)
+                with open(full_path2, 'wb') as f:
+                    f.write(file_content)
+                with open(full_path, 'rb') as img_file:
+                    image_content = img_file.read()
+                    base64_image = base64.b64encode(image_content).decode('utf-8')
+
+                with open(full_path2, 'rb') as img_file2:
+                    image_content2 = img_file2.read()
+                    base64_image2 = base64.b64encode(image_content2).decode('utf-8')
+
+                # Prepare the payload
+                payload = {
+                    "api_key": api_key,
+                    "api_secret": api_secret,
+                    # "image_file1": image_path1,
+                    # "image_file2": image_path2,
+                    # "face_token1": "50da07384227fd1480595303ac83ff29",
+                    # "face_token2": "6fd9b603e6cdb3920480eb8c2cbc6f05",
+                    "image_base64_1":base64_image,
+                    "image_base64_2":base64_image2,
+
+                }
+                # Send the POST request
+                response = requests.post(url, data=payload)
+                print(response.json())
+
+                # Print the response
+                #print(response.json())
+                response=response.json()
+                confidence = response['confidence']
+                threshold = 50
+
+                if confidence >= threshold:
+                        http_response = "<b>Match between two photos is successful with confidence: {:.2f}</b>".format(confidence)
+                else:
+                    http_response = "<b>Match between two photos is not successful. Confidence is too low: {:.2f}</b>".format(confidence)
+                    print(http_response)
+
+                return HttpResponse(http_response)
+    return render(request, 'home.html')
