@@ -15,7 +15,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend
+from api.models import Owner, Overseer,Friend,Thana
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -274,11 +274,30 @@ class add_fnf(APIView):
         fnd.save()
         return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
 
+
 class FriendList(APIView):
     def get(self, request):
-        data = request.data
-        print(data)
-        return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
+        users = Owner.objects.all()
+        # Serialize the data
+        serialized_data = []
+        for user in users:
+            serialized_data.append({
+                'id': user.id,
+                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                'first_name': user.first_name,
+                'username': user.username,
+                'last_name': user.last_name,
+                'email': user.email,
+                'gender': user.gender,
+                'phone': user.phone,
+                'dob': user.dob,
+                'address': user.address,
+                'nid': user.nid,
+                'thana': Thana.objects.get(id=user.thana_id).name,
+            })
+        
+        return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+
 
 class Profile(APIView):
     def get(self, request, username):
@@ -336,6 +355,7 @@ class profile(APIView):
         print(data)
         return Response({"message": "Friends Retrive successfully"}, status=status.HTTP_201_CREATED)
 
+
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from .models import Friend
@@ -380,7 +400,7 @@ class FriendListView(generics.ListAPIView):
                 friend_owner = friend.user1
 
             # Serialize the friend owner object
-            owner_serializer = OwnerSerializer(friend_owner)  # Assuming you have a UserSerializer
+            owner_serializer = OwnerSerializer(friend_owner)
             return Response(owner_serializer.data)
 
 
