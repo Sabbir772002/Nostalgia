@@ -448,4 +448,26 @@ class FaceCompareAPI:
         else:
             return "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
 
+class WalkingBuddyList(APIView):
+    def get(self, request):
+        users = Owner.objects.all()
+        # Serialize the data
+        serialized_data = []
+        for user in users:
+            serialized_data.append({
+                'id': user.id,
+                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                'first_name': user.first_name,
+                'username': user.username,
+                'last_name': user.last_name,
+                'email': user.email,
+                'gender': user.gender,
+                'phone': user.phone,
+                'dob': user.dob,
+                'address': user.address,
+                'nid': user.nid,
+                'thana': Thana.objects.get(id=user.thana_id).name,
+            })
+        
+        return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
 
