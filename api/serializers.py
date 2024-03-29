@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
 from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
-
+from .models import MyModel
 
 
 #duplicate it for Oversee
@@ -172,4 +172,13 @@ class OverseerSerializer(UserSerializer):
         instance.Location = validated_data.get('Location', instance.Location)
         instance.Relation = validated_data.get('Relation', instance.Relation)
         instance.save()
-        return instance        
+        return instance  
+    
+from .models import Blog
+
+class BlogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Blog
+        fields = ['blogid', 'post_date', 'post_time', 'content', 'title', 'blog_img', 'author']
+    
+          

@@ -27,6 +27,7 @@ from rest_framework.views import APIView
 import os
 from django.shortcuts import render
 
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
     

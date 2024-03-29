@@ -300,4 +300,17 @@ class JoinEvent(models.Model):
     def __str__(self):
         return f'Join ID: {self.JoinID}, Event ID: {self.EventID}'    
 
+
+class MyModel(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    address = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
+    nid = models.CharField(max_length=20)
+    p_image = models.ImageField(upload_to='image/', null=True)
+    thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
         
