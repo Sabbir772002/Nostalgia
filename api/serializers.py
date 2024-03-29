@@ -140,3 +140,15 @@ class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = '__all__'
+
+class OverseerSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        model = Overseer
+        fields = UserSerializer.Meta.fields + ['Location', 'Relation']
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.Location = validated_data.get('Location', instance.Location)
+        instance.Relation = validated_data.get('Relation', instance.Relation)
+        instance.save()
+        return instance        
