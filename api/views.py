@@ -1,7 +1,6 @@
 # views.py
 from rest_framework import views, status
 from rest_framework.response import Response
-from .serializers import OwnerSerializer,OverseerSerializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
@@ -11,11 +10,11 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier,OwnwerUpdateSerializer
+from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier,OwnwerUpdateSerializer,PassResetSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana
+from api.models import Owner, Overseer,Friend,Thana,User
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -240,7 +239,7 @@ class ChangePass(views.APIView):
         print(request.user)
         if serializer.is_valid():
             print(serializer.validated_data)
-            print("YOu are in changepass class")
+            print("You are in changepass class")
             old_password = serializer.validated_data['old_password']
             new_password = serializer.validated_data['new_password']
             username = serializer.validated_data['username']
@@ -259,6 +258,30 @@ class ChangePass(views.APIView):
                 return Response({'error': 'Old password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from django.contrib.auth.hashers import make_password
+
+class PassReset(views.APIView):
+    def post(self, request):
+        print(request.data)
+        serializer = PassResetSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            new_password = serializer.validated_data['new_password']
+            done = serializer.validated_data['done']
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            user.set_password(new_password)
+            user.save()
+            #print(username)
+            #print(new_password)
+            return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class add_fnf(APIView):
@@ -327,27 +350,36 @@ from django.conf import settings
 import requests
 import random
 import string
-
-class EmailVerificationAPIView(APIView):
+#change it for email....
+class OTPAPI(APIView):
     def post(self, request):
         # Extract the email address from the request data
-        email_address = request.data.get('email')
+        #print(request.data)
+        username = request.data.get('input')
 
         # Verify the email address using an email verification API (optional)
         # You can skip the verification API and directly send the email
         # is_email_valid = self.verify_email(email_address)
+        try:
+            user = Owner.objects.get(username=username)
+            #print(user)
+            email_address = user.email
+            #print(email_address)
+            verification_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+            print(verification_code)
+            # Send verification email with the verification code
 
-        # Generate a verification code
-        verification_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-        # Send verification email with the verification code
-        self.send_verification_email(email_address, verification_code)
-
-        return Response({"message": "Verification email sent successfully", "verification_code": verification_code}, status=status.HTTP_200_OK)
+            #uncomment when send mail....
+            #self.send_verification_email(email_address, verification_code)
+            return Response({"message": "Verification email sent successfully", "code": verification_code,"username":user.username}, status=status.HTTP_200_OK)
+        except Owner.DoesNotExist:
+                print("User not found")
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
 
     def send_verification_email(self, email_address, verification_code):
         # Send verification email using Django's email functionality
-        subject = 'Email Verification'
+        subject = 'Email Verification Code from Nostalgia'
         message = f'Your verification code is: {verification_code}'
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [email_address]
@@ -456,3 +488,34 @@ class FaceCompareAPI:
             return "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
 
 
+from rest_framework.response import Response
+from rest_framework import status
+from .models import User, Thana
+
+class OverseerList(APIView):
+    def get(self, request):
+        target = request.GET.get('target')  # Assuming 'target' is passed as a query parameter
+        print(target)
+        if not target:
+            return Response({"message": "Please provide a target value"}, status=status.HTTP_400_BAD_REQUEST)
+        target="@"+target
+        users = Overseer.objects.filter(username__contains=target)
+        serialized_data = []
+        for user in users:
+            serialized_data.append({
+                'id': user.id,
+                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                'first_name': usesr.first_name,
+                'username': user.username,
+                'last_name': user.last_name,
+                'email': user.email,
+                'gender': user.gender,
+                'phone': user.phone,
+                'dob': user.dob,
+                'address': user.address,
+                'nid': user.nid,
+                'relation':user.Relation,
+                'thana': Thana.objects.get(id=user.thana_id).name,
+            })
+        
+        return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)

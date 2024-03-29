@@ -84,7 +84,24 @@ class UserLoginSerializer(serializers.Serializer):
 			raise ValidationError('user not found')
 		return user
 
+class PassResetSerializer(serializers.Serializer):
+    new_password = serializers.CharField(min_length=1, max_length=128)
+    username = serializers.CharField()
+    done= serializers.IntegerField()
 
+    def validate_username(self, value):
+        if not User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("User does not exist.")
+        
+        return value
+
+    def validate_new_password(self, value):
+        # Add any additional validation logic for the new password if needed
+        return value 
+    def validate_done(self, value):
+        if value!=1:
+            raise serializers.ValidationError("OTP is not verified")
+        return value
 
 class ChangePasswordSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)

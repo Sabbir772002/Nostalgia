@@ -23,9 +23,12 @@ urlpatterns = [
     path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('hello/', HelloWorldView.as_view(), name='hello_world'),
     path('friends', views.FriendList.as_view(), name='friend-list'),
+    path('overseerlist', views.OverseerList.as_view(), name='overseerlist'),
     path('friend', views.friends, name='friend'),
     path('add_fnf', add_fnf.as_view(), name='add_fnf'),
     path('profile/<username>', Profile.as_view(), name='profile'),
+    path('otp', views.OTPAPI.as_view(), name='otp'),
+    path('resetpass', views.PassReset.as_view(), name='resetpass'),
 
 ]
 if settings.DEBUG:
