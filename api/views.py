@@ -528,7 +528,7 @@ class OverseerList(APIView):
             serialized_data.append({
                 'id': user.id,
                 'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
-                'first_name': usesr.first_name,
+                'first_name': user.first_name,
                 'username': user.username,
                 'last_name': user.last_name,
                 'email': user.email,
