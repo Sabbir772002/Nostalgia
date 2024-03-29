@@ -573,5 +573,4 @@ class BlogCreateView(CreateAPIView):
         )
         # Save the blog instance
         blog.save()
-        # Return response
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
