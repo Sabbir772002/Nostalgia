@@ -541,3 +541,21 @@ class OverseerList(APIView):
             })
         
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+
+
+
+#check code goes here
+    
+from rest_framework.generics import ListAPIView, CreateAPIView
+from .models import Blog
+from .serializers import BlogSerializer
+
+class BlogListView(ListAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
+
+class BlogCreateView(CreateAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
+
+
