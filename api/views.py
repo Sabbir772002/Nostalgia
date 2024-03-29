@@ -77,7 +77,7 @@ class O_update(APIView):
 class Owner_update(APIView):
     def put(self, request, username):
         try:
-           #print(request.data)
+            #print(request.data)
             # Retrieve the user object to be updated
             owner = Owner.objects.get(username=username)
         except Owner.DoesNotExist:
@@ -509,7 +509,7 @@ class WalkingBuddyList(APIView):
                 'thana': Thana.objects.get(id=user.thana_id).name,
             })
         
-        return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+        return Response({"buddy": serialized_data, "message": "walking buddy information retrieved successfully"}, status=status.HTTP_200_OK)
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -544,8 +544,6 @@ class OverseerList(APIView):
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
 
 
-
-#check code goes here
     
 from rest_framework.generics import ListAPIView, CreateAPIView
 from .models import Blog
@@ -555,8 +553,25 @@ class BlogListView(ListAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogSerializer
 
+@method_decorator(csrf_exempt, name='dispatch')
 class BlogCreateView(CreateAPIView):
-    queryset = Blog.objects.all()
-    serializer_class = BlogSerializer
-
-
+    #serializer_class = BlogSerializer
+    def post(self, request, *args, **kwargs):
+        # Retrieve data from the request
+        username = request.data['username']
+        data = request.data
+        user = Owner.objects.get(username=username)
+        # print(data)
+        blog_img = data['blog_img']
+       # print(blog_img)
+        blog = Blog.objects.create(
+            author=user,
+            content=data['content'],
+            post_date=data['post_date'],
+            post_time=data['post_time'],
+            blog_img=blog_img
+        )
+        # Save the blog instance
+        blog.save()
+        # Return response
+        return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
