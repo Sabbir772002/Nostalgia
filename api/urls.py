@@ -29,6 +29,8 @@ urlpatterns = [
     path('profile/<username>', Profile.as_view(), name='profile'),
     path('otp', views.OTPAPI.as_view(), name='otp'),
     path('resetpass', views.PassReset.as_view(), name='resetpass'),
+    path('blog', views.BlogListView.as_view(), name='blog'),
+    path('addblog', views.BlogCreateView.as_view(), name='addblog'),
 
 ]
 if settings.DEBUG:

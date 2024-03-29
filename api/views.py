@@ -76,7 +76,7 @@ class O_update(APIView):
 class Owner_update(APIView):
     def put(self, request, username):
         try:
-           #print(request.data)
+            #print(request.data)
             # Retrieve the user object to be updated
             owner = Owner.objects.get(username=username)
         except Owner.DoesNotExist:
@@ -487,6 +487,28 @@ class FaceCompareAPI:
         else:
             return "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
 
+class WalkingBuddyList(APIView):
+    def get(self, request):
+        users = Owner.objects.all()
+        # Serialize the data
+        serialized_data = []
+        for user in users:
+            serialized_data.append({
+                'id': user.id,
+                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                'first_name': user.first_name,
+                'username': user.username,
+                'last_name': user.last_name,
+                'email': user.email,
+                'gender': user.gender,
+                'phone': user.phone,
+                'dob': user.dob,
+                'address': user.address,
+                'nid': user.nid,
+                'thana': Thana.objects.get(id=user.thana_id).name,
+            })
+        
+        return Response({"buddy": serialized_data, "message": "walking buddy information retrieved successfully"}, status=status.HTTP_200_OK)
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -521,6 +543,34 @@ class OverseerList(APIView):
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
 
 
+    
+from rest_framework.generics import ListAPIView, CreateAPIView
+from .models import Blog
+from .serializers import BlogSerializer
 
-#check code goes here
+class BlogListView(ListAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
 
+@method_decorator(csrf_exempt, name='dispatch')
+class BlogCreateView(CreateAPIView):
+    #serializer_class = BlogSerializer
+    def post(self, request, *args, **kwargs):
+        # Retrieve data from the request
+        username = request.data['username']
+        data = request.data
+        user = Owner.objects.get(username=username)
+        # print(data)
+        blog_img = data['blog_img']
+       # print(blog_img)
+        blog = Blog.objects.create(
+            author=user,
+            content=data['content'],
+            post_date=data['post_date'],
+            post_time=data['post_time'],
+            blog_img=blog_img
+        )
+        # Save the blog instance
+        blog.save()
+        # Return response
+        return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
