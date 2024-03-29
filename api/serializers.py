@@ -55,6 +55,24 @@ class OverseerSerializer(UserSerializer):
         instance.save()
         return instance
 
+class OverseerUpdateSerializer(serializers.ModelSerializer):
+    Location = serializers.CharField(max_length=100)
+    Relation = serializers.CharField(max_length=100)
+
+    class Meta:
+        model = Overseer
+        fields = '__all__'
+        extra_kwargs = {
+            'password': {'read_only': True},  # Exclude password from response
+        }
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.Location = validated_data.get('Location', instance.Location)
+        instance.Relation = validated_data.get('Relation', instance.Relation)
+        instance.save()
+        return instance
+
 class UserLoginSerializer(serializers.Serializer):
 	email = serializers.EmailField()
 	password = serializers.CharField()

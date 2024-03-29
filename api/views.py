@@ -100,6 +100,40 @@ class Owner_update(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class OverseerUpdate(APIView):
+    def put(self, request, pk):
+        try:
+            # Retrieve the overseer object to be updated
+            overseer = Overseer.objects.get(pk=pk)
+        except Overseer.DoesNotExist:
+            return Response({"error": "Overseer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Deserialize the incoming data
+        serializer = OverseerSerializer(overseer, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        try:
+            # Retrieve the overseer object to be updated
+            overseer = Overseer.objects.get(pk=pk)
+        except Overseer.DoesNotExist:
+            return Response({"error": "Overseer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Deserialize the incoming data, but only partially update the overseer
+        serializer = OverseerSerializer(overseer, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class sign(APIView):
