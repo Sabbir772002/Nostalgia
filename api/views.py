@@ -82,14 +82,14 @@ class Owner_update(APIView):
             owner = Owner.objects.get(username=username)
         except Owner.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
+        #print("you are in put")
         # Deserialize the incoming data
         serializer = OwnwerUpdateSerializer(owner, data=request.data)
-        
         if serializer.is_valid():
             serializer.save()
+            
             return Response(serializer.data, status=status.HTTP_200_OK)
-       #print(serializer.errors)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
@@ -126,6 +126,7 @@ class _sign(views.APIView):
         if serializer.is_valid():
             user = serializer.save()
             return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from django.contrib.auth import authenticate, login
@@ -179,13 +180,16 @@ class show(views.APIView):
 
 
 def friends(request):
-    print(request.user)
-    if(request.user.is_authenticated):
-        print("Yeah, youa re boss")
-    else:
-        print("You are not authenticated")
+    user = Owner.objects.get(username="nuha1")
+    queryset = Friend.objects.filter(user1=user.id) | Friend.objects.filter(user2=user.id)
+    queryset = queryset.exclude(user1=user.id) | queryset.exclude(user2=user.id)
+    print(queryset)
+    fndlist=[Owner.objects.get(id=fr.user1.id) for fr in queryset]
+    print(fndlist)
+    return queryset
 
     return HttpResponse("Hello, this is the friends page!")
+
 
 class MyAPIView(views.APIView):
     def get(self, request):
@@ -349,6 +353,8 @@ class EmailVerificationAPIView(APIView):
         recipient_list = [email_address]
 
         send_mail(subject, message, from_email, recipient_list)
+
+
 class profile(APIView):
     def get(self, request):
         data = request.data
@@ -376,7 +382,8 @@ class FriendListView(generics.ListAPIView):
         # Filter friends where the user is either user1 or user2 (excluding the current user)
         queryset = Friend.objects.filter(user1=user) | Friend.objects.filter(user2=user)
         queryset = queryset.exclude(user1=user) | queryset.exclude(user2=user)
-        
+        fndlist=[Owner.objects.get(id=fr.user1_id) for fr in queryset]
+        print(fndlist)
         return queryset
     
     def get(self, request, *args, **kwargs):

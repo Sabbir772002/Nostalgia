@@ -15,7 +15,7 @@ urlpatterns = [
     path('login', login_api.as_view(), name='login'),
     path('log', UserLogin.as_view(), name='log'),
     path('sign', sign.as_view(), name='sign'),
-    path('_sign', _sign.as_view(), name='sign_o'),
+    path('add_overseer', _sign.as_view(), name='add_overseer'),
     path('show', show.as_view(), name='show'),
     path('owner/<username>', Owner_update.as_view(), name='Owner_update'),
     path('overseer/<int:pk>', O_update.as_view(), name='O_update'),
@@ -23,6 +23,7 @@ urlpatterns = [
     path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('hello/', HelloWorldView.as_view(), name='hello_world'),
     path('friends', views.FriendList.as_view(), name='friend-list'),
+    path('friend', views.friends, name='friend'),
     path('add_fnf', add_fnf.as_view(), name='add_fnf'),
     path('profile/<username>', Profile.as_view(), name='profile'),
 
