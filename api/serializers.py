@@ -172,13 +172,9 @@ class OverseerSerializer(UserSerializer):
         instance.Location = validated_data.get('Location', instance.Location)
         instance.Relation = validated_data.get('Relation', instance.Relation)
         instance.save()
-        return instance  
-    
-from .models import Blog
+        return instance        
 
 class BlogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blog
-        fields = ['blogid', 'post_date', 'post_time', 'content', 'title', 'blog_img', 'author']
-    
-          
+        fields = '__all__'
