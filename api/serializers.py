@@ -1,12 +1,16 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
-from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
+from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
 
+
+
+#duplicate it for Oversee
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owner  # Setting it to Owner, as both Owner and Overseer inherit from User
-        fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name', 'gender', 'phone', 'dob', 'address', 'nid', 'p_image', 'thana']
+        fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name','gender', 'phone', 'dob', 'address','p_image', 'nid', 'thana']
+        #fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name', 'phone',  'address']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -36,6 +40,22 @@ class OwnerSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Owner
         fields = UserSerializer.Meta.fields + ['walk_type']
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.walk_type = validated_data.get('walk_type', instance.walk_type)
+        instance.save()
+        return instance
+
+class OwnwerUpdateSerializer(UserSerializer):
+    walk_type = serializers.CharField(max_length=100)
+
+    class Meta(UserSerializer.Meta):
+        model = Owner
+        fields = UserSerializer.Meta.fields + ['walk_type']
+        extra_kwargs = {
+            'password': {'read_only': True},  # Exclude password from response
+        }
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
@@ -82,7 +102,24 @@ class UserLoginSerializer(serializers.Serializer):
 			raise ValidationError('user not found')
 		return user
 
+class PassResetSerializer(serializers.Serializer):
+    new_password = serializers.CharField(min_length=1, max_length=128)
+    username = serializers.CharField()
+    done= serializers.IntegerField()
 
+    def validate_username(self, value):
+        if not User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("User does not exist.")
+        
+        return value
+
+    def validate_new_password(self, value):
+        # Add any additional validation logic for the new password if needed
+        return value 
+    def validate_done(self, value):
+        if value!=1:
+            raise serializers.ValidationError("OTP is not verified")
+        return value
 
 class ChangePasswordSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
@@ -114,6 +151,12 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(new_password)
         user.save()
 
+from rest_framework.serializers import ModelSerializer
+
+class ProfileSerilazier(ModelSerializer):
+    class Meta:
+        model = Owner
+
 class FriendSerializer(serializers.ModelSerializer):
     user1 = OwnerSerializer(read_only=True)
     user2 = OwnerSerializer(read_only=True)
@@ -135,4 +178,21 @@ class FriendSerializer(serializers.ModelSerializer):
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
+        fields = '__all__'
+
+class OverseerSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        model = Overseer
+        fields = UserSerializer.Meta.fields + ['Location', 'Relation']
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.Location = validated_data.get('Location', instance.Location)
+        instance.Relation = validated_data.get('Relation', instance.Relation)
+        instance.save()
+        return instance        
+
+class BlogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Blog
         fields = '__all__'
