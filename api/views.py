@@ -14,7 +14,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana,User
+from api.models import Owner, Overseer,Friend,Thana,User,PlanEvent
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -574,3 +574,45 @@ class BlogCreateView(CreateAPIView):
         # Save the blog instance
         blog.save()
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
+    
+class PlanEventCreateAPIView(APIView):
+    def post(self, request):
+        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
+                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
+                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
+        data = {key: request.data[key] for key in fields if key in request.data}
+        serializer = PlanEventSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class PlanEventListAPIView(APIView):
+    def get(self, request):
+        events = PlanEvent.objects.all()
+        serializer = PlanEventSerializer(events, many=True)
+        return Response(serializer.data)
+
+class PlanEventUpdateAPIView(APIView):
+    def put(self, request, pk):
+        event = PlanEvent.objects.get(pk=pk)
+        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
+                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
+                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
+        data = {key: request.data[key] for key in fields if key in request.data}
+        serializer = PlanEventSerializer(event, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        event = PlanEvent.objects.get(pk=pk)
+        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
+                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
+                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
+        data = {key: request.data[key] for key in fields if key in request.data}
+        serializer = PlanEventSerializer(event, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
