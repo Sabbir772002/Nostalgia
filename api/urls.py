@@ -35,6 +35,8 @@ urlpatterns = [
     path('api/events/create/', PlanEventCreateAPIView.as_view(), name='event-create'),
     path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
     path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
+    path('compare', views.CompareImagesView.as_view(), name='compare_images'),
+
 ]
 
 

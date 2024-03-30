@@ -302,7 +302,7 @@ class JoinEvent(models.Model):
 
 class Upvote(models.Model):
     blogid = models.ForeignKey(Blog, on_delete=models.CASCADE)
-    Username = models.ForeignKey(User, on_delete=models.CASCADE)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     # class Meta:
     #     primary_key = ['PostID', 'Username']
@@ -314,7 +314,7 @@ class Comment(models.Model):
     cmnt_id = models.AutoField(primary_key=True)
     blogid = models.ForeignKey(Blog, on_delete=models.CASCADE)
     username = models.ForeignKey(
-        User, on_delete=models.CASCADE, to_field="username")
+        Owner, on_delete=models.CASCADE)
     comment = models.CharField(max_length=500)
     time = models.DateTimeField(default=timezone.now())
 
@@ -325,7 +325,7 @@ class Comment(models.Model):
 class Reply(models.Model):
     Reply_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, to_field="username")
+        Owner, on_delete=models.CASCADE)
     cmnt_id = models.ForeignKey(
         Comment, on_delete=models.CASCADE, related_name="replies")
     Reply_msg = models.CharField(max_length=500)
