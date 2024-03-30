@@ -547,10 +547,31 @@ class OverseerList(APIView):
 from rest_framework.generics import ListAPIView, CreateAPIView
 from .models import Blog
 from .serializers import BlogSerializer
+from django.http import JsonResponse
+class BlogListView(APIView):
+    def get(self, request):
+        # Retrieve all Blog objects from the database
+            queryset = Blog.objects.all().order_by('-post_date', '-post_time')
+            blogs_data = []
 
-class BlogListView(ListAPIView):
-    queryset = Blog.objects.all()
-    serializer_class = BlogSerializer
+            for blog in queryset:
+                #print(blog.author)
+                blog_data = {
+                    'id': blog.blogid,
+                    'author': Owner.objects.get(username=blog.author).username,
+                    'author_img': Owner.objects.get(username=blog.author).p_image.url if Owner.objects.get(username=blog.author).p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.content,
+                    'post_date': blog.post_date,
+                    'post_time': blog.post_time,
+                    'blog_img': blog.blog_img.url if blog.blog_img else None
+                }
+                blogs_data.append(blog_data)
+
+            return JsonResponse(blogs_data, safe=False)
+
+
+
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class BlogCreateView(CreateAPIView):
@@ -561,15 +582,24 @@ class BlogCreateView(CreateAPIView):
         data = request.data
         user = Owner.objects.get(username=username)
         # print(data)
-        blog_img = data['blog_img']
-       # print(blog_img)
-        blog = Blog.objects.create(
-            author=user,
-            content=data['content'],
-            post_date=data['post_date'],
-            post_time=data['post_time'],
-            blog_img=blog_img
-        )
-        # Save the blog instance
-        blog.save()
+        blog_img = request.data.get('blog_img')
+        #print(blog_img)
+        if blog_img is not None:
+            blog = Blog.objects.create(
+                    author=user,
+                    content=data['content'],
+                    post_date=data['post_date'],
+                    post_time=data['post_time'],
+                    blog_img=blog_img if blog_img else None
+                )
+                # Save the blog instance
+            blog.save()
+        else :
+            blog = Blog.objects.create(
+                author=user,
+                content=data['content'],
+                post_date=data['post_date'],
+                post_time=data['post_time'],
+            )
+            blog.save()
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
