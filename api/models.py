@@ -189,12 +189,19 @@ class Blog(models.Model):
     post_date = models.DateField()
     post_time=models.TimeField()
     content = models.TextField()
-    #title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title   
+        return self.title
+    blog_img = models.ImageField(upload_to='images/', null=True, blank=True) 
+    author = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.G_name
+
+    
 
     
 class GroupMember(models.Model):
@@ -293,17 +300,36 @@ class JoinEvent(models.Model):
     def __str__(self):
         return f'Join ID: {self.JoinID}, Event ID: {self.EventID}'    
 
+class Upvote(models.Model):
+    blogid = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    Username = models.ForeignKey(User, on_delete=models.CASCADE)
 
-class MyModel(models.Model):
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    address = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
-    nid = models.CharField(max_length=20)
-    p_image = models.ImageField(upload_to='image/', null=True)
-    thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    # class Meta:
+    #     primary_key = ['PostID', 'Username']
 
     def __str__(self):
-        return self.name
-        
+        return f"Upvote - Post ID: {self.blogid.blogid}, Username: {self.Username.username}"
+
+class Comment(models.Model):
+    cmnt_id = models.AutoField(primary_key=True)
+    blogid = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    username = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field="username")
+    comment = models.CharField(max_length=500)
+    time = models.DateTimeField(default=timezone.now())
+
+    def __str__(self):
+        return f"Comment ID: {self.cmnt_id}, Post ID: {self.blogid}, Username: {self.username}, Name: {self.comment}"
+
+
+class Reply(models.Model):
+    Reply_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, to_field="username")
+    cmnt_id = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, related_name="replies")
+    Reply_msg = models.CharField(max_length=500)
+    time = models.DateTimeField(default=timezone.now())
+
+    def __str__(self):
+        return f"Comment ID: {self.cmnt_id}, Post ID: {self.Reply_id}, Username: {self.user}, Name: {self.Reply_msg}"        
