@@ -549,9 +549,18 @@ from rest_framework.generics import ListAPIView, CreateAPIView
 from .models import Blog
 from .serializers import BlogSerializer
 
-class BlogListView(ListAPIView):
-    queryset = Blog.objects.all()
-    serializer_class = BlogSerializer
+class BlogListCreateAPIView(APIView):
+    def get(self, request):
+        blogs = Blog.objects.all()
+        serializer = BlogSerializer(blogs, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = BlogSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class BlogCreateView(CreateAPIView):
