@@ -25,11 +25,14 @@ urlpatterns = [
     path('friends', views.FriendList.as_view(), name='friend-list'),
     path('overseerlist', views.OverseerList.as_view(), name='overseerlist'),
     path('friend', views.friends, name='friend'),
+    path('findfriend', views.FindFriend.as_view(), name='findfriend'),
     path('add_fnf', add_fnf.as_view(), name='add_fnf'),
+    path('update_fnf', views.update_fnf.as_view(), name='update_fnf'),
     path('profile/<username>', Profile.as_view(), name='profile'),
     path('otp', views.OTPAPI.as_view(), name='otp'),
     path('resetpass', views.PassReset.as_view(), name='resetpass'),
     path('blog', views.BlogListView.as_view(), name='blog'),
+    path('singleblog', views.BlogSingleView.as_view(), name='singleblog'),
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
 
 ]
