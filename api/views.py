@@ -419,7 +419,6 @@ class Profile(APIView):
             return Response(user.data, status=status.HTTP_200_OK)
             # print(user.errors)
             # return Response({"message": "User not serialize"}, status=status.HTTP_404_NOT_FOUND)
-
         except Owner.DoesNotExist:
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -696,7 +695,7 @@ class OverseerList(APIView):
 
     
 from rest_framework.generics import ListAPIView, CreateAPIView
-from .models import Blog
+from .models import Blog,Upvote
 from .serializers import BlogSerializer
 from django.http import JsonResponse
 class BlogListView(APIView):
@@ -704,6 +703,8 @@ class BlogListView(APIView):
         # Retrieve all Blog objects from the database
             queryset = Blog.objects.all().order_by('-post_date', '-post_time')
             blogs_data = []
+            username = request.GET.get('username')
+            print(username)
 
             for blog in queryset:
                 #print(blog.author)
@@ -714,11 +715,56 @@ class BlogListView(APIView):
                     'content': blog.content,
                     'post_date': blog.post_date,
                     'post_time': blog.post_time,
-                    'blog_img': blog.blog_img.url if blog.blog_img else None
+                    'blog_img': blog.blog_img.url if blog.blog_img else None,
+                    'upvote': Upvote.objects.filter(blogid=blog.blogid).count(),
+                    'is_upvoted':1 if Upvote.objects.filter(blogid=blog.blogid,Username=Owner.objects.get(username=username)).count() > 0 else 0
                 }
                 blogs_data.append(blog_data)
+            print(blogs_data)
 
             return JsonResponse(blogs_data, safe=False)
+
+from django.http import JsonResponse
+from django.views import View
+from .models import Blog, Upvote
+
+class UpvoteAPIView(APIView):
+    def post(self, request):
+        if request.method == 'POST':
+            id = request.data['id']
+            username = request.data['username']
+            blog = Blog.objects.get(blogid=id)
+            owner=Owner.objects.get(username=username)
+            print(owner)
+            upvoted = Upvote.objects.filter(
+                Username=Owner.objects.get(username=username), blogid=id)
+            if len(upvoted)==0:
+                print("banao")
+                upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
+                upvote_instance.save()
+                upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blog=blog)
+                upvote_instance1.save()
+            if len(upvoted)==1:
+                upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
+                upvote_instance.save()
+            else: 
+                upvote_instance = Upvote.objects.filter(Username=owner, blogid=blog).first()
+                upvote_instance.delete()
+            blog=Blog.objects.get(blogid=id)
+            blog_data = {
+                    'id': blog.blogid,
+                    'author': Owner.objects.get(username=blog.author).username,
+                    'author_img': Owner.objects.get(username=blog.author).p_image.url if Owner.objects.get(username=blog.author).p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.content,
+                    'post_date': blog.post_date,
+                    'post_time': blog.post_time,
+                    'blog_img': blog.blog_img.url if blog.blog_img else None,
+                    'upvote': Upvote.objects.filter(blogid=blog.blogid).count(),
+                    'is_upvoted':1 if Upvote.objects.filter(blogid=blog.blogid,Username=Owner.objects.get(username=username)).count() >  1 else 0
+                }
+            return JsonResponse(blog_data, safe=False)
+        else:
+            return JsonResponse({'message': 'Invalid request method'}, status=400)
 
 class BlogSingleView(APIView):
     def get(self, request):
@@ -790,6 +836,7 @@ class PlanEventCreateAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class PlanEventListAPIView(APIView):
     def get(self, request):
         events = PlanEvent.objects.all()
