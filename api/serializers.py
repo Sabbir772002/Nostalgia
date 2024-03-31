@@ -215,3 +215,4 @@ class PlanEventSerializer(serializers.ModelSerializer):
         instance.Thana = validated_data.get('Thana', instance.Thana)
         instance.save()
         return instance
+
