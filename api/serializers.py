@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
-from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent,WalkMember,Walk
+from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent,Walk
 
 
 #duplicate it for Oversee
@@ -200,9 +200,12 @@ class BlogSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Blog.objects.create(**validated_data)
+    
+    
+from .models import WalkMember
 
 class WalkMemberSerializer(serializers.ModelSerializer):
-    username = OwnerSerializer(read_only=True)
+    username = serializers.PrimaryKeyRelatedField(queryset=Owner.objects.all())
     walk_id = serializers.PrimaryKeyRelatedField(queryset=Walk.objects.all())
 
     class Meta:

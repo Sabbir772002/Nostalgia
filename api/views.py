@@ -26,6 +26,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 import os
 from django.shortcuts import render
+from django.http import Http404
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -867,8 +868,10 @@ class PlanEventUpdateAPIView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 from .models import Walk
 from .serializers import WalkSerializer
+
 class WalkListView(APIView):
     def get(self, request):
         username = request.GET.get('username')
@@ -886,3 +889,32 @@ class WalkListView(APIView):
             serializer.save(w_creator=user)
             return Response({"message": "Walk created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+from .models import WalkMember
+from .serializers import WalkMemberSerializer
+
+class WalkMemberView(APIView):
+    def get_object(self, pk):
+        try:
+            return WalkMember.objects.get(pk=pk)
+        except WalkMember.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        walk_member = self.get_object(pk)
+        serializer = WalkMemberSerializer(walk_member)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        walk_member = self.get_object(pk)
+        serializer = WalkMemberSerializer(walk_member, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        walk_member = self.get_object(pk)
+        walk_member.delete()
+        return Response({"message": "Walk member deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
