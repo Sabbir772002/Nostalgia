@@ -63,13 +63,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _('User')
         verbose_name_plural = _('Users')
+class Division(models.Model):
+    division = models.CharField(max_length=100, unique=True,primary_key=True)
+    def __str__(self):
+        return self.division
 
-
-class Thana(models.Model):
-    name = models.CharField(max_length=100)
+class District(models.Model):
+    district= models.CharField(max_length=100, unique=True,primary_key=True)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.district
+class Thana(models.Model):
+    thana = models.CharField(max_length=100,primary_key=True)
+    district = models.ForeignKey(District, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.thana
 
 
 class Owner(User):
@@ -175,7 +184,6 @@ class Medication(models.Model):
     times = models.IntegerField()
     user = models.ForeignKey(Owner, on_delete=models.CASCADE)
     med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
-
     def __str__(self):
         return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
 class Medicine(models.Model):
@@ -192,7 +200,7 @@ class Blog(models.Model):
     post_date = models.DateField()
     post_time=models.TimeField()
     content = models.TextField()
-    title = models.CharField(max_length=255)
+   # title = models.CharField(max_length=255,blank=True, null=True)  
     blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
@@ -202,11 +210,8 @@ class Blog(models.Model):
     author = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.G_name
+        return self.blogid
 
-    
-
-    
 class GroupMember(models.Model):
     MemberID = models.AutoField(primary_key=True)
     JoinDate = models.DateField(default=timezone.now)
@@ -307,7 +312,7 @@ class Upvote(models.Model):
     blogid = models.ForeignKey(Blog, on_delete=models.CASCADE)
     Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
-    # class Meta:
+    # class Meta:up
     #     primary_key = ['PostID', 'Username']
 
     def __str__(self):

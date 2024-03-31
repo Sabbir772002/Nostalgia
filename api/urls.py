@@ -34,6 +34,14 @@ urlpatterns = [
     path('blog', views.BlogListView.as_view(), name='blog'),
     path('singleblog', views.BlogSingleView.as_view(), name='singleblog'),
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
+<<<<<<< HEAD
+=======
+    path('api/events/create/', PlanEventCreateAPIView.as_view(), name='event-create'),
+    path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
+    path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
+    path('compare', views.CompareImagesView.as_view(), name='compare_images'),
+    path('upvote', views.UpvoteAPIView.as_view(), name='upvote'),
+>>>>>>> 2745cb97108c8285a7d7f3fedbfe02b2724ecc65
 
 ]
 
