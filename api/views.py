@@ -324,41 +324,122 @@ class add_fnf(APIView):
         data = request.data
         if(str(data['user_id']) == str(data['friend_id'])):
             return Response({"message": "You can't add yourself as friend"}, status=status.HTTP_400_BAD_REQUEST)
+        print(data)
 
         fnd=Friend.objects.filter(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']))
+        fnd|=Friend.objects.filter(user2=Owner.objects.get(id=data['user_id']),user1=Owner.objects.get(id=data['friend_id']))
         if(len(fnd) > 0 and fnd[0].is_fnf == 1):
             return Response({"message": "You are already friend"}, status=status.HTTP_400_BAD_REQUEST)
         #check who send fnd request(future work)
         if(len(fnd) > 0):
             return Response({"message": "Your request for friend send"}, status=status.HTTP_400_BAD_REQUEST)
         from django.utils import timezone
-        fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),f_created_date=timezone.now(),is_fnf=0)
+        fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),type="Accept",f_created_date=timezone.now(),is_fnf=0)
         fnd.save()
         return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
+
+class update_fnf(APIView):
+    def post(self, request):
+        data = request.data
+        if(str(data['user_id']) == str(data['friend_id'])):
+            return Response({"message": "You can't add yourself as friend"}, status=status.HTTP_400_BAD_REQUEST)
+
+        fnd=Friend.objects.filter(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']))
+        fnd|=Friend.objects.filter(user2=Owner.objects.get(id=data['user_id']),user1=Owner.objects.get(id=data['friend_id']))
+        #print(fnd)
+        #check who send fnd request(future work)
+        if(len(fnd) > 0):
+            fnd[0].is_fnf= 1 if fnd[0].is_fnf== 0 else fnd[0].is_fnf
+            fnd[0].type=data['type']
+            fnd[0].save()
+            return Response({"message": "Friends Updated successfully"}, status=status.HTTP_201_CREATED)
+
+        return Response({"message": "Friends not find"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FriendList(APIView):
     def get(self, request):
         users = Owner.objects.all()
+        userid=request.GET.get('user_id')
         # Serialize the data
         serialized_data = []
         for user in users:
-            serialized_data.append({
-                'id': user.id,
-                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
-                'first_name': user.first_name,
-                'username': user.username,
-                'last_name': user.last_name,
-                'email': user.email,
-                'gender': user.gender,
-                'phone': user.phone,
-                'dob': user.dob,
-                'address': user.address,
-                'nid': user.nid,
-                'thana': Thana.objects.get(id=user.thana_id).name,
-            })
+            fnd=Friend.objects.filter(user1=Owner.objects.get(id=userid),user2=user.id)
+            fnd2=Friend.objects.filter(user2=Owner.objects.get(id=userid),user1=user.id)
+            fnd=fnd[0] if len(fnd) > 0 else None
+            if(fnd is not None or len(fnd2)>0):
+                    serialized_data.append({
+                        'id': user.id,
+                        'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                        'first_name': user.first_name,
+                        'username': user.username,
+                        'last_name': user.last_name,
+                        'email': user.email,
+                        'gender': user.gender,
+                        'phone': user.phone,
+                        'dob': user.dob,
+                        'address': user.address,
+                        'nid': user.nid,
+                        'thana': Thana.objects.get(id=user.thana_id).name,
+                        'is_fnf': fnd.is_fnf if fnd is not None else fnd2[0].is_fnf if len(fnd2)>0 else None,
+                        'type': fnd.type if fnd is not None else fnd2[0].type if len(fnd2)>0 else None,
+                        'f_created_date': fnd.f_created_date if fnd is not None else  None,
+                        'f_id': fnd.f_id if fnd is not None else None,
+                        'abedon': 1 if fnd is not None else 0,
+
+                    })
+        print(serialized_data)
+        
         
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+
+
+
+class FindFriend(APIView):
+    def get(self, request):
+        userid=request.GET.get('user_id')
+       # users = Owner.objects.exclude(id=userid)
+        users = Owner.objects.all()
+
+        # Serialize the data
+        serialized_data = []
+        for user in users:
+                fnd=Friend.objects.filter(user1=Owner.objects.get(id=userid),user2=user.id)
+                fnd2=Friend.objects.filter(user2=Owner.objects.get(id=userid),user1=user.id)
+
+                if(str(user.id) == str(userid)):
+                    continue
+                if(len(fnd)>0 and fnd[0].is_fnf==1):
+                    continue
+                if(len(fnd2)>0 and fnd2[0].is_fnf==1):
+                    continue
+                fnd=fnd[0] if len(fnd) > 0 else None
+            
+                serialized_data.append({
+                        'id': user.id,
+                        'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                        'first_name': user.first_name,
+                        'username': user.username,
+                        'last_name': user.last_name,
+                        'email': user.email,
+                        'gender': user.gender,
+                        'phone': user.phone,
+                        'dob': user.dob,
+                        'address': user.address,
+                        'nid': user.nid,
+                        'thana': Thana.objects.get(id=user.thana_id).name,
+                        'is_fnf': fnd.is_fnf if fnd is not None else fnd2[0].is_fnf if len(fnd2)>0 else None,
+                        'type': fnd.type if fnd is not None else fnd2[0].type if len(fnd2)>0 else None,
+                        'f_created_date': fnd.f_created_date if fnd is not None else  None,
+                        'f_id': fnd.f_id if fnd is not None else None,
+                        'abedon': 1 if fnd is not None else 0,
+
+                    })
+        print(serialized_data)
+        
+        
+        return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+
 
 
 class Profile(APIView):
@@ -673,6 +754,30 @@ class BlogListView(APIView):
 
             return JsonResponse(blogs_data, safe=False)
 
+class BlogSingleView(APIView):
+    def get(self, request):
+        # Retrieve all Blog objects from the database
+            username = request.GET.get('username')
+            print("shuno na go kotha")
+            print(username)
+            queryset = Blog.objects.filter(author=Owner.objects.get(username=username).id).order_by('-post_date', '-post_time')
+            blogs_data = []
+            print(Owner.objects.get(username=username).id)
+
+            for blog in queryset:
+                #print(blog.author)
+                blog_data = {
+                    'id': blog.blogid,
+                    'author': Owner.objects.get(username=blog.author).username,
+                    'author_img': Owner.objects.get(username=blog.author).p_image.url if Owner.objects.get(username=blog.author).p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.content,
+                    'post_date': blog.post_date,
+                    'post_time': blog.post_time,
+                    'blog_img': blog.blog_img.url if blog.blog_img else None
+                }
+                blogs_data.append(blog_data)
+
+            return JsonResponse(blogs_data, safe=False)
 
 
 
