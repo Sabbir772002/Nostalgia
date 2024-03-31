@@ -14,7 +14,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana,User
+from api.models import Owner, Overseer,Friend,Thana,User,PlanEvent
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -26,6 +26,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 import os
 from django.shortcuts import render
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
@@ -528,11 +529,11 @@ import os
 import base64
 import requests
 
-class FaceCompareAPI:
-    def __init__(self, api_key, api_secret):
-        self.api_key = api_key
-        self.api_secret = api_secret
-        self.url = "https://api-us.faceplusplus.com/facepp/v3/compare"
+class FaceCompareAPIBox:
+    def __init__(self):
+        api_key = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
+        api_secret = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
+        url = "https://api-us.faceplusplus.com/facepp/v3/compare"
 
     def compare_images(self, image_path1, image_path2):
         # Read image files and convert them to base64 strings
@@ -567,6 +568,75 @@ class FaceCompareAPI:
             return "Match between two photos is successful with confidence: {:.2f}".format(confidence)
         else:
             return "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
+        
+
+import base64
+class FaceApiCompare:
+    API_KEY = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
+    API_SECRET = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
+    URL = "https://api-us.faceplusplus.com/facepp/v3/compare"
+
+    def encode_image_to_base64(self, image_path):
+        with open(image_path, 'rb') as img_file:
+            image_content = img_file.read()
+            base64_image = base64.b64encode(image_content).decode('utf-8')
+        return base64_image
+
+    def compare_images(self, image_base64_1, image_base64_2):
+        # Prepare the payload for Face++ API
+        payload = {
+            "api_key": self.API_KEY,
+            "api_secret": self.API_SECRET,
+            "image_base64_1": image_base64_1,
+            "image_base64_2": image_base64_2,
+        }
+
+        # Send POST request to Face++ API
+        response = requests.post(self.URL, data=payload)
+        response_json = response.json()
+
+        # Process the response and return the result
+        confidence = response_json.get('confidence', 0)
+        threshold = 50
+        if confidence >= threshold:
+            result = "Match between two photos is successful with confidence: {:.2f}".format(confidence)
+        else:
+            result = "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
+
+        return result
+    
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import base64
+
+face_api_compare = FaceApiCompare()
+
+from django.http import JsonResponse
+from rest_framework.views import APIView
+import base64
+
+face_api_compare = FaceApiCompare()
+class CompareImagesView(APIView):
+    def post(self, request, *args, **kwargs):
+        # Get image data from the POST request
+        print(request.FILES)
+        image_file1 = request.FILES.get('image1')
+        image_file2 = request.FILES.get('image2')
+
+        if not (image_file1 and image_file2):
+            return JsonResponse({'error': 'Missing image data in request'}, status=400)
+        print("hoise")
+
+        # Convert images to base64 strings
+        image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
+        image_base64_2 = base64.b64encode(image_file2.read()).decode('utf-8')
+
+        # Perform image comparison using FaceApiCompare class method
+        result = face_api_compare.compare_images(image_base64_1, image_base64_2)
+
+        # Return the comparison result as JSON response
+        return JsonResponse({'result': result})
+
 
 class WalkingBuddyList(APIView):
     def get(self, request):
@@ -708,3 +778,45 @@ class BlogCreateView(CreateAPIView):
             )
             blog.save()
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
+    
+class PlanEventCreateAPIView(APIView):
+    def post(self, request):
+        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
+                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
+                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
+        data = {key: request.data[key] for key in fields if key in request.data}
+        serializer = PlanEventSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class PlanEventListAPIView(APIView):
+    def get(self, request):
+        events = PlanEvent.objects.all()
+        serializer = PlanEventSerializer(events, many=True)
+        return Response(serializer.data)
+
+class PlanEventUpdateAPIView(APIView):
+    def put(self, request, pk):
+        event = PlanEvent.objects.get(pk=pk)
+        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
+                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
+                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
+        data = {key: request.data[key] for key in fields if key in request.data}
+        serializer = PlanEventSerializer(event, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        event = PlanEvent.objects.get(pk=pk)
+        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
+                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
+                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
+        data = {key: request.data[key] for key in fields if key in request.data}
+        serializer = PlanEventSerializer(event, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

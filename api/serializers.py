@@ -173,8 +173,46 @@ class OverseerSerializer(UserSerializer):
         instance.Relation = validated_data.get('Relation', instance.Relation)
         instance.save()
         return instance        
+    
 
+from .models import Blog
 class BlogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Blog
-        fields = '__all__'
+        fields = ['blogid', 'post_date', 'post_time', 'content', 'title', 'blog_img', 'author']
+
+    def create(self, validated_data):
+        return Blog.objects.create(**validated_data)
+
+
+from .models import PlanEvent
+
+class PlanEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlanEvent
+        fields = ['EventID', 'Description', 'Event_title', 'Event_start_time',
+                  'Event_end_time', 'Event_start_date', 'Event_end_date',
+                  'Address', 'Event_create_date', 'Event_Approve',
+                  'E_type', 'Image', 'E_creator', 'Thana']
+
+    def create(self, validated_data):
+        return PlanEvent.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.Description = validated_data.get('Description', instance.Description)
+        instance.Event_title = validated_data.get('Event_title', instance.Event_title)
+        instance.Event_start_time = validated_data.get('Event_start_time', instance.Event_start_time)
+        instance.Event_end_time = validated_data.get('Event_end_time', instance.Event_end_time)
+        instance.Event_start_date = validated_data.get('Event_start_date', instance.Event_start_date)
+        instance.Event_end_date = validated_data.get('Event_end_date', instance.Event_end_date)
+        instance.Address = validated_data.get('Address', instance.Address)
+        instance.Event_create_date = validated_data.get('Event_create_date', instance.Event_create_date)
+        instance.Event_Approve = validated_data.get('Event_Approve', instance.Event_Approve)
+        instance.E_type = validated_data.get('E_type', instance.E_type)
+        instance.Image = validated_data.get('Image', instance.Image)
+        instance.E_creator = validated_data.get('E_creator', instance.E_creator)
+        instance.Thana = validated_data.get('Thana', instance.Thana)
+        instance.save()
+        return instance
+
