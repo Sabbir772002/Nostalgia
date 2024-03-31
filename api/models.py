@@ -110,10 +110,11 @@ class Hospital(models.Model):
 
 class Walk(models.Model):
     walk_id = models.AutoField(primary_key=True)
-    walk_name = models.CharField(max_length=255)
+    walk_name = models.CharField(max_length=255)#null mean general walk or individual walk
     address = models.CharField(max_length=255)
     propose_date = models.DateField()
     walk_date = models.DateField()
+    end_date = models.DateField() #null mean for once
     privacy = models.CharField(max_length=255)
     w_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
