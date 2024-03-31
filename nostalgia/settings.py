@@ -53,17 +53,12 @@ MIDDLEWARE = [
             'django.middleware.csrf.CsrfViewMiddleware',
 
 ]
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8000",  
-]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-]
 
 
 SIMPLE_JWT = {
@@ -156,7 +151,7 @@ LOGIN_URL = 'log_in'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 AUTH_USER_MODEL = 'api.User'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-ALLOWED_HOSTS =  ['localhost', '127.0.0.1','http://localhost:3000']  # Your React app's URL
+ALLOWED_HOSTS =  ['localhost', '127.0.0.1','http://localhost:3000','http://127.0.0.1:3000']  # Your React app's URL
 
 SESSION_COOKIE_AGE = 180000
 CORS_ORIGIN_ALLOW_ALL = True

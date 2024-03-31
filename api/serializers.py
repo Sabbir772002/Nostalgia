@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
-from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
-
+from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent,Walk
 
 
 #duplicate it for Oversee
@@ -67,6 +66,24 @@ class OverseerSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Overseer
         fields = UserSerializer.Meta.fields + ['Location', 'Relation']
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.Location = validated_data.get('Location', instance.Location)
+        instance.Relation = validated_data.get('Relation', instance.Relation)
+        instance.save()
+        return instance
+
+class OverseerUpdateSerializer(serializers.ModelSerializer):
+    Location = serializers.CharField(max_length=100)
+    Relation = serializers.CharField(max_length=100)
+
+    class Meta:
+        model = Overseer
+        fields = '__all__'
+        extra_kwargs = {
+            'password': {'read_only': True},  # Exclude password from response
+        }
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
@@ -183,7 +200,22 @@ class BlogSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Blog.objects.create(**validated_data)
+    
+    
+from .models import WalkMember
 
+class WalkMemberSerializer(serializers.ModelSerializer):
+    username = serializers.PrimaryKeyRelatedField(queryset=Owner.objects.all())
+    walk_id = serializers.PrimaryKeyRelatedField(queryset=Walk.objects.all())
+
+    class Meta:
+        model = WalkMember
+        fields = ['wm_id', 'cancel', 'username', 'walk_id']
+
+    def update(self, instance, validated_data):
+        instance.cancel = validated_data.get('cancel', instance.cancel)
+        instance.save()
+        return instance
 
 from .models import PlanEvent
 

@@ -9,6 +9,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
 
+
 urlpatterns = [
     path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
     path('orm', MyAPIView.as_view(), name='MyAPIView'),
@@ -35,10 +36,8 @@ urlpatterns = [
     path('blog', views.BlogListView.as_view(), name='blog'),
     path('singleblog', views.BlogSingleView.as_view(), name='singleblog'),
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
-    path('api/events/create/', PlanEventCreateAPIView.as_view(), name='event-create'),
-    path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
-    path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
     path('compare', views.CompareImagesView.as_view(), name='compare_images'),
+    path('walkmember', views.WalkMemberView.as_view(), name='walkmember'),
 
 ]
 
