@@ -245,3 +245,9 @@ class PlanEventSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+from .models import Walk
+class WalkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Walk
+        fields = ('walk_id', 'walk_name', 'address', 'propose_date', 'walk_date', 'end_date', 'privacy', 'w_creator')

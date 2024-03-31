@@ -200,7 +200,11 @@ class Blog(models.Model):
     post_date = models.DateField()
     post_time=models.TimeField()
     content = models.TextField()
+<<<<<<< HEAD
    # title = models.CharField(max_length=255,blank=True, null=True)  
+=======
+    # title = models.CharField(max_length=255)
+>>>>>>> 9cf9301680483d8a282be1667c12d49a086755fb
     blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 

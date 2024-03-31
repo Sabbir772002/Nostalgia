@@ -867,3 +867,22 @@ class PlanEventUpdateAPIView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from .models import Walk
+from .serializers import WalkSerializer
+class WalkListView(APIView):
+    def get(self, request):
+        username = request.GET.get('username')
+        walks = Walk.objects.filter(w_creator=Owner.objects.get(username=username))
+        serializer = WalkSerializer(walks, many=True)
+        return Response(serializer.data)
+
+    @csrf_exempt
+    def post(self, request):
+        data = request.data
+        username = data.get('username')
+        user = Owner.objects.get(username=username)
+        serializer = WalkSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(w_creator=user)
+            return Response({"message": "Walk created successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
