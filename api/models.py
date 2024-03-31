@@ -65,11 +65,24 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('Users')
 
 
-class Thana(models.Model):
-    name = models.CharField(max_length=100)
+# class Thana(models.Model):
+#     name = models.CharField(max_length=100)
+
+#     def __str__(self):
+#         return self.name
+        
+class District(models.Model):
+    district = models.CharField(max_length=50, unique=True, primary_key=True)
 
     def __str__(self):
-        return self.name
+        return self.district
+class Thana(models.Model):
+    thana = models.CharField(max_length=50, unique=True, primary_key=True)
+    district = models.ForeignKey(
+        District, related_name='District', to_field='district', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.thana        
 
 
 class Owner(User):
