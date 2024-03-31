@@ -840,3 +840,17 @@ class WalkListView(APIView):
             serializer.save(w_creator=user)
             return Response({"message": "Walk created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class WalkUpdateView(APIView):
+    @csrf_exempt
+    def patch(self, request, walk_id):
+        try:
+            walk_instance = Walk.objects.get(pk=walk_id)
+        except Walk.DoesNotExist:
+            return Response({"message": "Walk not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = WalkSerializer(walk_instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
