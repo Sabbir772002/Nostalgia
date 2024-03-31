@@ -65,24 +65,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('Users')
 
 
-# class Thana(models.Model):
-#     name = models.CharField(max_length=100)
-
-#     def __str__(self):
-#         return self.name
-        
-class District(models.Model):
-    district = models.CharField(max_length=50, unique=True, primary_key=True)
-
-    def __str__(self):
-        return self.district
 class Thana(models.Model):
-    thana = models.CharField(max_length=50, unique=True, primary_key=True)
-    district = models.ForeignKey(
-        District, related_name='District', to_field='district', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.thana        
+        return self.name
 
 
 class Owner(User):
@@ -205,7 +192,7 @@ class Blog(models.Model):
     post_date = models.DateField()
     post_time=models.TimeField()
     content = models.TextField()
-    title = models.CharField(max_length=255)
+    # title = models.CharField(max_length=255)
     blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
