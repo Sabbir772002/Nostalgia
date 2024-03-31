@@ -1,11 +1,16 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
+from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
 
+
+
+#duplicate it for Oversee
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owner  # Setting it to Owner, as both Owner and Overseer inherit from User
-        fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name', 'gender', 'phone', 'dob', 'address', 'nid', 'p_image', 'thana']
+        fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name','gender', 'phone', 'dob', 'address','p_image', 'nid', 'thana']
+        #fields = ['id', 'username', 'password', 'email', 'first_name', 'last_name', 'phone',  'address']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -42,6 +47,22 @@ class OwnerSerializer(UserSerializer):
         instance.save()
         return instance
 
+class OwnwerUpdateSerializer(UserSerializer):
+    walk_type = serializers.CharField(max_length=100)
+
+    class Meta(UserSerializer.Meta):
+        model = Owner
+        fields = UserSerializer.Meta.fields + ['walk_type']
+        extra_kwargs = {
+            'password': {'read_only': True},  # Exclude password from response
+        }
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.walk_type = validated_data.get('walk_type', instance.walk_type)
+        instance.save()
+        return instance
+
 class OverseerSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Overseer
@@ -63,7 +84,24 @@ class UserLoginSerializer(serializers.Serializer):
 			raise ValidationError('user not found')
 		return user
 
+class PassResetSerializer(serializers.Serializer):
+    new_password = serializers.CharField(min_length=1, max_length=128)
+    username = serializers.CharField()
+    done= serializers.IntegerField()
 
+    def validate_username(self, value):
+        if not User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("User does not exist.")
+        
+        return value
+
+    def validate_new_password(self, value):
+        # Add any additional validation logic for the new password if needed
+        return value 
+    def validate_done(self, value):
+        if value!=1:
+            raise serializers.ValidationError("OTP is not verified")
+        return value
 
 class ChangePasswordSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
@@ -94,3 +132,87 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = User.objects.get(username=username)
         user.set_password(new_password)
         user.save()
+
+from rest_framework.serializers import ModelSerializer
+
+class ProfileSerilazier(ModelSerializer):
+    class Meta:
+        model = Owner
+
+class FriendSerializer(serializers.ModelSerializer):
+    user1 = OwnerSerializer(read_only=True)
+    user2 = OwnerSerializer(read_only=True)
+
+    class Meta:
+        model = Friend
+        fields = ['f_id', 'f_created_date', 'user1', 'user2']
+
+    def create(self, validated_data):
+        user1_data = validated_data.pop('user1')
+        user2_data = validated_data.pop('user2')
+
+        user1 = Owner.objects.get(pk=user1_data['id'])
+        user2 = Owner.objects.get(pk=user2_data['id'])
+
+        friend = Friend.objects.create(user1=user1, user2=user2, **validated_data)
+        return friend
+    
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = '__all__'
+
+class OverseerSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        model = Overseer
+        fields = UserSerializer.Meta.fields + ['Location', 'Relation']
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.Location = validated_data.get('Location', instance.Location)
+        instance.Relation = validated_data.get('Relation', instance.Relation)
+        instance.save()
+        return instance        
+    
+
+from .models import Blog
+class BlogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Blog
+        fields = ['blogid', 'post_date', 'post_time', 'content', 'title', 'blog_img', 'author']
+
+    def create(self, validated_data):
+        return Blog.objects.create(**validated_data)
+
+
+from .models import PlanEvent
+
+class PlanEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlanEvent
+        fields = ['EventID', 'Description', 'Event_title', 'Event_start_time',
+                  'Event_end_time', 'Event_start_date', 'Event_end_date',
+                  'Address', 'Event_create_date', 'Event_Approve',
+                  'E_type', 'Image', 'E_creator', 'Thana']
+
+    def create(self, validated_data):
+        return PlanEvent.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        instance.Description = validated_data.get('Description', instance.Description)
+        instance.Event_title = validated_data.get('Event_title', instance.Event_title)
+        instance.Event_start_time = validated_data.get('Event_start_time', instance.Event_start_time)
+        instance.Event_end_time = validated_data.get('Event_end_time', instance.Event_end_time)
+        instance.Event_start_date = validated_data.get('Event_start_date', instance.Event_start_date)
+        instance.Event_end_date = validated_data.get('Event_end_date', instance.Event_end_date)
+        instance.Address = validated_data.get('Address', instance.Address)
+        instance.Event_create_date = validated_data.get('Event_create_date', instance.Event_create_date)
+        instance.Event_Approve = validated_data.get('Event_Approve', instance.Event_Approve)
+        instance.E_type = validated_data.get('E_type', instance.E_type)
+        instance.Image = validated_data.get('Image', instance.Image)
+        instance.E_creator = validated_data.get('E_creator', instance.E_creator)
+        instance.Thana = validated_data.get('Thana', instance.Thana)
+        instance.save()
+        return instance
+

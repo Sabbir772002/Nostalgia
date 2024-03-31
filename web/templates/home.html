@@ -5,6 +5,20 @@
 <div>
 
         <h1>Welcome to Nostalgia</h1>
+        <!-- upload_image.html -->
+
+<div>
+    <h2>Upload Image</h2>
+    <form method="post" enctype="multipart/form-data" action="{% url 'upload_image' %}">
+        {% csrf_token %}
+        <input type="file" name="image">
+        <input type="file" name="image2"><br>
+
+        <button type="submit">Upload</button>
+    </form>
+</div>
+</html>
+
         <p><a href="{%url 'friends'%}">Go your friends</a></p>
     </div>
         {%endblock%}
