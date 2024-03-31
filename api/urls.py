@@ -2,7 +2,6 @@ from django.urls import path
 from .views import MyModelListCreateAPIView,MyAPIView,_sign,sign,login_api,ChangePass,show,friends,Owner_update,O_update,UserLogin
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView,add_fnf,Profile
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView
-from .views import PlanEventCreateAPIView, PlanEventListAPIView, PlanEventUpdateAPIView
 from . import views
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView,add_fnf,FriendListView, FriendList
 from django.conf import settings
@@ -35,14 +34,8 @@ urlpatterns = [
     path('blog', views.BlogListView.as_view(), name='blog'),
     path('singleblog', views.BlogSingleView.as_view(), name='singleblog'),
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
-    path('api/events/create/', PlanEventCreateAPIView.as_view(), name='event-create'),
-    path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
-    path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
-    path('compare', views.CompareImagesView.as_view(), name='compare_images'),
 
 ]
-
-
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -10,11 +10,11 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier,OwnwerUpdateSerializer,PassResetSerializer,PlanEventSerializer
+from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSerializer,ProfileSerilazier,OwnwerUpdateSerializer,PassResetSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana,User,PlanEvent
+from api.models import Owner, Overseer,Friend,Thana,User
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -26,7 +26,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 import os
 from django.shortcuts import render
-
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
@@ -104,40 +103,6 @@ class Owner_update(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-@method_decorator(csrf_exempt, name='dispatch')
-class OverseerUpdate(APIView):
-    def put(self, request, pk):
-        try:
-            # Retrieve the overseer object to be updated
-            overseer = Overseer.objects.get(pk=pk)
-        except Overseer.DoesNotExist:
-            return Response({"error": "Overseer not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Deserialize the incoming data
-        serializer = OverseerSerializer(overseer, data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        try:
-            # Retrieve the overseer object to be updated
-            overseer = Overseer.objects.get(pk=pk)
-        except Overseer.DoesNotExist:
-            return Response({"error": "Overseer not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Deserialize the incoming data, but only partially update the overseer
-        serializer = OverseerSerializer(overseer, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -223,6 +188,7 @@ def friends(request):
     return queryset
 
     return HttpResponse("Hello, this is the friends page!")
+
 
 class MyAPIView(views.APIView):
     def get(self, request):
@@ -323,41 +289,122 @@ class add_fnf(APIView):
         data = request.data
         if(str(data['user_id']) == str(data['friend_id'])):
             return Response({"message": "You can't add yourself as friend"}, status=status.HTTP_400_BAD_REQUEST)
+        print(data)
 
         fnd=Friend.objects.filter(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']))
+        fnd|=Friend.objects.filter(user2=Owner.objects.get(id=data['user_id']),user1=Owner.objects.get(id=data['friend_id']))
         if(len(fnd) > 0 and fnd[0].is_fnf == 1):
             return Response({"message": "You are already friend"}, status=status.HTTP_400_BAD_REQUEST)
         #check who send fnd request(future work)
         if(len(fnd) > 0):
             return Response({"message": "Your request for friend send"}, status=status.HTTP_400_BAD_REQUEST)
         from django.utils import timezone
-        fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),f_created_date=timezone.now(),is_fnf=0)
+        fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),type="Accept",f_created_date=timezone.now(),is_fnf=0)
         fnd.save()
         return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
+
+class update_fnf(APIView):
+    def post(self, request):
+        data = request.data
+        if(str(data['user_id']) == str(data['friend_id'])):
+            return Response({"message": "You can't add yourself as friend"}, status=status.HTTP_400_BAD_REQUEST)
+
+        fnd=Friend.objects.filter(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']))
+        fnd|=Friend.objects.filter(user2=Owner.objects.get(id=data['user_id']),user1=Owner.objects.get(id=data['friend_id']))
+        #print(fnd)
+        #check who send fnd request(future work)
+        if(len(fnd) > 0):
+            fnd[0].is_fnf= 1 if fnd[0].is_fnf== 0 else fnd[0].is_fnf
+            fnd[0].type=data['type']
+            fnd[0].save()
+            return Response({"message": "Friends Updated successfully"}, status=status.HTTP_201_CREATED)
+
+        return Response({"message": "Friends not find"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FriendList(APIView):
     def get(self, request):
         users = Owner.objects.all()
+        userid=request.GET.get('user_id')
         # Serialize the data
         serialized_data = []
         for user in users:
-            serialized_data.append({
-                'id': user.id,
-                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
-                'first_name': user.first_name,
-                'username': user.username,
-                'last_name': user.last_name,
-                'email': user.email,
-                'gender': user.gender,
-                'phone': user.phone,
-                'dob': user.dob,
-                'address': user.address,
-                'nid': user.nid,
-                'thana': Thana.objects.get(id=user.thana_id).name,
-            })
+            fnd=Friend.objects.filter(user1=Owner.objects.get(id=userid),user2=user.id)
+            fnd2=Friend.objects.filter(user2=Owner.objects.get(id=userid),user1=user.id)
+            fnd=fnd[0] if len(fnd) > 0 else None
+            if(fnd is not None or len(fnd2)>0):
+                    serialized_data.append({
+                        'id': user.id,
+                        'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                        'first_name': user.first_name,
+                        'username': user.username,
+                        'last_name': user.last_name,
+                        'email': user.email,
+                        'gender': user.gender,
+                        'phone': user.phone,
+                        'dob': user.dob,
+                        'address': user.address,
+                        'nid': user.nid,
+                        'thana': Thana.objects.get(id=user.thana_id).name,
+                        'is_fnf': fnd.is_fnf if fnd is not None else fnd2[0].is_fnf if len(fnd2)>0 else None,
+                        'type': fnd.type if fnd is not None else fnd2[0].type if len(fnd2)>0 else None,
+                        'f_created_date': fnd.f_created_date if fnd is not None else  None,
+                        'f_id': fnd.f_id if fnd is not None else None,
+                        'abedon': 1 if fnd is not None else 0,
+
+                    })
+        print(serialized_data)
+        
         
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+
+
+
+class FindFriend(APIView):
+    def get(self, request):
+        userid=request.GET.get('user_id')
+       # users = Owner.objects.exclude(id=userid)
+        users = Owner.objects.all()
+
+        # Serialize the data
+        serialized_data = []
+        for user in users:
+                fnd=Friend.objects.filter(user1=Owner.objects.get(id=userid),user2=user.id)
+                fnd2=Friend.objects.filter(user2=Owner.objects.get(id=userid),user1=user.id)
+
+                if(str(user.id) == str(userid)):
+                    continue
+                if(len(fnd)>0 and fnd[0].is_fnf==1):
+                    continue
+                if(len(fnd2)>0 and fnd2[0].is_fnf==1):
+                    continue
+                fnd=fnd[0] if len(fnd) > 0 else None
+            
+                serialized_data.append({
+                        'id': user.id,
+                        'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                        'first_name': user.first_name,
+                        'username': user.username,
+                        'last_name': user.last_name,
+                        'email': user.email,
+                        'gender': user.gender,
+                        'phone': user.phone,
+                        'dob': user.dob,
+                        'address': user.address,
+                        'nid': user.nid,
+                        'thana': Thana.objects.get(id=user.thana_id).name,
+                        'is_fnf': fnd.is_fnf if fnd is not None else fnd2[0].is_fnf if len(fnd2)>0 else None,
+                        'type': fnd.type if fnd is not None else fnd2[0].type if len(fnd2)>0 else None,
+                        'f_created_date': fnd.f_created_date if fnd is not None else  None,
+                        'f_id': fnd.f_id if fnd is not None else None,
+                        'abedon': 1 if fnd is not None else 0,
+
+                    })
+        print(serialized_data)
+        
+        
+        return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+
 
 
 class Profile(APIView):
@@ -481,11 +528,11 @@ import os
 import base64
 import requests
 
-class FaceCompareAPIBox:
-    def __init__(self):
-        api_key = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
-        api_secret = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
-        url = "https://api-us.faceplusplus.com/facepp/v3/compare"
+class FaceCompareAPI:
+    def __init__(self, api_key, api_secret):
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.url = "https://api-us.faceplusplus.com/facepp/v3/compare"
 
     def compare_images(self, image_path1, image_path2):
         # Read image files and convert them to base64 strings
@@ -520,75 +567,6 @@ class FaceCompareAPIBox:
             return "Match between two photos is successful with confidence: {:.2f}".format(confidence)
         else:
             return "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
-        
-
-import base64
-class FaceApiCompare:
-    API_KEY = "edEq6oq-Eqf3Sq4sfszoXpRQ9FHRRQGx"
-    API_SECRET = "Ky2HfeEgU58UvJkmCt5nIe97DMEeswRy"
-    URL = "https://api-us.faceplusplus.com/facepp/v3/compare"
-
-    def encode_image_to_base64(self, image_path):
-        with open(image_path, 'rb') as img_file:
-            image_content = img_file.read()
-            base64_image = base64.b64encode(image_content).decode('utf-8')
-        return base64_image
-
-    def compare_images(self, image_base64_1, image_base64_2):
-        # Prepare the payload for Face++ API
-        payload = {
-            "api_key": self.API_KEY,
-            "api_secret": self.API_SECRET,
-            "image_base64_1": image_base64_1,
-            "image_base64_2": image_base64_2,
-        }
-
-        # Send POST request to Face++ API
-        response = requests.post(self.URL, data=payload)
-        response_json = response.json()
-
-        # Process the response and return the result
-        confidence = response_json.get('confidence', 0)
-        threshold = 50
-        if confidence >= threshold:
-            result = "Match between two photos is successful with confidence: {:.2f}".format(confidence)
-        else:
-            result = "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
-
-        return result
-    
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import base64
-
-face_api_compare = FaceApiCompare()
-
-from django.http import JsonResponse
-from rest_framework.views import APIView
-import base64
-
-face_api_compare = FaceApiCompare()
-class CompareImagesView(APIView):
-    def post(self, request, *args, **kwargs):
-        # Get image data from the POST request
-        print(request.FILES)
-        image_file1 = request.FILES.get('image1')
-        image_file2 = request.FILES.get('image2')
-
-        if not (image_file1 and image_file2):
-            return JsonResponse({'error': 'Missing image data in request'}, status=400)
-        print("hoise")
-
-        # Convert images to base64 strings
-        image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
-        image_base64_2 = base64.b64encode(image_file2.read()).decode('utf-8')
-
-        # Perform image comparison using FaceApiCompare class method
-        result = face_api_compare.compare_images(image_base64_1, image_base64_2)
-
-        # Return the comparison result as JSON response
-        return JsonResponse({'result': result})
-
 
 class WalkingBuddyList(APIView):
     def get(self, request):
@@ -672,6 +650,30 @@ class BlogListView(APIView):
 
             return JsonResponse(blogs_data, safe=False)
 
+class BlogSingleView(APIView):
+    def get(self, request):
+        # Retrieve all Blog objects from the database
+            username = request.GET.get('username')
+            print("shuno na go kotha")
+            print(username)
+            queryset = Blog.objects.filter(author=Owner.objects.get(username=username).id).order_by('-post_date', '-post_time')
+            blogs_data = []
+            print(Owner.objects.get(username=username).id)
+
+            for blog in queryset:
+                #print(blog.author)
+                blog_data = {
+                    'id': blog.blogid,
+                    'author': Owner.objects.get(username=blog.author).username,
+                    'author_img': Owner.objects.get(username=blog.author).p_image.url if Owner.objects.get(username=blog.author).p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.content,
+                    'post_date': blog.post_date,
+                    'post_time': blog.post_time,
+                    'blog_img': blog.blog_img.url if blog.blog_img else None
+                }
+                blogs_data.append(blog_data)
+
+            return JsonResponse(blogs_data, safe=False)
 
 
 
@@ -706,71 +708,3 @@ class BlogCreateView(CreateAPIView):
             )
             blog.save()
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
-    
-class PlanEventCreateAPIView(APIView):
-    def post(self, request):
-        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
-                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
-                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
-        data = {key: request.data[key] for key in fields if key in request.data}
-        serializer = PlanEventSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-class PlanEventListAPIView(APIView):
-    def get(self, request):
-        events = PlanEvent.objects.all()
-        serializer = PlanEventSerializer(events, many=True)
-        return Response(serializer.data)
-
-class PlanEventUpdateAPIView(APIView):
-    def put(self, request, pk):
-        event = PlanEvent.objects.get(pk=pk)
-        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
-                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
-                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
-        data = {key: request.data[key] for key in fields if key in request.data}
-        serializer = PlanEventSerializer(event, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        event = PlanEvent.objects.get(pk=pk)
-        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
-                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
-                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
-        data = {key: request.data[key] for key in fields if key in request.data}
-        serializer = PlanEventSerializer(event, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class PlatsoldEventUpdateAPIView(APIView):
-    def put(self, request, pk):
-        event = PlanEvent.objects.get(pk=pk)
-        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
-                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
-                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
-        data = {key: request.data[key] for key in fields if key in request.data}
-        serializer = PlanEventSerializer(event, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        event = PlanEvent.objects.get(pk=pk)
-        fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
-                  'Event_start_date', 'Event_end_date', 'Address', 'Event_create_date',
-                  'Event_Approve', 'E_type', 'Image', 'E_creator', 'Thana']
-        data = {key: request.data[key] for key in fields if key in request.data}
-        serializer = PlanEventSerializer(event, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
