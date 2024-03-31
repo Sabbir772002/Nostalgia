@@ -150,6 +150,7 @@ class Friend(models.Model):
     f_id = models.AutoField(primary_key=True)
     f_created_date = models.DateField()
     is_fnf= models.IntegerField()
+    type= models.CharField(max_length=255)
     type = models.CharField(max_length=255)
     user1 = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='user1_friends')
     user2 = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='user2_friends')
