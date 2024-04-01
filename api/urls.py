@@ -40,7 +40,8 @@ urlpatterns = [
     path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
     path('compare', views.CompareImagesView.as_view(), name='compare_images'),
     path('upvote', views.UpvoteAPIView.as_view(), name='upvote'),
-    path('walk', views.UpvoteAPIView.as_view(), name='walk'),
+    path('walk', views.WalkListView.as_view(), name='walk'),
+    path('delete_fnd', views.Delete_fnd.as_view(), name='delete_fnd'),
 
 ]
 

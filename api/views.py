@@ -300,7 +300,8 @@ class add_fnf(APIView):
         if(len(fnd) > 0):
             return Response({"message": "Your request for friend send"}, status=status.HTTP_400_BAD_REQUEST)
         from django.utils import timezone
-        fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),type="Accept",f_created_date=timezone.now(),is_fnf=0)
+        print(data['type'])
+        fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),type=data['type'],f_created_date=timezone.now(),is_fnf=0)
         fnd.save()
         return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
 
@@ -319,6 +320,21 @@ class update_fnf(APIView):
             fnd[0].type=data['type']
             fnd[0].save()
             return Response({"message": "Friends Updated successfully"}, status=status.HTTP_201_CREATED)
+
+        return Response({"message": "Friends not find"}, status=status.HTTP_400_BAD_REQUEST)
+class Delete_fnd(APIView):
+    def post(self, request):
+        data = request.data
+        if(str(data['user_id']) == str(data['friend_id'])):
+            return Response({"message": "You can't add yourself as friend"}, status=status.HTTP_400_BAD_REQUEST)
+
+        fnd=Friend.objects.filter(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']))
+        fnd|=Friend.objects.filter(user2=Owner.objects.get(id=data['user_id']),user1=Owner.objects.get(id=data['friend_id']))
+        #print(fnd)
+        #check who send fnd request(future work)
+        if(len(fnd) > 0):
+            fnd[0].delete()
+            return Response({"message": "Friends Deleted successfully"}, status=status.HTTP_201_CREATED)
 
         return Response({"message": "Friends not find"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -352,9 +368,9 @@ class FriendList(APIView):
                         'f_created_date': fnd.f_created_date if fnd is not None else  None,
                         'f_id': fnd.f_id if fnd is not None else None,
                         'abedon': 1 if fnd is not None else 0,
-
+                        'good': fnd.user1.username if fnd is not None else None,
                     })
-        print(serialized_data)
+       # print(serialized_data)
         
         
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
@@ -399,7 +415,8 @@ class FindFriend(APIView):
                         'f_created_date': fnd.f_created_date if fnd is not None else  None,
                         'f_id': fnd.f_id if fnd is not None else None,
                         'abedon': 1 if fnd is not None else 0,
-
+                        'good': fnd.user1.username if fnd is not None else None,
+                         'status': 1 if fnd is not None else 1 if len(fnd2)>0 else 0,
                     })
         print(serialized_data)
         
@@ -704,7 +721,7 @@ class BlogListView(APIView):
             queryset = Blog.objects.all().order_by('-post_date', '-post_time')
             blogs_data = []
             username = request.GET.get('username')
-            print(username)
+           # print(username)
 
             for blog in queryset:
                 #print(blog.author)
@@ -720,7 +737,7 @@ class BlogListView(APIView):
                     'is_upvoted':1 if Upvote.objects.filter(blogid=blog.blogid,Username=Owner.objects.get(username=username)).count() > 0 else 0
                 }
                 blogs_data.append(blog_data)
-            print(blogs_data)
+           # print(blogs_data)
 
             return JsonResponse(blogs_data, safe=False)
 
@@ -866,4 +883,48 @@ class PlanEventUpdateAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from .models import Walk
+from .serializers import WalkSerializer
+from datetime import datetime
+class WalkListView(APIView):
+    def get(self, request):
+        username = request.GET.get('username')
+       # walks = Walk.objects.filter(w_creator=Owner.objects.get(username=username))
+        walks = Walk.objects.all()
+        walks_data = []
+        for walk in walks:
+            print(walk.w_creator.p_image)
+            walk_data = {
+                'id': walk.walk_id,
+                'w_creator': walk.w_creator.username,
+                'img': walk.w_creator.p_image.url if walk.w_creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'walk_name': walk.walk_name,
+                'propose': walk.propose_date,
+                'date': datetime.strptime(str(walk.walk_date), '%Y-%m-%d').strftime('%d %B %Y'),
+                'privacy': walk.privacy,
+                'end': datetime.strptime(str(walk.end_date), '%Y-%m-%d').strftime('%d %B %Y'),
+                'location': walk.address,
+                #time banate hbe
+            }
+            walks_data.append(walk_data)
+        # print(walk_data)
+        return Response(walks_data, status=status.HTTP_200_OK)
+
+    @csrf_exempt
+    def post(self, request):
+        data = request.data
+        print(data)
+        username = data.get('w_creator')
+        user = Owner.objects.get(username=username)
+        data['propose_date'] = data['walk_date']
+        data['privacy'] = "Bondhu"
+        data['w_creator'] = user.id
+        print(data)
+        serializer = WalkSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Walk created successfully"}, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
