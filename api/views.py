@@ -347,7 +347,7 @@ class FriendList(APIView):
                         'dob': user.dob,
                         'address': user.address,
                         'nid': user.nid,
-                        'thana': Thana.objects.get(id=user.thana_id).name,
+                        'thana': Thana.objects.get(thana=user.thana_id).thana,
                         'is_fnf': fnd.is_fnf if fnd is not None else fnd2[0].is_fnf if len(fnd2)>0 else None,
                         'type': fnd.type if fnd is not None else fnd2[0].type if len(fnd2)>0 else None,
                         'f_created_date': fnd.f_created_date if fnd is not None else  None,
@@ -394,7 +394,7 @@ class FindFriend(APIView):
                         'dob': user.dob,
                         'address': user.address,
                         'nid': user.nid,
-                        'thana': Thana.objects.get(id=user.thana_id).name,
+                        'thana': Thana.objects.get(thana=user.thana_id).thana,
                         'is_fnf': fnd.is_fnf if fnd is not None else fnd2[0].is_fnf if len(fnd2)>0 else None,
                         'type': fnd.type if fnd is not None else fnd2[0].type if len(fnd2)>0 else None,
                         'f_created_date': fnd.f_created_date if fnd is not None else  None,
@@ -656,7 +656,7 @@ class WalkingBuddyList(APIView):
                 'dob': user.dob,
                 'address': user.address,
                 'nid': user.nid,
-                'thana': Thana.objects.get(id=user.thana_id).name,
+                'thana': Thana.objects.get(thana=user.thana).thana,
             })
         
         return Response({"buddy": serialized_data, "message": "walking buddy information retrieved successfully"}, status=status.HTTP_200_OK)
