@@ -202,7 +202,7 @@ class BlogSerializer(serializers.ModelSerializer):
         return Blog.objects.create(**validated_data)
     
     
-from .models import WalkMember
+from .models import WalkMember,Walk
 
 class WalkMemberSerializer(serializers.ModelSerializer):
     username = serializers.PrimaryKeyRelatedField(queryset=Owner.objects.all())
@@ -215,7 +215,7 @@ class WalkMemberSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.cancel = validated_data.get('cancel', instance.cancel)
         instance.save()
-        return instance
+        return instance 
 
 from .models import PlanEvent
 

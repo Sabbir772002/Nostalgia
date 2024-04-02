@@ -38,6 +38,8 @@ urlpatterns = [
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
     path('compare', views.CompareImagesView.as_view(), name='compare_images'),
     path('upvote', views.UpvoteAPIView.as_view(), name='upvote'),
+    path('walk', views.WalkListView.as_view(), name='walk'),
+    path('delete_fnd', views.Delete_fnd.as_view(), name='delete_fnd'),
 
 ]
 

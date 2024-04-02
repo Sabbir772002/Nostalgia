@@ -200,8 +200,6 @@ class Blog(models.Model):
     post_date = models.DateField()
     post_time=models.TimeField()
     content = models.TextField()
-    # title = models.CharField(max_length=255,blank=True, null=True)  
-    # title = models.CharField(max_length=255)
     blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
@@ -326,7 +324,6 @@ class Comment(models.Model):
         Owner, on_delete=models.CASCADE)
     comment = models.CharField(max_length=500)
     time = models.DateTimeField(default=timezone.now())
-
     def __str__(self):
         return f"Comment ID: {self.cmnt_id}, Post ID: {self.blogid}, Username: {self.username}, Name: {self.comment}"
 
