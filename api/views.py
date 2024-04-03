@@ -843,6 +843,8 @@ class BlogCreateView(CreateAPIView):
             blog.save()
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
     
+from .models import PlanEvent  
+from .serializers import PlanEventSerializer
 class PlanEventCreateAPIView(APIView):
     def post(self, request):
         fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
@@ -929,8 +931,9 @@ class WalkListView(APIView):
             serializer.save()
             return Response({"message": "Walk created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 from .models import Caregiver
-#from .serializers import 
+
 class CaregiverList(APIView):
     def get(self, request):
         userid=request.GET.get('user_id')
