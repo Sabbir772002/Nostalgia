@@ -929,3 +929,25 @@ class WalkListView(APIView):
             serializer.save()
             return Response({"message": "Walk created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from .models import Caregiver
+#from .serializers import 
+class CaregiverList(APIView):
+    def get(self, request):
+        userid=request.GET.get('user_id')
+        caregiver=Caregiver.objects.all()
+        # Serialize the data
+        serialized_data = []
+        for giver in caregiver:
+                    serialized_data.append({
+                        'id': giver.caregiver_id,
+                        'pp': giver.p_image.url if giver.p_image else "media\image\download_lX6bjA6.jpeg", 
+                        'full_name': giver.name,
+                        'gender': giver.gender,
+                        'phone': giver.phone,
+                        'experience': giver.experience,
+                        'care_type': giver.type,
+                        'hospital': giver.h_id,
+                        
+                    })
+       # print(serialized_data)      
+        return Response({"caregiver": serialized_data, "message": "caregiver information retrieved successfully"}, status=status.HTTP_200_OK)
