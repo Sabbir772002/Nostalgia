@@ -5,7 +5,6 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import OwnerSerializer
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,7 +13,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana,User,PlanEvent
+from api.models import Owner, Overseer,Friend,Thana,User,PlanEvent,Upvote,Blog,Chat,Notification
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -303,6 +302,8 @@ class add_fnf(APIView):
         print(data['type'])
         fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),type=data['type'],f_created_date=timezone.now(),is_fnf=0)
         fnd.save()
+        noti=Notification(noti_type="Bondhu",noti_msg="send you friend request",noti_sender=Owner.objects.get(id=data['user_id']),noti_receiver=Owner.objects.get(id=data['friend_id']),noti_status=0)
+        noti.save()
         return Response({"message": "Friends Added successfully"}, status=status.HTTP_201_CREATED)
 
 class update_fnf(APIView):
@@ -343,6 +344,8 @@ class FriendList(APIView):
     def get(self, request):
         users = Owner.objects.all()
         userid=request.GET.get('user_id')
+        print("ami esesi akhon from groupsshow")
+        print(userid)
         # Serialize the data
         serialized_data = []
         for user in users:
@@ -369,10 +372,10 @@ class FriendList(APIView):
                         'f_id': fnd.f_id if fnd is not None else None,
                         'abedon': 1 if fnd is not None else 0,
                         'good': fnd.user1.username if fnd is not None else None,
+                        'msg': "gd night",
+                        'time': "12:00",
                     })
-       # print(serialized_data)
-        
-        
+        print(serialized_data)
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
 
 
@@ -752,18 +755,24 @@ class UpvoteAPIView(APIView):
             username = request.data['username']
             blog = Blog.objects.get(blogid=id)
             owner=Owner.objects.get(username=username)
-            print(owner)
+            print("yo esei noti bro...")
+            print(owner.username)
             upvoted = Upvote.objects.filter(
                 Username=Owner.objects.get(username=username), blogid=id)
             if len(upvoted)==0:
                 print("banao")
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
-                upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blog=blog)
+                upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance1.save()
+                Noti=Notification(noti_type="Upvote",noti_msg="upvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
+                Noti.save()
             if len(upvoted)==1:
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
+                #this have to think, bcz, user knwo who withdraw his upvote
+                Noti=Notification(noti_type="Upvote",noti_msg="reupvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
+                Noti.save()
             else: 
                 upvote_instance = Upvote.objects.filter(Username=owner, blogid=blog).first()
                 upvote_instance.delete()
@@ -928,3 +937,128 @@ class WalkListView(APIView):
             return Response({"message": "Walk created successfully"}, status=status.HTTP_201_CREATED)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class NotificationView(APIView):
+    def get(self, request):
+        username = request.GET.get('username')
+        print("notification Bro....")
+        print(username)
+        noti = Notification.objects.filter(noti_receiver=Owner.objects.get(username=username)).order_by('noti_date','-noti_time')
+        noti_data = []
+        for n in noti:
+            noti_data.append({
+                'id': n.noti_id,
+                'sender': n.noti_sender.username,
+                'img': n.noti_sender.p_image.url if n.noti_sender.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'msg': n.noti_msg,
+                'date': n.noti_date,
+                'time': n.noti_time,
+                'type': n.noti_type,
+                'status': n.noti_status
+            })
+        return Response(noti_data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        data = request.data
+        print(data)
+        username = data.get('username')
+        user = Owner.objects.get(username=username)
+        data['noti_sender'] = user.id
+        data['noti_date'] = datetime.now().strftime('%Y-%m-%d')
+        data['noti_time'] = datetime.now().strftime('%H:%M:%S')
+        serializer = NotificationSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Notification created successfully"}, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from .models import Comment
+from datetime import datetime, timedelta    
+
+from datetime import datetime
+
+def format_time_ago(timestamp):
+    # Calculate the time difference
+    time_difference = datetime.utcnow() - timestamp
+
+    # Convert time difference to days, hours, and minutes
+    days_difference = time_difference.days
+    minutes_difference = time_difference.seconds // 60
+    hours_difference = minutes_difference // 60
+
+    if days_difference > 30:
+        months_difference = days_difference // 30
+        return f"{months_difference} months ago"
+    elif days_difference >= 2:
+        return f"{days_difference} days ago"
+    elif days_difference == 1:
+        return "1 day ago"
+    elif hours_difference >= 2:
+        return f"{hours_difference} hours ago"
+    elif hours_difference == 1:
+        return "1 hour ago"
+    elif minutes_difference >= 2:
+        return f"{minutes_difference} minutes ago"
+    else:
+        return "just now"
+
+class BlogCommentsView(APIView):
+    def get(self, request):
+           #Retrieve all Blog objects from the database
+           # username = request.GET.get('username')
+            print("retrive comment")
+            #print(username)
+            blog = request.GET.get('blog')
+            blog=Blog.objects.get(blogid=blog)
+            print(blog.content)
+            queryset = Comment.objects.filter(blogid=blog).order_by( '-time')
+            blogs_data = []
+            #print(Owner.objects.get(username=username).id)
+            for blog in queryset:
+                #print(blog.comment)
+                #timestamp = blog.time.replace(tzinfo=timezone.utc)
+                blog_data = {
+                    'id': blog.cmnt_id,
+                    'author': blog.username.username,
+                    'author_img': Owner.objects.get(username=blog.username).p_image.url if Owner.objects.get(username=blog.username).p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.comment,
+                    'time': blog.time,
+                    'blog': blog.blogid.blogid
+                }
+                blogs_data.append(blog_data)
+            print(blogs_data)
+
+            return JsonResponse(blogs_data, safe=False)
+from django.utils import timezone 
+@method_decorator(csrf_exempt, name='dispatch')
+class CommentCreateView(CreateAPIView):
+    #serializer_class = BlogSerializer
+    def post(self, request, *args, **kwargs):
+        print("comment create")
+        print(request.data)
+        # Retrieve data from the request
+        username = request.data['author']
+        print(username)
+        data = request.data
+        user = Owner.objects.get(username=username)
+        # print(data)
+        blog_img = ""#request.data.get('blog_img')
+        #print(blog_img)
+        if blog_img is not None:
+            blog = Comment.objects.create(
+                   blogid=Blog.objects.get(blogid=data['blog']),
+                    username=user,
+                    comment=data['content'],
+                    time = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+                )
+                # Save the blog instance
+            blog.save()
+        else :
+            blog = Blog.objects.create(
+                blogid=Blog.objects.get(blogid=data['blog']),
+                username=user,
+                comment=data['content'],
+                time= timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            blog.save()
+        return Response({"message": "Comment created successfully"}, status=status.HTTP_201_CREATED)
