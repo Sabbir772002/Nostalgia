@@ -1027,7 +1027,6 @@ class BlogCommentsView(APIView):
                 }
                 blogs_data.append(blog_data)
             print(blogs_data)
-
             return JsonResponse(blogs_data, safe=False)
 from django.utils import timezone 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -1062,3 +1061,75 @@ class CommentCreateView(CreateAPIView):
             )
             blog.save()
         return Response({"message": "Comment created successfully"}, status=status.HTTP_201_CREATED)
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.http import JsonResponse
+from django.db.models import Count
+from django.db.models import F, ExpressionWrapper, fields
+from django.db.models.functions import Length
+from django.db.models import FloatField
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+class HTimeline(APIView):
+    def get(self, request):
+        username=request.GET.get("username")
+        print(username)
+        user=User.objects.get(username=username)
+        print(user)
+        user_blogs = Blog.objects.filter(author__username=username)
+        user_comments = Comment.objects.filter(username__username=username)
+
+        user_content=[]
+        for blog in user_blogs:
+            user_content.append(blog.content)
+        for comment in user_comments:
+            user_content.append(comment.comment)
+
+        # Get all blogs excluding the user's blogs
+        all_blogs = Blog.objects.exclude(author__username=username)
+        # Combine the content of all blogs and comments
+        all_content = []
+        for blog in all_blogs:
+            all_content.append(blog.content)
+            # Also consider comments associated with this blog
+            comments = Comment.objects.filter(blogid=blog.blogid)
+            for comment in comments:
+                all_content.append(comment.comment)
+
+        # Calculate TF-IDF vectors
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform(user_content + all_content)
+        print(tfidf_matrix)
+
+        # Calculate cosine similarity
+        user_tfidf = tfidf_matrix[:len(user_content)]
+        all_tfidf = tfidf_matrix[len(user_content):]
+        similarity_matrix = cosine_similarity(user_tfidf, all_tfidf)
+
+        # Sort blogs based on cosine similarity
+        similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
+        sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
+
+        # Retrieve sorted blogs
+        sorted_blogs = [all_blogs[i] for i in sorted_indices]
+
+        blogs_data = []
+        for blog in sorted_blogs:
+            blog_data = {
+                'id': blog.blogid,
+                'author': blog.author.username,
+                'author_img': blog.author.p_image.url if blog.author.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'content': blog.content,
+                'post_date': blog.post_date,
+                'post_time': blog.post_time,
+                'blog_img': blog.blog_img.url if blog.blog_img else None,
+                'upvote': blog.upvote_set.count(),
+                'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
+            }
+            blogs_data.append(blog_data)
+
+        return Response(blogs_data)

@@ -45,6 +45,7 @@ urlpatterns = [
     path('notification', views.NotificationView.as_view(), name='notification'),
     path('comments', views.BlogCommentsView.as_view(), name='comments'),
     path('comment', views.CommentCreateView.as_view(), name='newcomment'),
+    path('htimeline', views.HTimeline.as_view(), name='htimeline'),
 
 ]
 
