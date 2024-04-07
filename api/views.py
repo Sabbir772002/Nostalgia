@@ -1327,7 +1327,7 @@ class GroupUpvoteAPIView(APIView):
         if request.method == 'POST':
             id = request.data['id']
             username = request.data['username']
-            blog = Blog.objects.get(blogid=id)
+            blog = GroupPost.objects.get(blogid=id)
             owner=Owner.objects.get(username=username)
             print("yo esei noti bro...")
             print(owner.username)
