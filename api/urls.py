@@ -38,7 +38,7 @@ urlpatterns = [
     path('add_group', views.Add_group.as_view(), name='add_group'),
     path('my_groups', views.My_Group.as_view(), name='my_groups'),
     path('g_profile/<username>', views.GroupProfile.as_view(), name='g_profile'),
-    path('gp_post/<username>', views.GP_post.as_view(), name='GP_post'),
+    path('gp_post', views.GP_post.as_view(), name='GP_post'),
     path('gt_post', views.GT_post.as_view(), name='GT_post'),
     path('api/events/create/', PlanEventCreateAPIView.as_view(), name='event-create'),
     path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
@@ -55,6 +55,9 @@ urlpatterns = [
     path('walk_request', views.Walk_request.as_view(), name='walk_request'),
     path('walk!members', views.WalkNotMember.as_view(), name='walk!members'),
     path('handlemember', views.Handlemember.as_view(), name='Handlemember'),
+    path('join_group', views.JoinGroup.as_view(), name='join_group'),
+    path('addgroupost', views.AddGroupPost.as_view(), name='addgroupost')
+
 ]
 
 

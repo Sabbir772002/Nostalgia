@@ -317,6 +317,9 @@ class update_fnf(APIView):
         #print(fnd)
         #check who send fnd request(future work)
         if(len(fnd) > 0):
+            if(data['type'] == "Delete"):
+                fnd[0].delete()
+                return Response({"message": "Request Deleted successfully"}, status=status.HTTP_201_CREATED)
             fnd[0].is_fnf= 1 if fnd[0].is_fnf== 0 else fnd[0].is_fnf
             fnd[0].type=data['type']
             fnd[0].save()
@@ -352,7 +355,7 @@ class FriendList(APIView):
             fnd=Friend.objects.filter(user1=Owner.objects.get(id=userid),user2=user.id)
             fnd2=Friend.objects.filter(user2=Owner.objects.get(id=userid),user1=user.id)
             fnd=fnd[0] if len(fnd) > 0 else None
-            if(fnd is not None or len(fnd2)>0):
+            if(fnd is not None and fnd.is_fnf ==1) or (len(fnd2)>0  and fnd2[0].is_fnf==1):
                     serialized_data.append({
                         'id': user.id,
                         'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
@@ -519,6 +522,7 @@ class FriendListView(generics.ListAPIView):
         print(fndlist)
         return queryset
     
+
     def get(self, request, *args, **kwargs):
         # Check if the request is for paginated data
         page_number = request.query_params.get('page')
@@ -1269,45 +1273,131 @@ class My_Group(APIView):
             })
         return Response(groups_data)
 
+from .models import GroupMember 
 class GroupProfile(APIView):
     def get(self,request,username):
         print("asi nai grope profile")
         print(username)
+        user=Owner.objects.get(id=request.GET.get('user_id'))
+        print("YO " +user.username)
         group=Group.objects.get(G_username=username)
         data={
             'username': group.G_username,
             'name': group.G_name,
+             'img': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
             'creator': group.Creator.username,
             'created_date': group.CreatedDate,
             'privacy': group.Privacy,
             'topic': group.Topic,
             'time': group.time,
             'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+             'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user).exists() else 0
         }
         print(data)
-
         return Response(data)
+from .models import GroupPost
+
 class GP_post(APIView):
-    def get(self,request,username):
+    def get(self,request):
+        username=request.GET.get('username')
+        print(username)
         group=Group.objects.get(G_username=username)
-        posts=GroupPost.objects.filter(group_id=group)
+        posts=GroupPost.objects.filter(G_username=group)
         posts_data=[]
         for post in posts:
             posts_data.append({
-                'id': post.post_id,
-                'author': post.username.username,
-                'author_img': post.username.p_image.url if post.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'content': post.content,
-                'post_date': post.post_date,
-                'post_time': post.post_time,
-                'post_img': post.post_img.url if post.post_img else None,
-                'upvote': GroupUpvote.objects.filter(post_id=post).count(),
-                'is_upvoted': 1 if GroupUpvote.objects.filter(post_id=post,Username=Owner.objects.get(username=username)).exists() else 0
+                'id': post.GPost_id,
+                'group_username': post.G_username.G_username,
+                'author': post.p_username.username,
+                'group_name': post.G_username.G_name,
+                'author_img': post.p_username.p_image.url if post.p_username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'content': post.GPost_contents,
+                'post_date': post.GPost_date,
+                'post_time': post.GPost_Time,
+                'post_img': post.GPost_image.url if post.GPost_image else None,
+                # 'upvote': GroupUpvote.objects.filter(post_id=post).count(),
+                # 'is_upvoted': 1 if GroupUpvote.objects.filter(post_id=post,Username=Owner.objects.get(username=username)).exists() else 0
             })
+        print(posts_data)
         return Response(posts_data)
 
 
 class GT_post(APIView):
     def get(self,request):
         username=request.GET.get('username')
-        print(username)
+        # print(username)
+        # group=Group.objects.get(G_username=username)
+        # posts=GroupPost.objects.filter(G_username=group)
+        posts=GroupPost.objects.all()
+        posts_data=[]
+        for post in posts:
+            posts_data.append({
+                'id': post.GPost_id,
+                'group_username': post.G_username.G_username,
+                'author': post.p_username.username,
+                'group_name': post.G_username.G_name,
+                'author_img': post.p_username.p_image.url if post.p_username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'content': post.GPost_contents,
+                'post_date': post.GPost_date,
+                'post_time': post.GPost_Time,
+                'post_img': post.GPost_image.url if post.GPost_image else None,
+                # 'upvote': GroupUpvote.objects.filter(post_id=post).count(),
+                # 'is_upvoted': 1 if GroupUpvote.objects.filter(post_id=post,Username=Owner.objects.get(username=username)).exists() else 0
+            })
+        print(posts_data)
+        return Response(posts_data)
+class JoinGroup(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+
+        if(data['type']=='Delete'):
+            group=GroupMember.objects.filter(G_username=Group.objects.get(G_username=data['group']),member_id=Owner.objects.get(id=data['user_id']).id)
+            group.delete()
+            return Response({"message": "Request deleted successfully"}, status=status.HTTP_201_CREATED)
+        if(GroupMember.objects.filter(G_username=Group.objects.get(G_username=data['group']),member_id=Owner.objects.get(id=data['user_id']).id).exists()):
+            return Response({"msg": "You are already a member of this group","ok":0})
+        group=GroupMember.objects.create(G_username=Group.objects.get(G_username=data['group']),member_id=Owner.objects.get(id=data['user_id']).id,accept=0,Block=0)
+        group.save()
+        return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
+
+
+
+
+
+
+from .models import GroupPost
+@method_decorator(csrf_exempt, name='dispatch')
+class AddGroupPost(CreateAPIView):
+    #serializer_class = BlogSerializer
+    def post(self, request, *args, **kwargs):
+        # Retrieve data from the request
+        print(request.data)
+        username = request.data['username']
+        data = request.data
+        user = Owner.objects.get(username=username)
+        # print(data)
+        blog_img = request.data.get('blog_img')
+        #print(blog_img)
+        if blog_img is not None:
+            blog = GroupPost.objects.create(
+                    G_username=Group.objects.get(G_username=data['gp']),
+                    p_username=user,
+                    GPost_contents=data['content'],
+                    GPost_date=data['post_date'],
+                    GPost_Time=data['post_time'],
+                    GPost_image=blog_img if blog_img else None
+                )
+                # Save the blog instance
+            blog.save()
+        else :
+            blog = GroupPost.objects.create(
+                    G_username=Group.objects.get(G_username=data['gp']),
+                    p_username=user,
+                    GPost_contents=data['content'],
+                    GPost_date=data['post_date'],
+                    GPost_Time=data['post_time'],
+                    GPost_image=blog_img if blog_img else None
+            )
+            blog.save()
+        return Response({"message": "Group Blog created successfully"}, status=status.HTTP_201_CREATED)

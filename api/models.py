@@ -213,19 +213,6 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.blogid
-
-class GroupMember(models.Model):
-    MemberID = models.AutoField(primary_key=True)
-    JoinDate = models.DateField(default=timezone.now)
-    isAdmin = models.CharField(max_length=10)
-    Block = models.IntegerField()
-    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
-    member = models.ForeignKey(Owner, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'Member ID: {self.MemberID}, Username: {self.G_username.username}'
-
-
 class Group(models.Model):
     G_username = models.CharField(max_length=255,primary_key=True)
     G_name = models.CharField(max_length=255)
@@ -236,7 +223,22 @@ class Group(models.Model):
     Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.Name
+        return self.G_name
+
+class GroupMember(models.Model):
+    MemberID = models.AutoField(primary_key=True)
+    JoinDate = models.DateField(default=timezone.now)
+    isAdmin = models.CharField(max_length=10)
+    Block = models.IntegerField()
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE,to_field='G_username')
+    member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    accept = models.IntegerField()
+
+    def __str__(self):
+        return f'Member ID: {self.MemberID}, Username: {self.G_username.username}'
+
+
+
 
 class PlanTrip(models.Model):
     TripID = models.AutoField(primary_key=True)
@@ -260,6 +262,7 @@ class TripMember(models.Model):
 
     def __str__(self):
         return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
+
 class GroupPost(models.Model):
     GPost_id = models.AutoField(primary_key=True)
     GPost_contents = models.TextField()
@@ -316,7 +319,6 @@ class JoinEvent(models.Model):
 class Upvote(models.Model):
     blogid = models.ForeignKey(Blog, on_delete=models.CASCADE)
     Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
-
     # class Meta:up
     #     primary_key = ['PostID', 'Username']
 
