@@ -152,6 +152,7 @@ class WalkMember(models.Model):
     cancel = models.IntegerField()
     username = models.ForeignKey(Owner, on_delete=models.CASCADE)
     walk_id = models.ForeignKey(Walk, on_delete=models.CASCADE)
+    accept = models.IntegerField()
 
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
@@ -226,11 +227,12 @@ class GroupMember(models.Model):
 
 
 class Group(models.Model):
-    G_username = models.CharField(max_length=255)
-    Name = models.CharField(max_length=255)
+    G_username = models.CharField(max_length=255,primary_key=True)
+    G_name = models.CharField(max_length=255)
     CreatedDate = models.DateField(default=timezone.now)
     Topic = models.CharField(max_length=255)
     Privacy = models.CharField(max_length=255)
+    time = models.TimeField()
     Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -261,10 +263,12 @@ class TripMember(models.Model):
 class GroupPost(models.Model):
     GPost_id = models.AutoField(primary_key=True)
     GPost_contents = models.TextField()
-    GPost_Time = models.IntegerField()
-    GPost_date = models.IntegerField()
+    GPost_Time = models.TimeField()
+    GPost_date = models.DateField()
     GPost_image = models.ImageField(upload_to='image/', null=True)
-    G_username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
+    p_username=models.ForeignKey(Owner,on_delete=models.CASCADE)
+
 
     def __str__(self):
         return f'Group Post ID: {self.GPost_id}, Contents: {self.GPost_contents}'    

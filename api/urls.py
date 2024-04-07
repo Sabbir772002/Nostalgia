@@ -35,20 +35,27 @@ urlpatterns = [
     path('blog', views.BlogListView.as_view(), name='blog'),
     path('singleblog', views.BlogSingleView.as_view(), name='singleblog'),
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
+    path('add_group', views.Add_group.as_view(), name='add_group'),
+    path('my_groups', views.My_Group.as_view(), name='my_groups'),
+    path('g_profile/<username>', views.GroupProfile.as_view(), name='g_profile'),
+    path('gp_post/<username>', views.GP.as_view(), name='GP_post'),
+    path('gt_post', views.GT_post.as_view(), name='GT_post')
     path('api/events/create/', PlanEventCreateAPIView.as_view(), name='event-create'),
     path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
     path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
     path('compare', views.CompareImagesView.as_view(), name='compare_images'),
     path('upvote', views.UpvoteAPIView.as_view(), name='upvote'),
     path('walk', views.WalkListView.as_view(), name='walk'),
+    path('walkmembers', views.WalkMembers.as_view(), name='walk_members'),
     path('delete_fnd', views.Delete_fnd.as_view(), name='delete_fnd'),
     path('notification', views.NotificationView.as_view(), name='notification'),
     path('comments', views.BlogCommentsView.as_view(), name='comments'),
     path('comment', views.CommentCreateView.as_view(), name='newcomment'),
     path('htimeline', views.HTimeline.as_view(), name='htimeline'),
-
+    path('walk_request', views.Walk_request.as_view(), name='walk_request'),
+    path('walk!members', views.WalkNotMember.as_view(), name='walk!members'),
+    path('handlemember', views.Handlemember.as_view(), name='Handlemember'),
 ]
-
 
 
 if settings.DEBUG:
