@@ -339,3 +339,16 @@ class Reply(models.Model):
 
     def __str__(self):
         return f"Comment ID: {self.cmnt_id}, Post ID: {self.Reply_id}, Username: {self.user}, Name: {self.Reply_msg}"        
+class Notification(models.Model):
+    noti_id = models.AutoField(primary_key=True)
+    #noti_msg = models.CharField(max_length=255)
+    noti_date = models.DateField(default=timezone.now())
+    noti_msg = models.TextField()
+    noti_time = models.DateTimeField(default=timezone.now())
+    noti_type = models.CharField(max_length=255) #friend request, walk request, event request
+    noti_status = models.CharField(max_length=255)#unseen or seen
+    noti_receiver = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    noti_sender = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='sent_notifications')
+
+    def __str__(self):
+        return f"Notification ID: {self.noti_id}, Message: {self.noti_msg}"

@@ -40,6 +40,10 @@ urlpatterns = [
     path('upvote', views.UpvoteAPIView.as_view(), name='upvote'),
     path('walk', views.WalkListView.as_view(), name='walk'),
     path('delete_fnd', views.Delete_fnd.as_view(), name='delete_fnd'),
+    path('notification', views.NotificationView.as_view(), name='notification'),
+    path('comments', views.BlogCommentsView.as_view(), name='comments'),
+    path('comment', views.CommentCreateView.as_view(), name='newcomment'),
+    path('htimeline', views.HTimeline.as_view(), name='htimeline'),
 
 ]
 
