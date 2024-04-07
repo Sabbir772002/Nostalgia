@@ -1144,3 +1144,225 @@ class HTimeline(APIView):
             blogs_data.append(blog_data)
 
         return Response(blogs_data)
+
+
+from .models import WalkMember
+class WalkMembers(APIView):
+    def get_age(self, dob):
+        today = datetime.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        return age
+
+    def get(self,request):
+        walk_id=request.GET.get('id')
+        walk=Walk.objects.get(walk_id=walk_id)
+        members=WalkMember.objects.filter(walk_id=walk_id,cancel=0,accept=1)
+        members_data=[]
+        print("ami hatar manush khuji akhon!")
+        for member in members:
+            members_data.append({
+                'id': member.username.id,
+                'username': member.username.username,
+                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.username.first_name,
+                'last_name': member.username.last_name,
+                'email': member.username.email,
+                'phone': member.username.phone,
+                'dob': self.get_age(member.username.dob),
+                'gender': member.username.gender
+            })
+        print(members_data)
+        return Response(members_data)
+
+class Walk_request(APIView):
+    def post(self,request):
+        walk_id=request.data['id']
+        username=request.data['username']
+        walk=Walk.objects.get(walk_id=walk_id)
+        bot=WalkMember.objects.filter(walk_id=walk,username=Owner.objects.get(username=username))
+        if(len(bot)>0):
+            return Response({"user": bot[0].username.username})      
+        members=WalkMember.objects.create(username=Owner.objects.get(username=username),walk_id=Walk.objects.get(walk_id=walk_id),cancel=0,accept=0)
+        members.save()
+        print("accept koro na?")
+        return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
+
+class update_member(APIView):
+    def post(self,request):
+        walk_id=request.data['id']
+        username=request.data['username']
+        walk=Walk.objects.get(walk_id=walk_id)
+        bot=WalkMember.objects.filter(walk_id=walk,username=Owner.objects.get(username=username))
+        if(len(bot)>0):
+            return Response({"user": bot[0].username.username})      
+        members=WalkMember.objects.create(username=Owner.objects.get(username=username),walk_id=Walk.objects.get(walk_id=walk_id),cancel=0,accept=0)
+        members.save()
+        print("accept koro na?")
+        return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
+
+class WalkNotMember(APIView):
+    def get_age(self, dob):
+        today = datetime.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        return age 
+
+    def get(self,request):
+        walk_id=request.GET.get('id')
+        walk=Walk.objects.get(walk_id=walk_id)
+        members=WalkMember.objects.filter(walk_id=walk_id,accept=0)
+        print(members)
+        members_data=[]
+        print("moner mto kw nai!")
+        for member in members:
+            members_data.append({
+                'id': member.username.id,
+                'username': member.username.username,
+                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.username.first_name,
+                'last_name': member.username.last_name,
+                'email': member.username.email,
+                'phone': member.username.phone,
+                'dob': self.get_age(member.username.dob),
+                'gender': member.username.gender 
+            
+            })
+        print(members_data) 
+        return Response(members_data)
+
+class Handlemember(APIView):
+    def post(self,request):
+        if request.data['type'] == 'confirm':
+            walk_id=request.data['walk_id']
+            user_id=request.data['id']
+            user=Owner.objects.get(id=user_id)
+            walk=Walk.objects.get(walk_id=walk_id)
+            members=WalkMember.objects.filter(walk_id=walk,username=user)
+            print(members)
+            if(len(members)>0):
+                members[0].accept=1
+                members[0].save()
+                return Response({"user": members[0].username.username})
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+from .models import Group
+class Add_group(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        if(Group.objects.filter(G_username=data['username']).exists()):
+            return Response({"msg": "Group already exists"})
+        group=Group.objects.create(G_name=data['name'],Creator=Owner.objects.get(id=data['id']),CreatedDate=datetime.now().strftime('%Y-%m-%d'),G_username=data['username'],Privacy=data['privacy'],Topic=data['topic'],time=datetime.now().strftime('%H:%M:%S'))
+        group.save()
+        return Response({"message": "Group created successfully"}, status=status.HTTP_201_CREATED)
+        
+class My_Group(APIView):
+    def get(self,request):
+        username=request.GET.get('user_id')
+        user=Owner.objects.get(id=username)
+        groups=Group.objects.all()
+        groups_data=[]
+        for group in groups:
+            groups_data.append({
+                'username': group.G_username,
+                'name': group.G_name,
+                'creator': group.Creator.username,
+                'created_date': group.CreatedDate,
+                'privacy': group.Privacy,
+                'topic': group.Topic,
+                'time': group.time,
+                'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+
+            })
+        return Response(groups_data)
+
+class GroupProfile(APIView):
+    def get(self,request,username):
+        print("asi nai grope profile")
+        print(username)
+        group=Group.objects.get(G_username=username)
+        data={
+            'username': group.G_username,
+            'name': group.G_name,
+            'creator': group.Creator.username,
+            'created_date': group.CreatedDate,
+            'privacy': group.Privacy,
+            'topic': group.Topic,
+            'time': group.time,
+            'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+        }
+        print(data)
+
+        return Response(data)
+class GP_post(APIView):
+    def get(self,request,username):
+        group=Group.objects.get(G_username=username)
+        posts=GroupPost.objects.filter(group_id=group)
+        posts_data=[]
+        for post in posts:
+            posts_data.append({
+                'id': post.post_id,
+                'author': post.username.username,
+                'author_img': post.username.p_image.url if post.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'content': post.content,
+                'post_date': post.post_date,
+                'post_time': post.post_time,
+                'post_img': post.post_img.url if post.post_img else None,
+            #     'upvote': GroupUpvote.objects.filter(post_id=post).count(),
+            #     'is_upvoted': 1 if GroupUpvote.objects.filter(post_id=post,Username=Owner.objects.get(username=username)).exists() else 0
+             })
+        return Response(posts_data)
+
+
+class GT_post(APIView):
+    def get(self,request):
+        username=request.GET.get('username')
+        print(username)
+
+
+from django.http import JsonResponse
+from django.views import View
+from .models import GroupPost, GroupUpvote
+
+class GroupUpvoteAPIView(APIView):
+    def post(self, request):
+        if request.method == 'POST':
+            id = request.data['id']
+            username = request.data['username']
+            blog = Blog.objects.get(blogid=id)
+            owner=Owner.objects.get(username=username)
+            print("yo esei noti bro...")
+            print(owner.username)
+            upvoted = GroupUpvote.objects.filter(
+                Username=Owner.objects.get(username=username), blogid=id)
+            if len(upvoted)==0:
+                print("banao")
+                upvote_instance = GroupUpvote(Username=Owner.objects.get(username=username), blogid=blog)
+                upvote_instance.save()
+                upvote_instance1 = GroupUpvote(Username=Owner.objects.get(username=username), blogid=blog)
+                upvote_instance1.save()
+                Noti=Notification(noti_type="Upvote",noti_msg="upvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
+                Noti.save()
+            if len(upvoted)==1:
+                upvote_instance = GroupUpvote(Username=Owner.objects.get(username=username), blogid=blog)
+                upvote_instance.save()
+                #this have to think, bcz, user knwo who withdraw his upvote
+                Noti=Notification(noti_type="Upvote",noti_msg="reupvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
+                Noti.save()
+            else: 
+                upvote_instance = GroupUpvote.objects.filter(Username=owner, blogid=blog).first()
+                upvote_instance.delete()
+            blog=GroupPost.objects.get(blogid=id)
+            blog_data = {
+                    'id': blog.blogid,
+                    'author': Owner.objects.get(username=blog.author).username,
+                    'author_img': Owner.objects.get(username=blog.author).p_image.url if Owner.objects.get(username=blog.author).p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.content,
+                    'post_date': blog.post_date,
+                    'post_time': blog.post_time,
+                    'blog_img': blog.blog_img.url if blog.blog_img else None,
+                    'upvote': GroupUpvote.objects.filter(blogid=blog.blogid).count(),
+                    'is_upvoted':1 if GroupUpvote.objects.filter(blogid=blog.blogid,Username=Owner.objects.get(username=username)).count() >  1 else 0
+                }
+            return JsonResponse(blog_data, safe=False)
+        else:
+            return JsonResponse({'message': 'Invalid request method'}, status=400)
+

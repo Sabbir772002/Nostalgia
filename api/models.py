@@ -356,3 +356,34 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification ID: {self.noti_id}, Message: {self.noti_msg}"
+    
+class GroupUpvote(models.Model):
+    blogid = models.ForeignKey(GroupPost, on_delete=models.CASCADE)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+
+    def __str__(self):
+        return f"GroupUpvote - Post ID: {self.blogid.blogid}, Username: {self.Username.username}"    
+    
+class GroupComment(models.Model):
+    cmnt_id = models.AutoField(primary_key=True)
+    blogid = models.ForeignKey(GroupPost, on_delete=models.CASCADE)
+    username = models.ForeignKey(
+        Owner, on_delete=models.CASCADE)
+    comment = models.CharField(max_length=500)
+    time = models.DateTimeField(default=timezone.now())
+    def __str__(self):
+        return f"GroupComment ID: {self.cmnt_id}, Post ID: {self.blogid}, Username: {self.username}, Name: {self.comment}"
+    
+class GroupReply(models.Model):
+    Reply_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        Owner, on_delete=models.CASCADE)
+    cmnt_id = models.ForeignKey(
+        GroupComment, on_delete=models.CASCADE, related_name="replies")
+    Reply_msg = models.CharField(max_length=500)
+    time = models.DateTimeField(default=timezone.now())
+
+    def __str__(self):
+        return f"GroupComment ID: {self.cmnt_id}, Post ID: {self.Reply_id}, Username: {self.user}, Name: {self.Reply_msg}"        
+
