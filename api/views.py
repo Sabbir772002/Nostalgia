@@ -1289,6 +1289,22 @@ class GroupProfile(APIView):
         return Response(data)
 class GP_post(APIView):
     def get(self,request,username):
+        group=Group.objects.get(G_username=username)
+        posts=GroupPost.objects.filter(group_id=group)
+        posts_data=[]
+        for post in posts:
+            posts_data.append({
+                'id': post.post_id,
+                'author': post.username.username,
+                'author_img': post.username.p_image.url if post.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'content': post.content,
+                'post_date': post.post_date,
+                'post_time': post.post_time,
+                'post_img': post.post_img.url if post.post_img else None,
+                'upvote': GroupUpvote.objects.filter(post_id=post).count(),
+                'is_upvoted': 1 if GroupUpvote.objects.filter(post_id=post,Username=Owner.objects.get(username=username)).exists() else 0
+            })
+        return Response(posts_data)
 
 
 class GT_post(APIView):
