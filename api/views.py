@@ -900,14 +900,19 @@ class PlanEventUpdateAPIView(APIView):
 from .models import Walk
 from .serializers import WalkSerializer
 from datetime import datetime
+from django.db.models import Q
+
 class WalkListView(APIView):
     def get(self, request):
         username = request.GET.get('username')
-       # walks = Walk.objects.filter(w_creator=Owner.objects.get(username=username))
-        walks = Walk.objects.all()
+        print("ami hatar manush khujte assi.....")
+        user = Owner.objects.get(username=username)
+        print(user.username)
+        #walks = Walk.objects.filter(Q(w_creator=user) | Q(walkmember__username=user)).order_by('walk_date').distinct()
+        walks=Walk.objects.all()
         walks_data = []
         for walk in walks:
-            print(walk.w_creator.p_image)
+            #print(walk.w_creator.p_image)
             walk_data = {
                 'id': walk.walk_id,
                 'userid': walk.w_creator.id,
@@ -919,27 +924,30 @@ class WalkListView(APIView):
                 'privacy': walk.privacy,
                 'end': datetime.strptime(str(walk.end_date), '%Y-%m-%d').strftime('%d %B %Y'),
                 'location': walk.address,
+                'member': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user).exists() else 0,
+                'not_ac': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user, accept=0).exists() else 0,
+                'cancel': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user, cancel=1).exists() else 0,
                 #time banate hbe
             }
             walks_data.append(walk_data)
-        print(walk_data)
+        print(walks_data)
         return Response(walks_data, status=status.HTTP_200_OK)
 
     @csrf_exempt
     def post(self, request):
         data = request.data
-        print(data)
         username = data.get('w_creator')
         user = Owner.objects.get(username=username)
         data['propose_date'] = data['walk_date']
         data['privacy'] = "Bondhu"
         data['w_creator'] = user.id
-        print(data)
         serializer = WalkSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+            walk_member=WalkMember(walk_id=Walk.objects.get(walk_id=serializer.data['walk_id']),username=user,accept=1,cancel=0)
+            walk_member.save()
+            print("walk member created")
             return Response({"message": "Walk created successfully"}, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class NotificationView(APIView):
     def get(self, request):
@@ -1117,7 +1125,6 @@ class HTimeline(APIView):
         # Sort blogs based on cosine similarity
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
         sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
-
         # Retrieve sorted blogs
         sorted_blogs = [all_blogs[i] for i in sorted_indices]
 
@@ -1137,26 +1144,3 @@ class HTimeline(APIView):
             blogs_data.append(blog_data)
 
         return Response(blogs_data)
-    
-from .models import Caregiver
-
-class CaregiverList(APIView):
-    def get(self, request):
-        userid=request.GET.get('user_id')
-        caregiver=Caregiver.objects.all()
-        # Serialize the data
-        serialized_data = []
-        for giver in caregiver:
-                    serialized_data.append({
-                        'id': giver.caregiver_id,
-                        'pp': giver.p_image.url if giver.p_image else "media\image\download_lX6bjA6.jpeg", 
-                        'full_name': giver.name,
-                        'gender': giver.gender,
-                        'phone': giver.phone,
-                        'experience': giver.experience,
-                        'care_type': giver.type,
-                        'hospital': giver.h_id,
-                        
-                    })
-       # print(serialized_data)      
-        return Response({"caregiver": serialized_data, "message": "caregiver information retrieved successfully"}, status=status.HTTP_200_OK)    
