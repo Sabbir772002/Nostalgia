@@ -1330,7 +1330,6 @@ class GP_post(APIView):
 class GT_post(APIView):
     def get(self,request):
         username=request.GET.get('username')
-<<<<<<< HEAD
         print(username)
 
 
@@ -1382,7 +1381,6 @@ class GroupUpvoteAPIView(APIView):
         else:
             return JsonResponse({'message': 'Invalid request method'}, status=400)
 
-=======
         # print(username)
         # group=Group.objects.get(G_username=username)
         # posts=GroupPost.objects.filter(G_username=group)
@@ -1459,4 +1457,3 @@ class AddGroupPost(CreateAPIView):
             )
             blog.save()
         return Response({"message": "Group Blog created successfully"}, status=status.HTTP_201_CREATED)
->>>>>>> 31bde0bfa840f414901b97f2e621dcfcc09bc53c
