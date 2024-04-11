@@ -235,7 +235,7 @@ class GroupMember(models.Model):
     accept = models.IntegerField()
 
     def __str__(self):
-        return f'Member ID: {self.MemberID}, Username: {self.G_username.username}'
+        return f'Member ID: {self.MemberID}, Username: {self.G_username.G_username}'
 
 
 

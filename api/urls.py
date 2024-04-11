@@ -56,7 +56,11 @@ urlpatterns = [
     path('walk!members', views.WalkNotMember.as_view(), name='walk!members'),
     path('handlemember', views.Handlemember.as_view(), name='Handlemember'),
     path('join_group', views.JoinGroup.as_view(), name='join_group'),
-    path('addgroupost', views.AddGroupPost.as_view(), name='addgroupost')
+    path('addgroupost', views.AddGroupPost.as_view(), name='addgroupost'),
+    path('groupmembers', views.GroupMembers.as_view(), name='groupmembers'),
+    path('requestmembers',views.RequestMembers.as_view(), name='requestmembers'),
+    path('grouprequest',views.GroupRequest.as_view(), name='grouprequest'),
+    path('friendsugg',views.FriendSuggestion.as_view(), name='friendsugg'),
 
 ]
 
