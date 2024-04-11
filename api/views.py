@@ -443,37 +443,49 @@ class PreRun():
 
 prerun=PreRun()
 
+
 class FriendSuggestion(APIView):
     def __init__(self):
         print("ye bhai eid ka chand hai")
         self.word_vectors=prerun.word_pre_vectors
     # Preprocess text
     def preprocess_text(self,text):
-            # Tokenize text
-            tokens = word_tokenize(text)
-            # Remove stopwords
-            stop_words = set(stopwords.words('english'))
-            filtered_tokens = [word.lower() for word in tokens if word.lower() not in stop_words]
-            # Lemmatize tokens
-            lemmatizer = WordNetLemmatizer()
-            lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
-            # Join tokens back into text
-            preprocessed_text = ' '.join(lemmatized_tokens)
-            return preprocessed_text''
+        # Tokenize text
+        tokens = word_tokenize(text)
+        # Remove stopwords
+        stop_words = set(stopwords.words('english'))
+        filtered_tokens = [word.lower() for word in tokens if word.lower() not in stop_words]
+        #print(filtered_tokens)
+        # Lemmatize tokens
+        #not working comment
+        # lemmatizer = WordNetLemmatizer()
+        # lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
+        # Join tokens back into text
+        preprocessed_text = ' '.join(filtered_tokens)
+        return preprocessed_text
 
     # Encode text into fixed-length vectors using GloVe
     def encode_text(self,text):
             tokens = self.preprocess_text(text)
+            # tokens=text
             #print(tokens)
+            for token in tokens.split():
+                if token not in self.word_vectors:
+                    print(token)
             vectors = [self.word_vectors[token] for token in tokens.split() if token in self.word_vectors]
             return np.mean(vectors, axis=0) if vectors else None
+            #return vectors if vectors else None
 
+            
     # Calculate similarity between two texts
     def calculate_similarity(self,text1, text2):
+            vector1=[]
+            vector2=[]
             vector1 = self.encode_text(text1)
             vector2 = self.encode_text(text2)
             if vector1 is not None and vector2 is not None:
                 return cosine_similarity([vector1], [vector2])[0][0]
+                #return cosine_similarity(vector1, vector2)[0][0]
             else:
                 return None
 
@@ -552,7 +564,7 @@ class FriendSuggestion(APIView):
         # vectorizer = TfidfVectorizer()
         # user_tfidf = vectorizer.fit_transform([user_text])
         other_users_tfidf = []
-        for other_user in users:
+        for other_user in users[0:2]:
             other_user_blog_posts = Blog.objects.filter(author=other_user)
             other_user_comments = Comment.objects.filter(username=other_user)
             other_user_group_posts = GroupPost.objects.filter(p_username=other_user)
@@ -565,17 +577,16 @@ class FriendSuggestion(APIView):
             for group_post in other_user_group_posts:
                 other_user_text += group_post.GPost_contents + ' '
             
-            text2=other_user_text
             # Preprocess other user text
             # other_user_text = preprocess_text(other_user_text)
             
             # other_user_tfidf = vectorizer.transform([other_user_text])
-            other_users_tfidf.append(text2)
+            other_users_tfidf.append(other_user_text)
         # Calculate cosine similarity between user and other users
         similarities = []
         for other_user_tfidf in other_users_tfidf:
             #similarity = cosine_similarity(user_tfidf, other_user_tfidf)
-            similarity = self.calculate_similarity(text1, text2)
+            similarity = self.calculate_similarity(text1, other_user_tfidf)
             #print(similarity)
             similarities.append(similarity)
             #similarities.append(similarity[0][0])
@@ -611,7 +622,6 @@ class FriendSuggestion(APIView):
 
 
         return Response({"users": serialized_data, "message": "User suggestions retrieved successfully"}, status=status.HTTP_200_OK)
-
 
 
 
