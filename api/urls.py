@@ -60,7 +60,7 @@ urlpatterns = [
     path('groupmembers', views.GroupMembers.as_view(), name='groupmembers'),
     path('requestmembers',views.RequestMembers.as_view(), name='requestmembers'),
     path('grouprequest',views.GroupRequest.as_view(), name='grouprequest'),
-    path('friendsugg',views.FriendSuggestion.as_view(), name='friendsugg'),
+    path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
 
 ]
 

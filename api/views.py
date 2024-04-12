@@ -297,7 +297,7 @@ class add_fnf(APIView):
             return Response({"message": "You are already friend"}, status=status.HTTP_400_BAD_REQUEST)
         #check who send fnd request(future work)
         if(len(fnd) > 0):
-            return Response({"message": "Your request for friend send"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Your request for friend send"}, status=status.HTTP_201_CREATED)
         from django.utils import timezone
         print(data['type'])
         fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),type=data['type'],f_created_date=timezone.now(),is_fnf=0)
@@ -441,11 +441,12 @@ class PreRun():
         print("pre run is called")
         self.word_pre_vectors= KeyedVectors.load_word2vec_format(r'D:\DEV\GoogleNews-vectors-negative300.bin\GoogleNews-vectors-negative300.bin', binary=True)
 
-prerun=PreRun()
+        
 
 
 class FriendSuggestion(APIView):
     def __init__(self):
+        prerun=PreRun()
         print("ye bhai eid ka chand hai")
         self.word_vectors=prerun.word_pre_vectors
     # Preprocess text
@@ -473,7 +474,7 @@ class FriendSuggestion(APIView):
                 if token not in self.word_vectors:
                     print(token)
             vectors = [self.word_vectors[token] for token in tokens.split() if token in self.word_vectors]
-            return np.mean(vectors, axis=0) if vectors else None
+            return np.mean(vectors, axis=0) if vectors else np.zeros(self.word_vectors.vector_size)
             #return vectors if vectors else None
 
             
@@ -487,7 +488,7 @@ class FriendSuggestion(APIView):
                 return cosine_similarity([vector1], [vector2])[0][0]
                 #return cosine_similarity(vector1, vector2)[0][0]
             else:
-                return None
+               return 0
 
     
     ''' def __init__(self):
@@ -564,7 +565,7 @@ class FriendSuggestion(APIView):
         # vectorizer = TfidfVectorizer()
         # user_tfidf = vectorizer.fit_transform([user_text])
         other_users_tfidf = []
-        for other_user in users[0:2]:
+        for other_user in users:
             other_user_blog_posts = Blog.objects.filter(author=other_user)
             other_user_comments = Comment.objects.filter(username=other_user)
             other_user_group_posts = GroupPost.objects.filter(p_username=other_user)
@@ -587,7 +588,7 @@ class FriendSuggestion(APIView):
         for other_user_tfidf in other_users_tfidf:
             #similarity = cosine_similarity(user_tfidf, other_user_tfidf)
             similarity = self.calculate_similarity(text1, other_user_tfidf)
-            #print(similarity)
+            print(similarity)
             similarities.append(similarity)
             #similarities.append(similarity[0][0])
         
@@ -751,19 +752,42 @@ class FriendSugg(APIView):
                 'good': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
                 'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
                  })
-
-
-        return Response({"users": serialized_data, "message": "User suggestions retrieved successfully"}, status=status.HTTP_200_OK) 
+        return Response({"users": serialized_data, "message": "User suggestions retrieved successfully"}, status=status.HTTP_200_OK)
 
 class Profile(APIView):
     def get(self, request, username):
         try:
+            user2 = request.GET.get('user')
             user = Owner.objects.get(username=username)
-            user=OwnerSerializer(user)
-            print(user.data)
-           # if(user.is_valid()):
-           # print(user.data)
-            return Response(user.data, status=status.HTTP_200_OK)
+            if(user2!=username):
+                   user2=Owner.objects.get(username=user2)
+            else:
+                user2=user
+            user={
+                'id': user.id,
+                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                'first_name': user.first_name,
+                'username': user.username,
+                'last_name': user.last_name,
+                'email': user.email,
+                'gender': user.gender,
+                'phone': user.phone,
+                'dob': user.dob,
+                'address': user.address,
+                'nid': user.nid,
+                'thana': Thana.objects.get(thana=user.thana_id).thana,
+                'is_fnf': 1 if Friend.objects.filter(user1=user, user2=user2,is_fnf=1).exists() else 1 if Friend.objects.filter(user2=user, user1=user2,is_fnf=1).exists() else 0,
+                'type': Friend.objects.filter(user1=user, user2=user2).values_list('type', flat=True).first() if Friend.objects.filter(user1=user, user2=user2).exists() else Friend.objects.filter(user2=user, user1=user2).values_list('type', flat=True).first() if Friend.objects.filter(user2=user, user1=user2).exists() else None,
+                'f_created_date':Friend.objects.filter(user1=user, user2=user2).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=user2).exists() else Friend.objects.filter(user2=user, user1=user2).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=user2).exists() else None,
+                'f_id': Friend.objects.filter(user1=user, user2=user2).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=user2).exists() else Friend.objects.filter(user2=user, user1=user2).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=user2).exists() else None,
+                'abedon': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 0,
+                'good': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
+                'status': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
+                 'img_privacy': 0,
+            }
+            print(user)
+           
+            return Response(user, status=status.HTTP_200_OK)
             # print(user.errors)
             # return Response({"message": "User not serialize"}, status=status.HTTP_404_NOT_FOUND)
         except Owner.DoesNotExist:
@@ -960,24 +984,37 @@ face_api_compare = FaceApiCompare()
 
 from django.http import JsonResponse
 from rest_framework.views import APIView
-import base64
+import requests
 
 face_api_compare = FaceApiCompare()
 class CompareImagesView(APIView):
-    def post(self, request, *args, **kwargs):
+      def post(self, request, *args, **kwargs):
         # Get image data from the POST request
-        print(request.FILES)
         image_file1 = request.FILES.get('image1')
-        image_file2 = request.FILES.get('image2')
+        # image_file2 = request.FILES.get('image2')
+        image_file2 = request.data['image2']
 
         if not (image_file1 and image_file2):
             return JsonResponse({'error': 'Missing image data in request'}, status=400)
-        print("hoise")
 
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
-        image_base64_2 = base64.b64encode(image_file2.read()).decode('utf-8')
+        # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
 
+        # Download and save the second image file
+        image_file2_url = "http://localhost:8000" + image_file2
+        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+         
+        response = requests.get(image_file2_url)
+        if response.status_code == 200:
+            # Save the image file
+            with open(image_file2_path, "wb") as f:
+                f.write(response.content)
+                print("Image file saved successfully.")
+            
+            # Convert the saved image file to base64
+            with open(image_file2_path, "rb") as f:
+                image_base64_2 = base64.b64encode(f.read()).decode('utf-8')
         # Perform image comparison using FaceApiCompare class method
         result = face_api_compare.compare_images(image_base64_1, image_base64_2)
 
