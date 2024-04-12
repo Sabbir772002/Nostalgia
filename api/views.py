@@ -589,7 +589,7 @@ class FriendSuggestion(APIView):
             #similarity = cosine_similarity(user_tfidf, other_user_tfidf)
             similarity = self.calculate_similarity(text1, other_user_tfidf)
             print(similarity)
-            similarities.append(similarity)
+            similarities.append(similarDity)
             #similarities.append(similarity[0][0])
         
         # Sort users based on similarity scores
@@ -1835,3 +1835,94 @@ class GroupRequest(APIView):
             group.delete()
             return Response({"message": "Request removed successfully"}, status=status.HTTP_201_CREATED)
         return Response({"message": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import numpy as np
+import io
+import easyocr
+import cv2
+import re
+
+class NIDImage(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        img = request.FILES.get('nid')
+        if img is None:
+            if data['nidtext'] is not None:
+                img=data['nidtext']
+
+            else:
+              return Response({"msg": "NID doesnt found"})
+        text = []
+        if isinstance(img, InMemoryUploadedFile):
+            # Read the file content as bytes
+            image_bytes = img.read()
+            # Convert bytes to numpy array
+            nparr = np.frombuffer(image_bytes, np.uint8)
+            # Load image using OpenCV
+            img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            # Process the image with EasyOCR
+            reader = easyocr.Reader(['en', 'bn'], gpu=True)
+            result = reader.readtext(img_cv)
+
+            # Continue with processing the result
+            # with open("nid.txt", 'w', encoding='utf-8') as f:
+            #     for detection in result:
+            #         text.append(detection[1])
+            #         f.write(detection[1])
+            #         f.write('\n')
+            #         print(detection[1])
+            #     f.close()
+            for detection in result:
+                print(detection[1])
+                text.append(detection[1])
+
+
+            name_pattern = r'STUDENT\s+NAME\s+(.*)'
+            dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
+            nationality_pattern = r'NATIONALITY\s+(.*)'
+
+            # Initialize variables to store extracted information
+            student_name = None
+            date_of_birth = None
+            nationality = None
+
+            # Iterate through detected text and apply regex patterns
+            for line in text:
+                name_match = re.match(name_pattern, line)
+                if name_match:
+                    student_name = name_match.group(1).strip()
+                
+                dob_match = re.match(dob_pattern, line)
+                if dob_match:
+                    date_of_birth = dob_match.group(1).strip()
+                
+                nationality_match = re.match(nationality_pattern, line)
+                if nationality_match:
+                    nationality = nationality_match.group(1).strip()
+
+            # Print the extracted information
+            print("Student Name: ", student_name)
+            print("Date of Birth: ", date_of_birth)
+            print("Nationality: ", nationality)
+
+        else:
+            # If img is a file path or URL
+            IMAGE_PATH = img
+            reader = easyocr.Reader(['en', 'bn'], gpu=True)
+            result = reader.readtext(IMAGE_PATH)
+        print(text)
+        return Response({"message": "NID Read successfully"}, status=status.HTTP_201_CREATED)
+
+
+
+class NIDText(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        if(NID.objects.filter(NID_number=data['nid']).exists()):
+            return Response({"msg": "NID already exists"})
+        nid=NID.objects.create(NID_number=data['nid'],NID_text=data['text'])
+        nid.save()
+        return Response({"message": "NID created successfully"}, status=status.HTTP_201_CREATED)

@@ -61,6 +61,8 @@ urlpatterns = [
     path('requestmembers',views.RequestMembers.as_view(), name='requestmembers'),
     path('grouprequest',views.GroupRequest.as_view(), name='grouprequest'),
     path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
+    path('nidtext',views.NIDText.as_view(), name='nidtext'),
+    path('nidimg',views.NIDImage.as_view(), name='nidimg'),
 
 ]
 
