@@ -63,6 +63,7 @@ urlpatterns = [
     path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
     path('nidtext',views.NIDText.as_view(), name='nidtext'),
     path('nidimg',views.NIDImage.as_view(), name='nidimg'),
+    path('dnid',views.DecodeImageView.as_view(), name='dnid'),
 
 ]
 
