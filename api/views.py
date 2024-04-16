@@ -25,7 +25,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 import os
 from django.shortcuts import render
-from django.http import Http404
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -298,7 +297,7 @@ class add_fnf(APIView):
             return Response({"message": "You are already friend"}, status=status.HTTP_400_BAD_REQUEST)
         #check who send fnd request(future work)
         if(len(fnd) > 0):
-            return Response({"message": "Your request for friend send"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Your request for friend send"}, status=status.HTTP_400_BAD_REQUEST)
         from django.utils import timezone
         print(data['type'])
         fnd=Friend(user1=Owner.objects.get(id=data['user_id']),user2=Owner.objects.get(id=data['friend_id']),type=data['type'],f_created_date=timezone.now(),is_fnf=0)
@@ -423,372 +422,24 @@ class FindFriend(APIView):
                         'f_id': fnd.f_id if fnd is not None else None,
                         'abedon': 1 if fnd is not None else 0,
                         'good': fnd.user1.username if fnd is not None else None,
-                        'status': 1 if fnd is not None else 1 if len(fnd2)>0 else 0,
+                         'status': 1 if fnd is not None else 1 if len(fnd2)>0 else 0,
                     })
         print(serialized_data)
+        
+        
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
-        
-import numpy as np
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from gensim.models import KeyedVectors
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from nltk.stem import WordNetLemmatizer
-# word_pre_vectors = KeyedVectors.load_word2vec_format(r'D:\DEV\Django\Nostalgia\GoogleNews-vectors-negative300.bin\GoogleNews-vectors-negative300.bin', binary=True)
-
-class PreRun():
-    def __init__(self):
-        print("pre run is called")
-        self.word_pre_vectors= KeyedVectors.load_word2vec_format(r'D:\DEV\GoogleNews-vectors-negative300.bin\GoogleNews-vectors-negative300.bin', binary=True)
-
-        
 
 
-class FriendSuggestion(APIView):
-    def __init__(self):
-        prerun=PreRun()
-        print("ye bhai eid ka chand hai")
-        self.word_vectors=prerun.word_pre_vectors
-    # Preprocess text
-    def preprocess_text(self,text):
-        # Tokenize text
-        tokens = word_tokenize(text)
-        # Remove stopwords
-        stop_words = set(stopwords.words('english'))
-        filtered_tokens = [word.lower() for word in tokens if word.lower() not in stop_words]
-        #print(filtered_tokens)
-        # Lemmatize tokens
-        #not working comment
-        # lemmatizer = WordNetLemmatizer()
-        # lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
-        # Join tokens back into text
-        preprocessed_text = ' '.join(filtered_tokens)
-        return preprocessed_text
-
-    # Encode text into fixed-length vectors using GloVe
-    def encode_text(self,text):
-            tokens = self.preprocess_text(text)
-            # tokens=text
-            #print(tokens)
-            for token in tokens.split():
-                if token not in self.word_vectors:
-                    print(token)
-            vectors = [self.word_vectors[token] for token in tokens.split() if token in self.word_vectors]
-            return np.mean(vectors, axis=0) if vectors else np.zeros(self.word_vectors.vector_size)
-            #return vectors if vectors else None
-
-            
-    # Calculate similarity between two texts
-    def calculate_similarity(self,text1, text2):
-            vector1=[]
-            vector2=[]
-            vector1 = self.encode_text(text1)
-            vector2 = self.encode_text(text2)
-            if vector1 is not None and vector2 is not None:
-                return cosine_similarity([vector1], [vector2])[0][0]
-                #return cosine_similarity(vector1, vector2)[0][0]
-            else:
-               return 0
-
-    
-    ''' def __init__(self):
-        self.word_vectors = KeyedVectors.load_word2vec_format('D:/DEV/glove.6B/glove.6B.300d.txt', binary=False)
-        self.stop_words = set(stopwords.words('english'))
-    
-    def text_to_vector(self, text):
-        tokens = word_tokenize(text.lower())
-        tokens = [token for token in tokens if token not in self.stop_words]
-        vectors = [self.word_vectors[token] for token in tokens if token in self.word_vectors]
-        if vectors:
-            return np.mean(vectors, axis=0)
-        else:
-            return np.zeros(self.word_vectors.vector_size)
-
-    def calculate_similarity(self, text1, text2):
-        vector1 = self.text_to_vector(text1)
-        vector2 = self.text_to_vector(text2)
-        return cosine_similarity([vector1], [vector2])[0][0]
-
-
-    def preprocess_text(self, text):
-        # Tokenize text
-        tokens = word_tokenize(text)
-        # Remove stopwords
-        stop_words = set(stopwords.words('english'))
-        filtered_tokens = [word.lower() for word in tokens if word.lower() not in stop_words]
-        # Lemmatize tokens
-        lemmatizer = WordNetLemmatizer()
-        lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
-        # Join tokens back into text
-        preprocessed_text = ' '.join(lemmatized_tokens)
-        return preprocessed_text'''
-
-    def get(self, request):
-        userid = request.GET.get('user_id')
-        # Retrieve the user
-        user = Owner.objects.get(username=userid)
-        
-        # Retrieve the IDs of the user's friends where user1 is the given user
-        friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
-        # Retrieve the IDs of the user's friends where user2 is the given user
-        friend_ids2 = Friend.objects.filter(user2=user, is_fnf=1).values_list('user1_id', flat=True)
-        # Convert QuerySets to lists
-        friend_ids = list(friend_ids)
-        friend_ids2 = list(friend_ids2)
-        # Include the user's ID in the friend list
-        friend_ids.append(user.id)
-        # Combine the friend IDs
-        friend_ids.extend(friend_ids2)
-        
-        # Retrieve blog posts, comments, and group posts for the user
-        user_blog_posts = Blog.objects.filter(author=user)
-        user_comments = Comment.objects.filter(username=user)
-        user_group_posts = GroupPost.objects.filter(p_username=user)
-        
-        # Combine text from blog posts, comments, and group posts for the user
-        user_text = ''
-        for post in user_blog_posts:
-            user_text += post.content + ' '
-        for comment in user_comments:
-            user_text += comment.comment + ' '
-        for group_post in user_group_posts:
-            user_text += group_post.GPost_contents + ' '
-        
-        text1=user_text
-        # Preprocess user text
-        # user_text = preprocess_text(user_text)
-        
-        # # Retrieve other users excluding friends
-        users = Owner.objects.exclude(id__in=friend_ids)
-        
-        # # Calculate TF-IDF vectors for user and other users
-        # vectorizer = TfidfVectorizer()
-        # user_tfidf = vectorizer.fit_transform([user_text])
-        other_users_tfidf = []
-        for other_user in users:
-            other_user_blog_posts = Blog.objects.filter(author=other_user)
-            other_user_comments = Comment.objects.filter(username=other_user)
-            other_user_group_posts = GroupPost.objects.filter(p_username=other_user)
-            
-            other_user_text = ''
-            for post in other_user_blog_posts:
-                other_user_text += post.content + ' '
-            for comment in other_user_comments:
-                other_user_text += comment.comment + ' '
-            for group_post in other_user_group_posts:
-                other_user_text += group_post.GPost_contents + ' '
-            
-            # Preprocess other user text
-            # other_user_text = preprocess_text(other_user_text)
-            
-            # other_user_tfidf = vectorizer.transform([other_user_text])
-            other_users_tfidf.append(other_user_text)
-        # Calculate cosine similarity between user and other users
-        similarities = []
-        for other_user_tfidf in other_users_tfidf:
-            #similarity = cosine_similarity(user_tfidf, other_user_tfidf)
-            similarity = self.calculate_similarity(text1, other_user_tfidf)
-            print(similarity)
-            similarities.append(similarDity)
-            #similarities.append(similarity[0][0])
-        
-        # Sort users based on similarity scores
-        sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
-        
-        # Prepare response
-        serialized_data = []
-        for sorted_user, similarity_score in sorted_users:
-            serialized_data.append({
-                'id': sorted_user.id,
-                'similarity_score': similarity_score,
-                'first_name': sorted_user.first_name,
-                'last_name': sorted_user.last_name,
-                'username': sorted_user.username,
-                'email': sorted_user.email,
-                'gender': sorted_user.gender,
-                'phone': sorted_user.phone,
-                'dob': sorted_user.dob,
-                'address': sorted_user.address,
-                'nid': sorted_user.nid,
-                'thana': Thana.objects.get(thana=sorted_user.thana).thana,
-                'p_image': sorted_user.p_image.url if sorted_user.p_image else 'media/image/download_lX6bjA6.jpeg',
-                'is_fnf': 0,
-                'type': Friend.objects.filter(user1=user, user2=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Frined.objects.filter(user2=user, user1=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
-                'f_created_date':Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
-                'f_id': Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
-                'abedon': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 0,
-                'good': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
-                'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
-                 })
-
-
-        return Response({"users": serialized_data, "message": "User suggestions retrieved successfully"}, status=status.HTTP_200_OK)
-
-
-
-
-class EventShow(APIView):
-    def get(self,request):
-        return response("Hello, this is the event page!")
-
-
-#Pre done code      
-import numpy as np
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from gensim.models import KeyedVectors
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from nltk.stem import WordNetLemmatizer
-
-class FriendSugg(APIView):
-
-    def preprocess_text(self, text):
-        # Tokenize text
-        tokens = word_tokenize(text)
-        # Remove stopwords
-        stop_words = set(stopwords.words('english'))
-        filtered_tokens = [word.lower() for word in tokens if word.lower() not in stop_words]
-        # Lemmatize tokens
-        lemmatizer = WordNetLemmatizer()
-        lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
-        # Join tokens back into text
-        preprocessed_text = ' '.join(lemmatized_tokens)
-        return preprocessed_text
-
-    def get(self, request):
-        userid = request.GET.get('user_id')
-
-        # Retrieve the user
-        user = Owner.objects.get(username=userid)
-        
-        # Retrieve the IDs of the user's friends where user1 is the given user
-        friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
-        # Retrieve the IDs of the user's friends where user2 is the given user
-        friend_ids2 = Friend.objects.filter(user2=user, is_fnf=1).values_list('user1_id', flat=True)
-        # Convert QuerySets to lists
-        friend_ids = list(friend_ids)
-        friend_ids2 = list(friend_ids2)
-        # Include the user's ID in the friend list
-        friend_ids.append(user.id)
-        # Combine the friend IDs
-        friend_ids.extend(friend_ids2)
-        
-        # Retrieve blog posts, comments, and group posts for the user
-        user_blog_posts = Blog.objects.filter(author=user)
-        user_comments = Comment.objects.filter(username=user)
-        user_group_posts = GroupPost.objects.filter(p_username=user)
-        
-        # Combine text from blog posts, comments, and group posts for the user
-        user_text = ''
-        for post in user_blog_posts:
-            user_text += post.content + ' '
-        for comment in user_comments:
-            user_text += comment.comment + ' '
-        for group_post in user_group_posts:
-            user_text += group_post.GPost_contents + ' '
-        
-        text1=user_text
-        # Preprocess user text
-        user_text = self.preprocess_text(user_text)
-        
-        # Retrieve other users excluding friends
-        users = Owner.objects.exclude(id__in=friend_ids)
-        
-        # Calculate TF-IDF vectors for user and other users
-        vectorizer = TfidfVectorizer()
-        user_tfidf = vectorizer.fit_transform([user_text])
-        other_users_tfidf = []
-        for other_user in users:
-            other_user_blog_posts = Blog.objects.filter(author=other_user)
-            other_user_comments = Comment.objects.filter(username=other_user)
-            other_user_group_posts = GroupPost.objects.filter(p_username=other_user)
-            
-            other_user_text = ''
-            for post in other_user_blog_posts:
-                other_user_text += post.content + ' '
-            for comment in other_user_comments:
-                other_user_text += comment.comment + ' '
-            for group_post in other_user_group_posts:
-                other_user_text += group_post.GPost_contents + ' '
-            
-            text2=other_user_text
-            # Preprocess other user text
-            other_user_text = self.preprocess_text(other_user_text)
-            
-            other_user_tfidf = vectorizer.transform([other_user_text])
-            other_users_tfidf.append(other_user_tfidf)
-        # Calculate cosine similarity between user and other users
-        similarities = []
-        for other_user_tfidf in other_users_tfidf:
-            similarity = cosine_similarity(user_tfidf, other_user_tfidf)
-            similarities.append(similarity[0][0])
-        
-        # Sort users based on similarity scores
-        sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
-        
-        # Prepare response
-        serialized_data = []
-        for sorted_user, similarity_score in sorted_users:
-            serialized_data.append({
-                'id': sorted_user.id,
-                'similarity_score': similarity_score,
-                'first_name': sorted_user.first_name,
-                'last_name': sorted_user.last_name,
-                'username': sorted_user.username,
-                'email': sorted_user.email,
-                'gender': sorted_user.gender,
-                'phone': sorted_user.phone,
-                'dob': sorted_user.dob,
-                'address': sorted_user.address,
-                'nid': sorted_user.nid,
-                'thana': Thana.objects.get(thana=sorted_user.thana).thana,
-                'p_image': sorted_user.p_image.url if sorted_user.p_image else 'media/image/download_lX6bjA6.jpeg',
-                'is_fnf': 0,
-                'type': Friend.objects.filter(user1=user, user2=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Frined.objects.filter(user2=user, user1=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
-                'f_created_date':Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
-                'f_id': Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
-                'abedon': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 0,
-                'good': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
-                'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
-                 })
-        return Response({"users": serialized_data, "message": "User suggestions retrieved successfully"}, status=status.HTTP_200_OK)
 
 class Profile(APIView):
     def get(self, request, username):
         try:
-            user2 = request.GET.get('user')
             user = Owner.objects.get(username=username)
-            if(user2!=username):
-                   user2=Owner.objects.get(username=user2)
-            else:
-                user2=user
-            user={
-                'id': user.id,
-                'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
-                'first_name': user.first_name,
-                'username': user.username,
-                'last_name': user.last_name,
-                'email': user.email,
-                'gender': user.gender,
-                'phone': user.phone,
-                'dob': user.dob,
-                'address': user.address,
-                'nid': user.nid,
-                'thana': Thana.objects.get(thana=user.thana_id).thana,
-                'is_fnf': 1 if Friend.objects.filter(user1=user, user2=user2,is_fnf=1).exists() else 1 if Friend.objects.filter(user2=user, user1=user2,is_fnf=1).exists() else 0,
-                'type': Friend.objects.filter(user1=user, user2=user2).values_list('type', flat=True).first() if Friend.objects.filter(user1=user, user2=user2).exists() else Friend.objects.filter(user2=user, user1=user2).values_list('type', flat=True).first() if Friend.objects.filter(user2=user, user1=user2).exists() else None,
-                'f_created_date':Friend.objects.filter(user1=user, user2=user2).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=user2).exists() else Friend.objects.filter(user2=user, user1=user2).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=user2).exists() else None,
-                'f_id': Friend.objects.filter(user1=user, user2=user2).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=user2).exists() else Friend.objects.filter(user2=user, user1=user2).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=user2).exists() else None,
-                'abedon': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 0,
-                'good': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
-                'status': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
-                 'img_privacy': 0,
-            }
-            print(user)
-           
-            return Response(user, status=status.HTTP_200_OK)
+            user=OwnerSerializer(user)
+            print(user.data)
+           # if(user.is_valid()):
+           # print(user.data)
+            return Response(user.data, status=status.HTTP_200_OK)
             # print(user.errors)
             # return Response({"message": "User not serialize"}, status=status.HTTP_404_NOT_FOUND)
         except Owner.DoesNotExist:
@@ -1217,8 +868,6 @@ class BlogCreateView(CreateAPIView):
             blog.save()
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
     
-from .models import PlanEvent  
-from .serializers import PlanEventSerializer
 class PlanEventCreateAPIView(APIView):
     def post(self, request):
         fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
@@ -1261,7 +910,7 @@ class PlanEventUpdateAPIView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 from .models import Walk
 from .serializers import WalkSerializer
 from datetime import datetime
@@ -1280,7 +929,6 @@ class WalkListView(APIView):
             #print(walk.w_creator.p_image)
             walk_data = {
                 'id': walk.walk_id,
-                'userid': walk.w_creator.id,
                 'w_creator': walk.w_creator.username,
                 'img': walk.w_creator.p_image.url if walk.w_creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
                 'walk_name': walk.walk_name,
@@ -1453,14 +1101,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 class HTimeline(APIView):
     def get(self, request):
-        username = request.GET.get("username")
+        username=request.GET.get("username")
         print(username)
-        user = User.objects.get(username=username)
+        user=User.objects.get(username=username)
         print(user)
         user_blogs = Blog.objects.filter(author__username=username)
         user_comments = Comment.objects.filter(username__username=username)
 
-        user_content = []
+        user_content=[]
         for blog in user_blogs:
             user_content.append(blog.content)
         for comment in user_comments:
@@ -1489,14 +1137,9 @@ class HTimeline(APIView):
 
         # Sort blogs based on cosine similarity
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
-        
-        # Check if there are any blogs to sort
-        if all_blogs.exists() and similarity_scores.any():
-            sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1] if i < len(all_blogs)]
-            # Retrieve sorted blogs
-            sorted_blogs = [all_blogs[i] for i in sorted_indices]
-        else:
-            sorted_blogs = []
+        sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
+        # Retrieve sorted blogs
+        sorted_blogs = [all_blogs[i] for i in sorted_indices]
 
         blogs_data = []
         for blog in sorted_blogs:
@@ -1514,7 +1157,6 @@ class HTimeline(APIView):
             blogs_data.append(blog_data)
 
         return Response(blogs_data)
-
 
 from .models import WalkMember
 class WalkMembers(APIView):
@@ -1693,66 +1335,9 @@ class GP_post(APIView):
         return Response(posts_data)
 
 
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 class GT_post(APIView):
-    def get(self, request):
-        username = request.GET.get('username')
-        print(username)
-        # You need to return a response here
-        return Response({'username': username})
-
-
-
-from django.http import JsonResponse
-from django.views import View
-from .models import GroupPost, GroupUpvote
-
-class GroupUpvoteAPIView(APIView):
-    def post(self, request):
-        if request.method == 'POST':
-            id = request.data['id']
-            username = request.data['username']
-            blog = GroupPost.objects.get(blogid=id)
-            owner=Owner.objects.get(username=username)
-            print("yo esei noti bro...")
-            print(owner.username)
-            upvoted = GroupUpvote.objects.filter(
-                Username=Owner.objects.get(username=username), blogid=id)
-            if len(upvoted)==0:
-                print("banao")
-                upvote_instance = GroupUpvote(Username=Owner.objects.get(username=username), blogid=blog)
-                upvote_instance.save()
-                upvote_instance1 = GroupUpvote(Username=Owner.objects.get(username=username), blogid=blog)
-                upvote_instance1.save()
-                Noti=Notification(noti_type="Upvote",noti_msg="upvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
-                Noti.save()
-            if len(upvoted)==1:
-                upvote_instance = GroupUpvote(Username=Owner.objects.get(username=username), blogid=blog)
-                upvote_instance.save()
-                #this have to think, bcz, user knwo who withdraw his upvote
-                Noti=Notification(noti_type="Upvote",noti_msg="reupvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
-                Noti.save()
-            else: 
-                upvote_instance = GroupUpvote.objects.filter(Username=owner, blogid=blog).first()
-                upvote_instance.delete()
-            blog=GroupPost.objects.get(blogid=id)
-            blog_data = {
-                    'id': blog.blogid,
-                    'author': Owner.objects.get(username=blog.author).username,
-                    'author_img': Owner.objects.get(username=blog.author).p_image.url if Owner.objects.get(username=blog.author).p_image else "/media/image/download_lsX6bjA6.jpeg",
-                    'content': blog.content,
-                    'post_date': blog.post_date,
-                    'post_time': blog.post_time,
-                    'blog_img': blog.blog_img.url if blog.blog_img else None,
-                    'upvote': GroupUpvote.objects.filter(blogid=blog.blogid).count(),
-                    'is_upvoted':1 if GroupUpvote.objects.filter(blogid=blog.blogid,Username=Owner.objects.get(username=username)).count() >  1 else 0
-                }
-            return JsonResponse(blog_data, safe=False)
-        else:
-            return JsonResponse({'message': 'Invalid request method'}, status=400)
-
+    def get(self,request):
+        username=request.GET.get('username')
         # print(username)
         # group=Group.objects.get(G_username=username)
         # posts=GroupPost.objects.filter(G_username=group)
@@ -1790,6 +1375,10 @@ class JoinGroup(APIView):
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
 
 
+
+
+
+
 from .models import GroupPost
 @method_decorator(csrf_exempt, name='dispatch')
 class AddGroupPost(CreateAPIView):
@@ -1825,214 +1414,3 @@ class AddGroupPost(CreateAPIView):
             )
             blog.save()
         return Response({"message": "Group Blog created successfully"}, status=status.HTTP_201_CREATED)
-
-class GroupMembers(APIView):
-    def get(self,request):
-        username=request.GET.get('username')
-        print(username)
-        group=Group.objects.get(G_username=username)
-        members=GroupMember.objects.filter(G_username=group,accept=1)
-        print(members)
-        members_data=[]
-        for member in members:
-            members_data.append({
-                'id': member.MemberID,
-                'username': member.member.username,
-                'img': member.member.p_image.url if member.member.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.member.first_name,
-                'last_name': member.member.last_name,
-                'email': member.member.email,
-                'phone': member.member.phone,
-                'dob': member.member.dob,
-                'Since': member.JoinDate,
-                'gender': member.member.gender,
-            })
-        print(members_data)
-        return Response(members_data)
-
-class RequestMembers(APIView):
-    def get(self,request):
-        username=request.GET.get('username')
-        print(username)
-        group=Group.objects.get(G_username=username)
-        members=GroupMember.objects.filter(G_username=group,accept=0)
-        print(members)
-        members_data=[]
-        for member in members:
-            members_data.append({
-                'member_id': member.MemberID,  
-                'id': member.member.id,
-                'username': member.member.username,
-                'img': member.member.p_image.url if member.member.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.member.first_name,
-                'last_name': member.member.last_name,
-                'email': member.member.email,
-                'phone': member.member.phone,
-                'dob': member.member.dob,
-                'Since': member.JoinDate,
-            })
-        print(members_data)
-        return Response(members_data)
-
-class GroupRequest(APIView):
-    def post(self,request):
-        data=request.data
-        print(data)
-        group=GroupMember.objects.filter(G_username=Group.objects.get(G_username=data['group']),member_id=Owner.objects.get(id=data['user_id']).id)
-        if(len(group)==0):
-            return Response({"msg": "User not found"})
-        print(group[0])
-        group=group[0]
-        if(data['type']=='Delete'):
-            group.delete()
-            return Response({"message": "Request deleted successfully"}, status=status.HTTP_201_CREATED)
-        if(data['type']=="confirm"):
-            group.accept=1; 
-            group.save()
-            return Response({"message": "Request accepted successfully"}, status=status.HTTP_201_CREATED)
-        if(data['type']=="Block"):
-            group.Block=1
-            group.save()
-            return Response({"message": "Request blocked successfully"}, status=status.HTTP_201_CREATED)
-        if(data['type']=="Unblock"):
-            group.Block=0
-            group.save()
-            return Response({"message": "Request unblocked successfully"}, status=status.HTTP_201_CREATED)
-        if(data['type']=="Remove"):
-            group.delete()
-            return Response({"message": "Request removed successfully"}, status=status.HTTP_201_CREATED)
-        return Response({"message": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
-
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import numpy as np
-import io
-import easyocr
-import cv2
-import re
-
-class NIDImage(APIView):
-    def post(self,request):
-        data=request.data
-        print(data)
-        img = request.FILES.get('nid')
-        if img is None:
-            if data['nidtext'] is not None:
-                img=data['nidtext']
-
-            else:
-              return Response({"msg": "NID doesnt found"})
-        text = []
-        if isinstance(img, InMemoryUploadedFile):
-            # Read the file content as bytes
-            image_bytes = img.read()
-            # Convert bytes to numpy array
-            nparr = np.frombuffer(image_bytes, np.uint8)
-            # Load image using OpenCV
-            img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            # Process the image with EasyOCR
-            reader = easyocr.Reader(['en', 'bn'], gpu=True)
-            result = reader.readtext(img_cv)
-
-            # Continue with processing the result
-            # with open("nid.txt", 'w', encoding='utf-8') as f:
-            #     for detection in result:
-            #         text.append(detection[1])
-            #         f.write(detection[1])
-            #         f.write('\n')
-            #         print(detection[1])
-            #     f.close()
-            for detection in result:
-                print(detection[1])
-                text.append(detection[1])
-
-            name_pattern = r'STUDENT\s+NAME\s+(.*)'
-            dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
-            nationality_pattern = r'NATIONALITY\s+(.*)'
-
-            # Initialize variables to store extracted information
-            student_name = None
-            date_of_birth = None
-            nationality = None
-
-            # Iterate through detected text and apply regex patterns
-            for line in text:
-                name_match = re.match(name_pattern, line)
-                if name_match:
-                    student_name = name_match.group(1).strip()
-                
-                dob_match = re.match(dob_pattern, line)
-                if dob_match:
-                    date_of_birth = dob_match.group(1).strip()
-                
-                nationality_match = re.match(nationality_pattern, line)
-                if nationality_match:
-                    nationality = nationality_match.group(1).strip()
-
-            # Print the extracted information
-            print("Student Name: ", student_name)
-            print("Date of Birth: ", date_of_birth)
-            print("Nationality: ", nationality)
-
-        else:
-            # If img is a file path or URL
-            IMAGE_PATH = img
-            reader = easyocr.Reader(['en', 'bn'], gpu=True)
-            result = reader.readtext(IMAGE_PATH)
-        print(text)
-        return Response({"message": "NID Read successfully"}, status=status.HTTP_201_CREATED)
-
-
-
-class NIDText(APIView):
-    def post(self,request):
-        data=request.data
-        print(data)
-        if(NID.objects.filter(NID_number=data['nid']).exists()):
-            return Response({"msg": "NID already exists"})
-        nid=NID.objects.create(NID_number=data['nid'],NID_text=data['text'])
-        nid.save()
-        return Response({"message": "NID created successfully"}, status=status.HTTP_201_CREATED)
-
-
-
-# from django.http import JsonResponse
-# from django.views import View
-# from PIL import Image
-# from pyzbar.pyzbar import decode
-
-# from django.http import JsonResponse
-# from django.views import View
-# from PIL import Image
-# from pyzbar.pyzbar import decode
-
-# class DecodeImageView(View):
-#     def decode_image(self, image):
-#         # Decode the barcode from the image
-#         decoded_objects = decode(image)
-
-#         # Extract decoded text from the decoded objects
-#         decoded_text = []
-#         for obj in decoded_objects:
-#             decoded_text.append(obj.data.decode('utf-8'))
-
-#         return decoded_text
-
-#     def post(self, request, *args, **kwargs):
-#         try:
-#             # Check if 'image' file is present in the request
-#             if 'image' not in request.FILES:
-#                 return JsonResponse({"error": "No image file found in the request"}, status=400)
-            
-#             # Get the 'image' file from the request
-#             image_file = request.FILES['image']
-
-#             # Open the image file using PIL
-#             image = Image.open(image_file)
-
-#             # Call the decode_image function to decode the barcode
-#             decoded_text = self.decode_image(image)
-
-#             # Return the decoded text
-#             return JsonResponse({"decoded_text": decoded_text})
-#         except Exception as e:
-#             return JsonResponse({"error": str(e)}, status=500)
