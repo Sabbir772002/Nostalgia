@@ -162,7 +162,7 @@ class login_api(views.APIView):
                 user=Owner.objects.get(username=username)
                 serializer = OwnerSerializer(user)
 
-                return Response({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
+                return JsonResponse({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
         
         return Response({'auth': False}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -1967,5 +1967,6 @@ class NIDText(APIView):
 
 #             # Return the decoded text
 #             return JsonResponse({"decoded_text": decoded_text})
+
 #         except Exception as e:
 #             return JsonResponse({"error": str(e)}, status=500)

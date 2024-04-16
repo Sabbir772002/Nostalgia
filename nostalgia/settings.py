@@ -148,10 +148,10 @@ LOGIN_URL = 'log_in'
 
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-fields
 AUTH_USER_MODEL = 'api.User'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-ALLOWED_HOSTS =  ['localhost', '127.0.0.1','http://localhost:3000','http://127.0.0.1:3000']  # Your React app's URL
+ALLOWED_HOSTS =  ['localhost', '127.0.0.1','http://localhost:3000','http://127.0.0.1:3000','10.0.2.2']  # Your React app's URL
 
 SESSION_COOKIE_AGE = 180000
 CORS_ORIGIN_ALLOW_ALL = True
