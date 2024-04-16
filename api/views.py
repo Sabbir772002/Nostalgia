@@ -1693,10 +1693,16 @@ class GP_post(APIView):
         return Response(posts_data)
 
 
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 class GT_post(APIView):
-    def get(self,request):
-        username=request.GET.get('username')
+    def get(self, request):
+        username = request.GET.get('username')
         print(username)
+        # You need to return a response here
+        return Response({'username': username})
+
 
 
 from django.http import JsonResponse
@@ -1939,7 +1945,6 @@ class NIDImage(APIView):
                 print(detection[1])
                 text.append(detection[1])
 
-
             name_pattern = r'STUDENT\s+NAME\s+(.*)'
             dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
             nationality_pattern = r'NATIONALITY\s+(.*)'
@@ -1987,3 +1992,47 @@ class NIDText(APIView):
         nid=NID.objects.create(NID_number=data['nid'],NID_text=data['text'])
         nid.save()
         return Response({"message": "NID created successfully"}, status=status.HTTP_201_CREATED)
+
+
+
+# from django.http import JsonResponse
+# from django.views import View
+# from PIL import Image
+# from pyzbar.pyzbar import decode
+
+# from django.http import JsonResponse
+# from django.views import View
+# from PIL import Image
+# from pyzbar.pyzbar import decode
+
+# class DecodeImageView(View):
+#     def decode_image(self, image):
+#         # Decode the barcode from the image
+#         decoded_objects = decode(image)
+
+#         # Extract decoded text from the decoded objects
+#         decoded_text = []
+#         for obj in decoded_objects:
+#             decoded_text.append(obj.data.decode('utf-8'))
+
+#         return decoded_text
+
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             # Check if 'image' file is present in the request
+#             if 'image' not in request.FILES:
+#                 return JsonResponse({"error": "No image file found in the request"}, status=400)
+            
+#             # Get the 'image' file from the request
+#             image_file = request.FILES['image']
+
+#             # Open the image file using PIL
+#             image = Image.open(image_file)
+
+#             # Call the decode_image function to decode the barcode
+#             decoded_text = self.decode_image(image)
+
+#             # Return the decoded text
+#             return JsonResponse({"decoded_text": decoded_text})
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)}, status=500)
