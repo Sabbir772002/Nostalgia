@@ -1,3 +1,5 @@
 migrations
 *migrations
 *migrations/
+/Nostalgia\api\migrations\__pycache__
+/__pycache__

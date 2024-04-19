@@ -53,17 +53,12 @@ MIDDLEWARE = [
             'django.middleware.csrf.CsrfViewMiddleware',
 
 ]
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8000",  
-]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-]
 
 
 SIMPLE_JWT = {
@@ -153,10 +148,10 @@ LOGIN_URL = 'log_in'
 
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-fields
 AUTH_USER_MODEL = 'api.User'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-ALLOWED_HOSTS =  ['localhost', '127.0.0.1','http://localhost:3000']  # Your React app's URL
+ALLOWED_HOSTS =  ['localhost', '127.0.0.1','http://localhost:3000','http://127.0.0.1:3000','10.0.2.2']  # Your React app's URL
 
 SESSION_COOKIE_AGE = 180000
 CORS_ORIGIN_ALLOW_ALL = True
@@ -165,6 +160,19 @@ STATIC_URL = "/static/"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_DIRS = [
+<<<<<<< HEAD
     os.path.join(BASE_DIR, 'static/'),  # Add the 'static' folder to the list
 ]
 
+=======
+    os.path.join(BASE_DIR, 'static/'),
+]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+#ensure less secure uses on gmail....
+EMAIL_HOST_USER = "" 
+EMAIL_HOST_PASSWORD = ""  
+>>>>>>> 31db29c886feb19097c20570752ec6a29739f631

@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login as a_login
 import json
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import EmailMessage, get_connection
 
 @csrf_exempt
 def home(request):
@@ -303,4 +304,54 @@ def wbuddy(request):
     }
     data = paginator.get_page(page)
     return render(request, "wbuddyList.html", {'context': context})
+
+def send_email(request):
+ if request.method == "POST":
+    with get_connection(
+        host=settings.EMAIL_HOST,
+        port=settings.EMAIL_PORT,
+        username=settings.EMAIL_HOST_USER,
+        password=settings.EMAIL_HOST_PASSWORD,
+        use_tls=settings.EMAIL_USE_TLS
+    ) as connection:
+        subject = "From Nostalgia"  
+        request.POST.get("subject")
+        email_from = settings.EMAIL_HOST_USER
+        [request.POST.get("email"), ]
+        mail = "sabbir772002@gmail.com"
+        recipient_list = [mail,"nhossain213005@bscse.uiu.ac.bd"]
+        message = request.POST.get("message")
+        context = {
+            "user": request.user
+        }
+        html_message = render_to_string('mail.html', {
+            'context': context})
+        mail = EmailMessage(subject, html_message, email_from,
+                            recipient_list, connection=connection)
+        image_path = os.path.join(settings.MEDIA_ROOT, request.user.image.path)
+
+        # with open(image_path, 'rb') as image_file:
+        #                       mail.attach_file(image_path)
+        
+        # image_content_id = mail.attachments[0][0]
+        # image_reference = f'cid:{image_content_id}'
+        # print(image_reference)
+
+        # html_content_with_cid = html_message.replace(
+        #     request.user.image.url, image_reference)
+
+        #mail.body = html_content_with_cid
+        mail.content_subtype = 'html'
+        mail.send()
+
+        # html_message = "<p>Hey how are you?</p>"
+
+        # msg.content_subtype = "html"
+        # msg.send()
+        # EmailMessage(subject, message, email_from,
+        #  recipient_list, connection=connection).send()
+
+        return render(request, 'index.html')
+
+
                         
