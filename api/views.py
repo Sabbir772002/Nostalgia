@@ -1449,14 +1449,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 class HTimeline(APIView):
     def get(self, request):
-        username=request.GET.get("username")
-        print(username)
-        user=User.objects.get(username=username)
-        print(user)
+        username = request.GET.get("username")
+        user = User.objects.get(username=username)
         user_blogs = Blog.objects.filter(author__username=username)
         user_comments = Comment.objects.filter(username__username=username)
 
-        user_content=[]
+        user_content = []
         for blog in user_blogs:
             user_content.append(blog.content)
         for comment in user_comments:
@@ -1476,7 +1474,6 @@ class HTimeline(APIView):
         # Calculate TF-IDF vectors
         vectorizer = TfidfVectorizer()
         tfidf_matrix = vectorizer.fit_transform(user_content + all_content)
-        print(tfidf_matrix)
 
         # Calculate cosine similarity
         user_tfidf = tfidf_matrix[:len(user_content)]
@@ -1485,24 +1482,25 @@ class HTimeline(APIView):
 
         # Sort blogs based on cosine similarity
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
-        sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
-        # Retrieve sorted blogs
-        sorted_blogs = [all_blogs[i] for i in sorted_indices]
+        sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
 
         blogs_data = []
-        for blog in sorted_blogs:
-            blog_data = {
-                'id': blog.blogid,
-                'author': blog.author.username,
-                'author_img': blog.author.p_image.url if blog.author.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'content': blog.content,
-                'post_date': blog.post_date,
-                'post_time': blog.post_time,
-                'blog_img': blog.blog_img.url if blog.blog_img else None,
-                'upvote': blog.upvote_set.count(),
-                'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
-            }
-            blogs_data.append(blog_data)
+        for idx in sorted_indices:
+            idx = int(idx)  # Convert idx to regular integer
+            if idx < len(all_blogs):
+                blog = all_blogs[idx]
+                blog_data = {
+                    'id': blog.blogid,
+                    'author': blog.author.username,
+                    'author_img': blog.author.p_image.url if blog.author.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.content,
+                    'post_date': blog.post_date,
+                    'post_time': blog.post_time,
+                    'blog_img': blog.blog_img.url if blog.blog_img else None,
+                    'upvote': blog.upvote_set.count(),
+                    'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
+                }
+                blogs_data.append(blog_data)
 
         return Response(blogs_data)
 
