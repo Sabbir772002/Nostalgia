@@ -1402,5 +1402,3 @@ class AddGroupPost(CreateAPIView):
             blog.save()
         return Response({"message": "Group Blog created successfully"}, status=status.HTTP_201_CREATED)
 
-#print()
-#from .models import GroupMember
