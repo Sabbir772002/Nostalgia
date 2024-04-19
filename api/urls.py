@@ -35,16 +35,37 @@ urlpatterns = [
     path('blog', views.BlogListView.as_view(), name='blog'),
     path('singleblog', views.BlogSingleView.as_view(), name='singleblog'),
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
+    path('add_group', views.Add_group.as_view(), name='add_group'),
+    path('my_groups', views.My_Group.as_view(), name='my_groups'),
+    path('g_profile/<username>', views.GroupProfile.as_view(), name='g_profile'),
+    path('gp_post', views.GP_post.as_view(), name='GP_post'),
+    path('gt_post', views.GT_post.as_view(), name='GT_post'),
     path('api/events/create/', PlanEventCreateAPIView.as_view(), name='event-create'),
     path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
     path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
     path('compare', views.CompareImagesView.as_view(), name='compare_images'),
     path('upvote', views.UpvoteAPIView.as_view(), name='upvote'),
     path('walk', views.WalkListView.as_view(), name='walk'),
+    path('walkmembers', views.WalkMembers.as_view(), name='walk_members'),
     path('delete_fnd', views.Delete_fnd.as_view(), name='delete_fnd'),
+    path('notification', views.NotificationView.as_view(), name='notification'),
+    path('comments', views.BlogCommentsView.as_view(), name='comments'),
+    path('comment', views.CommentCreateView.as_view(), name='newcomment'),
+    path('htimeline', views.HTimeline.as_view(), name='htimeline'),
+    path('walk_request', views.Walk_request.as_view(), name='walk_request'),
+    path('walk!members', views.WalkNotMember.as_view(), name='walk!members'),
+    path('handlemember', views.Handlemember.as_view(), name='Handlemember'),
+    path('join_group', views.JoinGroup.as_view(), name='join_group'),
+    path('addgroupost', views.AddGroupPost.as_view(), name='addgroupost'),
+    path('groupmembers', views.GroupMembers.as_view(), name='groupmembers'),
+    path('requestmembers',views.RequestMembers.as_view(), name='requestmembers'),
+    path('grouprequest',views.GroupRequest.as_view(), name='grouprequest'),
+    path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
+    # path('nidtext',views.NIDText.as_view(), name='nidtext'),
+    # path('nidimg',views.NIDImage.as_view(), name='nidimg'),
+    # path('dnid',views.DecodeImageView.as_view(), name='dnid'),
 
 ]
-
 
 
 if settings.DEBUG:

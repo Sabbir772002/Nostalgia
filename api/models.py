@@ -152,6 +152,7 @@ class WalkMember(models.Model):
     cancel = models.IntegerField()
     username = models.ForeignKey(Owner, on_delete=models.CASCADE)
     walk_id = models.ForeignKey(Walk, on_delete=models.CASCADE)
+    accept = models.IntegerField()
 
     def __str__(self):
         return f"{self.username} - {self.walk_id}"
@@ -212,29 +213,32 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.blogid
+class Group(models.Model):
+    G_username = models.CharField(max_length=255,primary_key=True)
+    G_name = models.CharField(max_length=255)
+    CreatedDate = models.DateField(default=timezone.now)
+    Topic = models.CharField(max_length=255)
+    Privacy = models.CharField(max_length=255)
+    time = models.TimeField()
+    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.G_name
 
 class GroupMember(models.Model):
     MemberID = models.AutoField(primary_key=True)
     JoinDate = models.DateField(default=timezone.now)
     isAdmin = models.CharField(max_length=10)
     Block = models.IntegerField()
-    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE,to_field='G_username')
     member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    accept = models.IntegerField()
 
     def __str__(self):
-        return f'Member ID: {self.MemberID}, Username: {self.G_username.username}'
+        return f'Member ID: {self.MemberID}, Username: {self.G_username.G_username}'
 
 
-class Group(models.Model):
-    G_username = models.CharField(max_length=255)
-    Name = models.CharField(max_length=255)
-    CreatedDate = models.DateField(default=timezone.now)
-    Topic = models.CharField(max_length=255)
-    Privacy = models.CharField(max_length=255)
-    Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.Name
 
 class PlanTrip(models.Model):
     TripID = models.AutoField(primary_key=True)
@@ -258,13 +262,16 @@ class TripMember(models.Model):
 
     def __str__(self):
         return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
+
 class GroupPost(models.Model):
     GPost_id = models.AutoField(primary_key=True)
     GPost_contents = models.TextField()
-    GPost_Time = models.IntegerField()
-    GPost_date = models.IntegerField()
+    GPost_Time = models.TimeField()
+    GPost_date = models.DateField()
     GPost_image = models.ImageField(upload_to='image/', null=True)
-    G_username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    G_username = models.ForeignKey(Group, on_delete=models.CASCADE)
+    p_username=models.ForeignKey(Owner,on_delete=models.CASCADE)
+
 
     def __str__(self):
         return f'Group Post ID: {self.GPost_id}, Contents: {self.GPost_contents}'    
@@ -312,7 +319,6 @@ class JoinEvent(models.Model):
 class Upvote(models.Model):
     blogid = models.ForeignKey(Blog, on_delete=models.CASCADE)
     Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
-
     # class Meta:up
     #     primary_key = ['PostID', 'Username']
 
@@ -342,3 +348,16 @@ class Reply(models.Model):
 
     def __str__(self):
         return f"Comment ID: {self.cmnt_id}, Post ID: {self.Reply_id}, Username: {self.user}, Name: {self.Reply_msg}"        
+class Notification(models.Model):
+    noti_id = models.AutoField(primary_key=True)
+    #noti_msg = models.CharField(max_length=255)
+    noti_date = models.DateField(default=timezone.now())
+    noti_msg = models.TextField()
+    noti_time = models.DateTimeField(default=timezone.now())
+    noti_type = models.CharField(max_length=255) #friend request, walk request, event request
+    noti_status = models.CharField(max_length=255)#unseen or seen
+    noti_receiver = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    noti_sender = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='sent_notifications')
+
+    def __str__(self):
+        return f"Notification ID: {self.noti_id}, Message: {self.noti_msg}"
