@@ -429,6 +429,204 @@ class FindFriend(APIView):
         
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
 
+import numpy as np
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from gensim.models import KeyedVectors
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from nltk.stem import WordNetLemmatizer
+# word_pre_vectors = KeyedVectors.load_word2vec_format(r'D:\DEV\Django\Nostalgia\GoogleNews-vectors-negative300.bin\GoogleNews-vectors-negative300.bin', binary=True)
+
+class PreRun():
+    def __init__(self):
+        print("pre run is called")
+        self.word_pre_vectors= KeyedVectors.load_word2vec_format(r'D:\DEV\GoogleNews-vectors-negative300.bin\GoogleNews-vectors-negative300.bin', binary=True)
+
+        
+
+
+class FriendSuggestion(APIView):
+    def __init__(self):
+        prerun=PreRun()
+        print("ye bhai eid ka chand hai")
+        self.word_vectors=prerun.word_pre_vectors
+    # Preprocess text
+    def preprocess_text(self,text):
+        # Tokenize text
+        tokens = word_tokenize(text)
+        # Remove stopwords
+        stop_words = set(stopwords.words('english'))
+        filtered_tokens = [word.lower() for word in tokens if word.lower() not in stop_words]
+        #print(filtered_tokens)
+        # Lemmatize tokens
+        #not working comment
+        # lemmatizer = WordNetLemmatizer()
+        # lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
+        # Join tokens back into text
+        preprocessed_text = ' '.join(filtered_tokens)
+        return preprocessed_text
+
+    # Encode text into fixed-length vectors using GloVe
+    def encode_text(self,text):
+            tokens = self.preprocess_text(text)
+            # tokens=text
+            #print(tokens)
+            for token in tokens.split():
+                if token not in self.word_vectors:
+                    print(token)
+            vectors = [self.word_vectors[token] for token in tokens.split() if token in self.word_vectors]
+            return np.mean(vectors, axis=0) if vectors else np.zeros(self.word_vectors.vector_size)
+            #return vectors if vectors else None
+
+            
+    # Calculate similarity between two texts
+    def calculate_similarity(self,text1, text2):
+            vector1=[]
+            vector2=[]
+            vector1 = self.encode_text(text1)
+            vector2 = self.encode_text(text2)
+            if vector1 is not None and vector2 is not None:
+                return cosine_similarity([vector1], [vector2])[0][0]
+                #return cosine_similarity(vector1, vector2)[0][0]
+            else:
+               return 0
+
+    
+    ''' def __init__(self):
+        self.word_vectors = KeyedVectors.load_word2vec_format('D:/DEV/glove.6B/glove.6B.300d.txt', binary=False)
+        self.stop_words = set(stopwords.words('english'))
+    
+    def text_to_vector(self, text):
+        tokens = word_tokenize(text.lower())
+        tokens = [token for token in tokens if token not in self.stop_words]
+        vectors = [self.word_vectors[token] for token in tokens if token in self.word_vectors]
+        if vectors:
+            return np.mean(vectors, axis=0)
+        else:
+            return np.zeros(self.word_vectors.vector_size)
+
+    def calculate_similarity(self, text1, text2):
+        vector1 = self.text_to_vector(text1)
+        vector2 = self.text_to_vector(text2)
+        return cosine_similarity([vector1], [vector2])[0][0]
+
+
+    def preprocess_text(self, text):
+        # Tokenize text
+        tokens = word_tokenize(text)
+        # Remove stopwords
+        stop_words = set(stopwords.words('english'))
+        filtered_tokens = [word.lower() for word in tokens if word.lower() not in stop_words]
+        # Lemmatize tokens
+        lemmatizer = WordNetLemmatizer()
+        lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
+        # Join tokens back into text
+        preprocessed_text = ' '.join(lemmatized_tokens)
+        return preprocessed_text'''
+
+    def get(self, request):
+        userid = request.GET.get('user_id')
+        # Retrieve the user
+        user = Owner.objects.get(username=userid)
+        
+        # Retrieve the IDs of the user's friends where user1 is the given user
+        friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
+        # Retrieve the IDs of the user's friends where user2 is the given user
+        friend_ids2 = Friend.objects.filter(user2=user, is_fnf=1).values_list('user1_id', flat=True)
+        # Convert QuerySets to lists
+        friend_ids = list(friend_ids)
+        friend_ids2 = list(friend_ids2)
+        # Include the user's ID in the friend list
+        friend_ids.append(user.id)
+        # Combine the friend IDs
+        friend_ids.extend(friend_ids2)
+        
+        # Retrieve blog posts, comments, and group posts for the user
+        user_blog_posts = Blog.objects.filter(author=user)
+        user_comments = Comment.objects.filter(username=user)
+        user_group_posts = GroupPost.objects.filter(p_username=user)
+        
+        # Combine text from blog posts, comments, and group posts for the user
+        user_text = ''
+        for post in user_blog_posts:
+            user_text += post.content + ' '
+        for comment in user_comments:
+            user_text += comment.comment + ' '
+        for group_post in user_group_posts:
+            user_text += group_post.GPost_contents + ' '
+        
+        text1=user_text
+        # Preprocess user text
+        # user_text = preprocess_text(user_text)
+        
+        # # Retrieve other users excluding friends
+        users = Owner.objects.exclude(id__in=friend_ids)
+        
+        # # Calculate TF-IDF vectors for user and other users
+        # vectorizer = TfidfVectorizer()
+        # user_tfidf = vectorizer.fit_transform([user_text])
+        other_users_tfidf = []
+        for other_user in users:
+            other_user_blog_posts = Blog.objects.filter(author=other_user)
+            other_user_comments = Comment.objects.filter(username=other_user)
+            other_user_group_posts = GroupPost.objects.filter(p_username=other_user)
+            
+            other_user_text = ''
+            for post in other_user_blog_posts:
+                other_user_text += post.content + ' '
+            for comment in other_user_comments:
+                other_user_text += comment.comment + ' '
+            for group_post in other_user_group_posts:
+                other_user_text += group_post.GPost_contents + ' '
+            
+            # Preprocess other user text
+            # other_user_text = preprocess_text(other_user_text)
+            
+            # other_user_tfidf = vectorizer.transform([other_user_text])
+            other_users_tfidf.append(other_user_text)
+        # Calculate cosine similarity between user and other users
+        similarities = []
+        for other_user_tfidf in other_users_tfidf:
+            #similarity = cosine_similarity(user_tfidf, other_user_tfidf)
+            similarity = self.calculate_similarity(text1, other_user_tfidf)
+            print(similarity)
+            similarities.append(similarDity)
+            #similarities.append(similarity[0][0])
+        
+        # Sort users based on similarity scores
+        sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
+        
+        # Prepare response
+        serialized_data = []
+        for sorted_user, similarity_score in sorted_users:
+            serialized_data.append({
+                'id': sorted_user.id,
+                'similarity_score': similarity_score,
+                'first_name': sorted_user.first_name,
+                'last_name': sorted_user.last_name,
+                'username': sorted_user.username,
+                'email': sorted_user.email,
+                'gender': sorted_user.gender,
+                'phone': sorted_user.phone,
+                'dob': sorted_user.dob,
+                'address': sorted_user.address,
+                'nid': sorted_user.nid,
+                'thana': Thana.objects.get(thana=sorted_user.thana).thana,
+                'p_image': sorted_user.p_image.url if sorted_user.p_image else 'media/image/download_lX6bjA6.jpeg',
+                'is_fnf': 0,
+                'type': Friend.objects.filter(user1=user, user2=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Frined.objects.filter(user2=user, user1=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'f_created_date':Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'f_id': Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'abedon': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 0,
+                'good': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
+                'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
+                 })
+
+
+        return Response({"users": serialized_data, "message": "User suggestions retrieved successfully"}, status=status.HTTP_200_OK)
+
+
 
 
 class Profile(APIView):
