@@ -160,11 +160,6 @@ STATIC_URL = "/static/"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_DIRS = [
-<<<<<<< HEAD
-    os.path.join(BASE_DIR, 'static/'),  # Add the 'static' folder to the list
-]
-
-=======
     os.path.join(BASE_DIR, 'static/'),
 ]
 
@@ -175,4 +170,3 @@ EMAIL_PORT = 587
 #ensure less secure uses on gmail....
 EMAIL_HOST_USER = "" 
 EMAIL_HOST_PASSWORD = ""  
->>>>>>> 31db29c886feb19097c20570752ec6a29739f631

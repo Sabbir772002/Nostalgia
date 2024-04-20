@@ -1003,7 +1003,7 @@ class CompareImagesView(APIView):
 
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
-        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+        image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\image_file2.jpg"
          
         response = requests.get(image_file2_url)
         if response.status_code == 200:
@@ -1600,6 +1600,16 @@ class Handlemember(APIView):
                 members[0].accept=1
                 members[0].save()
                 return Response({"user": members[0].username.username})
+        if request.data['type'] == 'delete':
+            walk_id=request.data['walk_id']
+            user_id=request.data['id']
+            user=Owner.objects.get(id=user_id)
+            walk=Walk.objects.get(walk_id=walk_id)
+            members=WalkMember.objects.filter(walk_id=walk,username=user)
+            print(members)
+            if(len(members)>0):
+                members[0].delete()
+                return Response({"user": members[0].username.username})
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 from .models import Group
 class Add_group(APIView):
@@ -1736,7 +1746,7 @@ class AddGroupPost(CreateAPIView):
         #print(blog_img)
         if blog_img is not None:
             blog = GroupPost.objects.create(
-                    G_username=Group.objects.get(G_username=data['gp']),
+                    G_username=Group.objects.get(G_username=data['group_username']),
                     p_username=user,
                     GPost_contents=data['content'],
                     GPost_date=data['post_date'],
