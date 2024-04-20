@@ -86,7 +86,6 @@ class Owner_update(APIView):
         serializer = OwnwerUpdateSerializer(owner, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            
             return Response(serializer.data, status=status.HTTP_200_OK)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -759,7 +758,7 @@ class Profile(APIView):
         try:
             user2 = request.GET.get('user')
             user = Owner.objects.get(username=username)
-            if(user2!=username):
+            if(user2 is not None and user2!=username):
                    user2=Owner.objects.get(username=user2)
             else:
                 user2=user
@@ -784,6 +783,7 @@ class Profile(APIView):
                 'good': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                 'status': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                  'img_privacy': 0,
+                 'walk_type':user.walk_type
             }
             print(user)
            
@@ -962,10 +962,12 @@ class FaceApiCompare:
             "image_base64_2": image_base64_2,
         }
 
+
         # Send POST request to Face++ API
         response = requests.post(self.URL, data=payload)
+        if(response.json().get('error_message')):
+            return "Error: {}".format(response.json().get('error_message'))
         response_json = response.json()
-
         # Process the response and return the result
         confidence = response_json.get('confidence', 0)
         threshold = 50
@@ -1000,11 +1002,10 @@ class CompareImagesView(APIView):
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
-
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
         image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\image_file2.jpg"
-         
+        image_base64_2=""
         response = requests.get(image_file2_url)
         if response.status_code == 200:
             # Save the image file
@@ -1016,6 +1017,9 @@ class CompareImagesView(APIView):
             with open(image_file2_path, "rb") as f:
                 image_base64_2 = base64.b64encode(f.read()).decode('utf-8')
         # Perform image comparison using FaceApiCompare class method
+        if not image_base64_2:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+
         result = face_api_compare.compare_images(image_base64_1, image_base64_2)
 
         # Return the comparison result as JSON response
