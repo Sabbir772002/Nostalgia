@@ -1439,7 +1439,7 @@ class CommentCreateView(CreateAPIView):
             blog.save()
         return Response({"message": "Comment created successfully"}, status=status.HTTP_201_CREATED)
 
-
+#GOOD ONE
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
