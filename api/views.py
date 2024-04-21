@@ -1128,10 +1128,13 @@ class UpvoteAPIView(APIView):
                 print("banao")
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
-                upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
-                upvote_instance1.save()
+                # upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
+                # upvote_instance1.save()
+                print("dont be like that")
                 Noti=Notification(noti_type="Upvote",noti_msg="upvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
                 Noti.save()
+            upvoted = Upvote.objects.filter(
+                Username=Owner.objects.get(username=username), blogid=id)
             if len(upvoted)==1:
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
@@ -1395,7 +1398,7 @@ class BlogCommentsView(APIView):
                     'author': blog.username.username,
                     'author_img': Owner.objects.get(username=blog.username).p_image.url if Owner.objects.get(username=blog.username).p_image else "/media/image/download_lsX6bjA6.jpeg",
                     'content': blog.comment,
-                    'time': blog.time,
+                    'time': blog.time.strftime('%Y-%m-%d %H:%M:%S'),
                     'blog': blog.blogid.blogid
                 }
                 blogs_data.append(blog_data)
@@ -1487,22 +1490,24 @@ class HTimeline(APIView):
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
         sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
         # Retrieve sorted blogs
-        sorted_blogs = [all_blogs[i] for i in sorted_indices]
+        #sorted_blogs = [all_blogs[i] for i in sorted_indices]
 
         blogs_data = []
-        for blog in sorted_blogs:
-            blog_data = {
-                'id': blog.blogid,
-                'author': blog.author.username,
-                'author_img': blog.author.p_image.url if blog.author.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'content': blog.content,
-                'post_date': blog.post_date,
-                'post_time': blog.post_time,
-                'blog_img': blog.blog_img.url if blog.blog_img else None,
-                'upvote': blog.upvote_set.count(),
-                'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
-            }
-            blogs_data.append(blog_data)
+        for d in sorted_indices:
+            if(len(all_blogs)>d):
+                blog = all_blogs[d]
+                blog_data = {
+                    'id': blog.blogid,
+                    'author': blog.author.username,
+                    'author_img': blog.author.p_image.url if blog.author.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.content,
+                    'post_date': blog.post_date,
+                    'post_time': blog.post_time,
+                    'blog_img': blog.blog_img.url if blog.blog_img else None,
+                    'upvote': blog.upvote_set.count(),
+                    'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
+                }
+                blogs_data.append(blog_data)
 
         return Response(blogs_data)
 
