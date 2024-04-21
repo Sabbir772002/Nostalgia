@@ -9,7 +9,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
 
-urlpatterns = [
+urlpatterns=[
     path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
     path('orm', MyAPIView.as_view(), name='MyAPIView'),
     path('changepass', ChangePass.as_view(), name='changepass'),
@@ -61,12 +61,12 @@ urlpatterns = [
     path('requestmembers',views.RequestMembers.as_view(), name='requestmembers'),
     path('grouprequest',views.GroupRequest.as_view(), name='grouprequest'),
     path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
+    path('caregiver',views.CareGiver.as_view(), name='caregiver'),
     # path('nidtext',views.NIDText.as_view(), name='nidtext'),
     # path('nidimg',views.NIDImage.as_view(), name='nidimg'),
     # path('dnid',views.DecodeImageView.as_view(), name='dnid'),
-
+    #work doneZZ
 ]
-
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -86,7 +86,6 @@ class Owner_update(APIView):
         serializer = OwnwerUpdateSerializer(owner, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            
             return Response(serializer.data, status=status.HTTP_200_OK)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -759,7 +758,7 @@ class Profile(APIView):
         try:
             user2 = request.GET.get('user')
             user = Owner.objects.get(username=username)
-            if(user2!=username):
+            if(user2 is not None and user2!=username):
                    user2=Owner.objects.get(username=user2)
             else:
                 user2=user
@@ -784,6 +783,7 @@ class Profile(APIView):
                 'good': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                 'status': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                  'img_privacy': 0,
+                 'walk_type':user.walk_type
             }
             print(user)
            
@@ -962,10 +962,12 @@ class FaceApiCompare:
             "image_base64_2": image_base64_2,
         }
 
+
         # Send POST request to Face++ API
         response = requests.post(self.URL, data=payload)
+        if(response.json().get('error_message')):
+            return "Error: {}".format(response.json().get('error_message'))
         response_json = response.json()
-
         # Process the response and return the result
         confidence = response_json.get('confidence', 0)
         threshold = 50
@@ -1000,11 +1002,10 @@ class CompareImagesView(APIView):
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
-
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
-        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
-         
+        image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\image_file2.jpg"
+        image_base64_2=""
         response = requests.get(image_file2_url)
         if response.status_code == 200:
             # Save the image file
@@ -1016,6 +1017,9 @@ class CompareImagesView(APIView):
             with open(image_file2_path, "rb") as f:
                 image_base64_2 = base64.b64encode(f.read()).decode('utf-8')
         # Perform image comparison using FaceApiCompare class method
+        if not image_base64_2:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+
         result = face_api_compare.compare_images(image_base64_1, image_base64_2)
 
         # Return the comparison result as JSON response
@@ -1291,8 +1295,8 @@ class WalkListView(APIView):
                 'member': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user).exists() else 0,
                 'not_ac': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user, accept=0).exists() else 0,
                 'cancel': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user, cancel=1).exists() else 0,
-                #time banate hbe
-            }
+                'time': walk.time
+             }
             walks_data.append(walk_data)
         print(walks_data)
         return Response(walks_data, status=status.HTTP_200_OK)
@@ -1300,13 +1304,16 @@ class WalkListView(APIView):
     @csrf_exempt
     def post(self, request):
         data = request.data
+        print(data)
         username = data.get('w_creator')
         user = Owner.objects.get(username=username)
         data['propose_date'] = data['walk_date']
         data['privacy'] = "Bondhu"
         data['w_creator'] = user.id
         serializer = WalkSerializer(data=data)
+    
         if serializer.is_valid():
+            print(serializer)
             serializer.save()
             walk_member=WalkMember(walk_id=Walk.objects.get(walk_id=serializer.data['walk_id']),username=user,accept=1,cancel=0)
             walk_member.save()
@@ -1452,14 +1459,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 class HTimeline(APIView):
     def get(self, request):
-        username=request.GET.get("username")
-        print(username)
-        user=User.objects.get(username=username)
-        print(user)
+        username = request.GET.get("username")
+        user = User.objects.get(username=username)
         user_blogs = Blog.objects.filter(author__username=username)
         user_comments = Comment.objects.filter(username__username=username)
 
-        user_content=[]
+        user_content = []
         for blog in user_blogs:
             user_content.append(blog.content)
         for comment in user_comments:
@@ -1479,7 +1484,6 @@ class HTimeline(APIView):
         # Calculate TF-IDF vectors
         vectorizer = TfidfVectorizer()
         tfidf_matrix = vectorizer.fit_transform(user_content + all_content)
-        print(tfidf_matrix)
 
         # Calculate cosine similarity
         user_tfidf = tfidf_matrix[:len(user_content)]
@@ -1492,10 +1496,17 @@ class HTimeline(APIView):
         # Retrieve sorted blogs
         #sorted_blogs = [all_blogs[i] for i in sorted_indices]
 
+        # blogs_data = []
+        # for d in sorted_indices:
+        #     if(len(all_blogs)>d):
+        #         blog = all_blogs[d]
+        # sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
+
         blogs_data = []
-        for d in sorted_indices:
-            if(len(all_blogs)>d):
-                blog = all_blogs[d]
+        for idx in sorted_indices:
+            idx = int(idx)  # Convert idx to regular integer
+            if idx < len(all_blogs):
+                blog = all_blogs[idx]
                 blog_data = {
                     'id': blog.blogid,
                     'author': blog.author.username,
@@ -1607,6 +1618,16 @@ class Handlemember(APIView):
                 members[0].accept=1
                 members[0].save()
                 return Response({"user": members[0].username.username})
+        if request.data['type'] == 'delete':
+            walk_id=request.data['walk_id']
+            user_id=request.data['id']
+            user=Owner.objects.get(id=user_id)
+            walk=Walk.objects.get(walk_id=walk_id)
+            members=WalkMember.objects.filter(walk_id=walk,username=user)
+            print(members)
+            if(len(members)>0):
+                members[0].delete()
+                return Response({"user": members[0].username.username})
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 from .models import Group
 class Add_group(APIView):
@@ -1651,7 +1672,7 @@ class GroupProfile(APIView):
             'username': group.G_username,
             'name': group.G_name,
              'img': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
-            'creator': group.Creator.username,
+            'admin': group.Creator.username,
             'created_date': group.CreatedDate,
             'privacy': group.Privacy,
             'topic': group.Topic,
@@ -1743,7 +1764,7 @@ class AddGroupPost(CreateAPIView):
         #print(blog_img)
         if blog_img is not None:
             blog = GroupPost.objects.create(
-                    G_username=Group.objects.get(G_username=data['gp']),
+                    G_username=Group.objects.get(G_username=data['group_username']),
                     p_username=user,
                     GPost_contents=data['content'],
                     GPost_date=data['post_date'],
@@ -1975,3 +1996,23 @@ class NIDText(APIView):
 
 #         except Exception as e:
 #             return JsonResponse({"error": str(e)}, status=500)
+from .models import Caregiver
+class CareGiver(APIView):
+    def get(self,request):
+        caregivers=Caregiver.objects.all()
+        caregivers_data=[]
+        for caregiver in caregivers:
+            caregivers_data.append({
+                'id': caregiver.caregiver_id,
+                'name': caregiver.name,
+                #'img': caregiver.img.url if caregiver.img else "/media/image/download_lsX6bjA6.jpeg",
+                'img': "media\images\download.jpeg",
+                #'email': caregiver.email,
+                'phone': caregiver.phone,
+               # 'dob': caregiver.dob,
+                 'Experience': caregiver.experience,
+                'gender': caregiver.gender,
+                'type':caregiver.type.type
+            })
+        print(caregivers_data)
+        return Response(caregivers_data)

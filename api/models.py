@@ -125,6 +125,7 @@ class Walk(models.Model):
     walk_date = models.DateField()
     end_date = models.DateField() #null mean for once
     privacy = models.CharField(max_length=255)
+    time=models.TimeField()
     w_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
 
     def __str__(self):
