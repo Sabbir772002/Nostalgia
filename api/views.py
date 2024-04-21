@@ -1132,10 +1132,13 @@ class UpvoteAPIView(APIView):
                 print("banao")
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
-                upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
-                upvote_instance1.save()
+                # upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
+                # upvote_instance1.save()
+                print("dont be like that")
                 Noti=Notification(noti_type="Upvote",noti_msg="upvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
                 Noti.save()
+            upvoted = Upvote.objects.filter(
+                Username=Owner.objects.get(username=username), blogid=id)
             if len(upvoted)==1:
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
@@ -1399,7 +1402,7 @@ class BlogCommentsView(APIView):
                     'author': blog.username.username,
                     'author_img': Owner.objects.get(username=blog.username).p_image.url if Owner.objects.get(username=blog.username).p_image else "/media/image/download_lsX6bjA6.jpeg",
                     'content': blog.comment,
-                    'time': blog.time,
+                    'time': blog.time.strftime('%Y-%m-%d %H:%M:%S'),
                     'blog': blog.blogid.blogid
                 }
                 blogs_data.append(blog_data)
