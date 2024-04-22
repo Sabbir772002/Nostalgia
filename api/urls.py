@@ -65,6 +65,16 @@ urlpatterns=[
     # path('nidtext',views.NIDText.as_view(), name='nidtext'),
     # path('nidimg',views.NIDImage.as_view(), name='nidimg'),
     # path('dnid',views.DecodeImageView.as_view(), name='dnid'),
+    path('event', views.EventListView.as_view(), name='event'),
+    path('eventmembers', views.EventMembers.as_view(), name='event_members'),
+    path('event_request', views.Event_request.as_view(), name='event_request'),
+    path('event!members', views.EventNotMember.as_view(), name='event!members'),
+    path('handle_eventmember', views.HandleEventmember.as_view(), name='handle_eventmember'),
+    path('trip', views.TripListView.as_view(), name='trip'),
+    path('tripmembers', views.TripMembers.as_view(), name='trip_members'),
+    path('trip_request', views.Trip_request.as_view(), name='trip_request'),
+    path('trip!members', views.TripNotMember.as_view(), name='trip!members'),
+    path('handle_tripmember', views.HandleTripmember.as_view(), name='handle_tripmember'),
     #work doneZZ
 ]
 
