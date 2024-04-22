@@ -1295,8 +1295,8 @@ class WalkListView(APIView):
                 'member': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user).exists() else 0,
                 'not_ac': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user, accept=0).exists() else 0,
                 'cancel': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user, cancel=1).exists() else 0,
-                #time banate hbe
-            }
+                'time': walk.time
+             }
             walks_data.append(walk_data)
         print(walks_data)
         return Response(walks_data, status=status.HTTP_200_OK)
@@ -1304,13 +1304,16 @@ class WalkListView(APIView):
     @csrf_exempt
     def post(self, request):
         data = request.data
+        print(data)
         username = data.get('w_creator')
         user = Owner.objects.get(username=username)
         data['propose_date'] = data['walk_date']
         data['privacy'] = "Bondhu"
         data['w_creator'] = user.id
         serializer = WalkSerializer(data=data)
+    
         if serializer.is_valid():
+            print(serializer)
             serializer.save()
             walk_member=WalkMember(walk_id=Walk.objects.get(walk_id=serializer.data['walk_id']),username=user,accept=1,cancel=0)
             walk_member.save()
@@ -1661,7 +1664,7 @@ class GroupProfile(APIView):
             'username': group.G_username,
             'name': group.G_name,
              'img': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
-            'creator': group.Creator.username,
+            'admin': group.Creator.username,
             'created_date': group.CreatedDate,
             'privacy': group.Privacy,
             'topic': group.Topic,
@@ -1985,3 +1988,23 @@ class NIDText(APIView):
 
 #         except Exception as e:
 #             return JsonResponse({"error": str(e)}, status=500)
+from .models import Caregiver
+class CareGiver(APIView):
+    def get(self,request):
+        caregivers=Caregiver.objects.all()
+        caregivers_data=[]
+        for caregiver in caregivers:
+            caregivers_data.append({
+                'id': caregiver.caregiver_id,
+                'name': caregiver.name,
+                #'img': caregiver.img.url if caregiver.img else "/media/image/download_lsX6bjA6.jpeg",
+                'img': "media\images\download.jpeg",
+                #'email': caregiver.email,
+                'phone': caregiver.phone,
+               # 'dob': caregiver.dob,
+                 'Experience': caregiver.experience,
+                'gender': caregiver.gender,
+                'type':caregiver.type.type
+            })
+        print(caregivers_data)
+        return Response(caregivers_data)
