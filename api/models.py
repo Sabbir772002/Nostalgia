@@ -144,10 +144,10 @@ class Caregiver(models.Model):
     experience = models.PositiveIntegerField()
     type = models.ForeignKey(CareType, on_delete=models.CASCADE)
     h_id = models.ForeignKey(Hospital, on_delete=models.CASCADE)
-
+    email = models.EmailField()
+    dob = models.DateField()
     def __str__(self):
         return self.name
-
 class WalkMember(models.Model):
     wm_id = models.AutoField(primary_key=True)
     cancel = models.IntegerField()
@@ -237,30 +237,54 @@ class GroupMember(models.Model):
 
     def __str__(self):
         return f'Member ID: {self.MemberID}, Username: {self.G_username.G_username}'
+    
+class Agency(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=255)
+    email = models.EmailField()
+    address = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='image/', null=True)
+    thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    rating = models.FloatField()
+    def __str__(self):
+        return self.name
 
+class Guide(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=255)
+    email = models.EmailField()
+    address = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='image/', null=True)
+    thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    rating = models.FloatField()
+    experience = models.IntegerField()
+    dob = models.DateField()
+    agency = models.ForeignKey('Agency', on_delete=models.CASCADE)
+    def __str__(self):
+        return self.G_name
 
-
-
-class PlanTrip(models.Model):
+class Trip(models.Model):
     TripID = models.AutoField(primary_key=True)
     Location = models.CharField(max_length=255)
-    Trip_start_date = models.DateField()
-    Trip_end_date = models.DateField()
-    Trip_propose_date = models.DateField(default=timezone.now)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    propose_date = models.DateField(default=timezone.now)
     Privacy = models.CharField(max_length=255)
     Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
-    #Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+    Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'Trip ID: {self.TripID}, Location: {self.Location}'
 
 class TripMember(models.Model):
-    TM_id = models.AutoField(primary_key=True)
-    cancel_member = models.IntegerField()
-    TripID = models.ForeignKey(PlanTrip, on_delete=models.CASCADE)
-    T_member = models.ForeignKey(Owner, on_delete=models.CASCADE)
-
+    Tid = models.AutoField(primary_key=True)
+    cancel = models.IntegerField()
+    TripID = models.ForeignKey(Trip, on_delete=models.CASCADE)
+    member = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    Approve = models.IntegerField()
     def __str__(self):
         return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
 
@@ -289,33 +313,33 @@ class IndividualPost(models.Model):
         return f'Post ID: {self.PostID}, Contents: {self.Post_contents}'
     
 
-class PlanEvent(models.Model):
+class Event(models.Model):
     EventID = models.AutoField(primary_key=True)
     Description = models.CharField(max_length=255)
     Event_title = models.CharField(max_length=255)
-    Event_start_time = models.IntegerField()
-    Event_end_time = models.IntegerField()
-    Event_start_date = models.DateField()
-    Event_end_date = models.DateField()
+    start_time = models.IntegerField()
+    end_time = models.IntegerField()
+    start_date = models.DateField()
+    end_date = models.DateField()
     Address = models.CharField(max_length=255)
-    Event_create_date = models.DateField()
-    Event_Approve = models.IntegerField()
+    create_date = models.DateField()
+    Approve = models.IntegerField()
     E_type = models.CharField(max_length=255)
-    Image = models.IntegerField()
+    Image = models.ImageField(upload_to='Eventimage/', null=True)
     E_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
-
     def __str__(self):
         return self.Event_title
     
 class JoinEvent(models.Model):
     JoinID = models.AutoField(primary_key=True)
-    ApproveMember = models.IntegerField()
-    Event_Member = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='joined_events')
-    EventID = models.ForeignKey(PlanEvent, on_delete=models.CASCADE)
-
+    Approve = models.IntegerField()
+    Member = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='joined_events')
+    EventID = models.ForeignKey(Event, on_delete=models.CASCADE)
+    cancel = models.IntegerField()
     def __str__(self):
         return f'Join ID: {self.JoinID}, Event ID: {self.EventID}'    
+
 
 class Upvote(models.Model):
     blogid = models.ForeignKey(Blog, on_delete=models.CASCADE)

@@ -13,7 +13,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana,User,PlanEvent,Upvote,Blog,Chat,Notification
+from api.models import Owner, Overseer,Friend,Thana,User,Event,Upvote,Blog,Chat,Notification
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -998,7 +998,6 @@ class CompareImagesView(APIView):
 
         if not (image_file1 and image_file2):
             return JsonResponse({'error': 'Missing image data in request'}, status=400)
-
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')

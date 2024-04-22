@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from api.models import Owner, Overseer, User
-from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost #, IndividualPost, Group, GroupMember, Division, District, PlanTrip, Agency, Guide, TripMember, Upvote, Comment, Reply, PlanEvent, JoinEvent
+from api.models import Friend, Chat, Medication, Medicine, Blog, GroupPost, IndividualPost, Group, GroupMember, Division, District, Trip, Agency, Guide, TripMember, Upvote, Comment, Reply, Event, JoinEvent
 
 
 
@@ -185,30 +185,30 @@ class BlogSerializer(serializers.ModelSerializer):
         return Blog.objects.create(**validated_data)
 
 
-from .models import PlanEvent
+from .models import Event
 
 class PlanEventSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PlanEvent
-        fields = ['EventID', 'Description', 'Event_title', 'Event_start_time',
-                  'Event_end_time', 'Event_start_date', 'Event_end_date',
-                  'Address', 'Event_create_date', 'Event_Approve',
+        model = Event
+        fields = ['EventID', 'Description', 'title', 'start_time',
+                  'end_time', 'start_date', 'end_date',
+                  'Address', 'create_date', 'Approve',
                   'E_type', 'Image', 'E_creator', 'Thana']
 
     def create(self, validated_data):
-        return PlanEvent.objects.create(**validated_data)
+        return Event.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
         instance.Description = validated_data.get('Description', instance.Description)
-        instance.Event_title = validated_data.get('Event_title', instance.Event_title)
-        instance.Event_start_time = validated_data.get('Event_start_time', instance.Event_start_time)
-        instance.Event_end_time = validated_data.get('Event_end_time', instance.Event_end_time)
-        instance.Event_start_date = validated_data.get('Event_start_date', instance.Event_start_date)
-        instance.Event_end_date = validated_data.get('Event_end_date', instance.Event_end_date)
+        instance.title = validated_data.get('title', instance.title)
+        instance.start_time = validated_data.get('start_time', instance.start_time)
+        instance.end_time = validated_data.get('end_time', instance.end_time)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
         instance.Address = validated_data.get('Address', instance.Address)
-        instance.Event_create_date = validated_data.get('Event_create_date', instance.Event_create_date)
-        instance.Event_Approve = validated_data.get('Event_Approve', instance.Event_Approve)
+        instance.create_date = validated_data.get('create_date', instance.Ecreate_date)
+        instance.Approve = validated_data.get('Approve', instance.Approve)
         instance.E_type = validated_data.get('E_type', instance.E_type)
         instance.Image = validated_data.get('Image', instance.Image)
         instance.E_creator = validated_data.get('E_creator', instance.E_creator)
