@@ -13,7 +13,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana,User,Event,Upvote,Blog,Chat,Notification,Trip 
+from api.models import Owner, Overseer,Friend,Thana,User,Event,Upvote,Blog,Chat,Notification,Trip
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -2094,22 +2094,22 @@ class EventNotMember(APIView):
 class HandleEventmember(APIView):
     def post(self,request):
         if request.data['type'] == 'confirm':
-            walk_id=request.data['walk_id']
+            event_id=request.data['event_id']
             user_id=request.data['id']
             user=Owner.objects.get(id=user_id)
-            walk=Walk.objects.get(walk_id=walk_id)
-            members=WalkMember.objects.filter(walk_id=walk,username=user)
+            event=Event.objects.get(event_id=event_id)
+            members=JoinEvent.objects.filter(event_id=event,username=user)
             print(members)
             if(len(members)>0):
                 members[0].accept=1
                 members[0].save()
                 return Response({"user": members[0].username.username})
         if request.data['type'] == 'delete':
-            walk_id=request.data['walk_id']
+            event_id=request.data['event_id']
             user_id=request.data['id']
             user=Owner.objects.get(id=user_id)
-            walk=Walk.objects.get(walk_id=walk_id)
-            members=WalkMember.objects.filter(walk_id=walk,username=user)
+            event=Event.objects.get(walk_id=walk_id)
+            members=JoinEvent.objects.filter(event_id=event,username=user)
             print(members)
             if(len(members)>0):
                 members[0].delete()
@@ -2118,13 +2118,13 @@ class HandleEventmember(APIView):
         
 class Event_request(APIView):
     def post(self,request):
-        walk_id=request.data['id']
+        event_id=request.data['id']
         username=request.data['username']
-        walk=Walk.objects.get(walk_id=walk_id)
-        bot=WalkMember.objects.filter(walk_id=walk,username=Owner.objects.get(username=username))
+        event=Event.objects.get(event_id=event_id)
+        bot=JoinEvent.objects.filter(event_id=event,username=Owner.objects.get(username=username))
         if(len(bot)>0):
             return Response({"user": bot[0].username.username})      
-        members=WalkMember.objects.create(username=Owner.objects.get(username=username),walk_id=Walk.objects.get(walk_id=walk_id),cancel=0,accept=0)
+        members=JoinEvent.objects.create(username=Owner.objects.get(username=username),event_id=Event.objects.get(event_id=event_id),cancel=0,accept=0)
         members.save()
         print("accept koro na?")
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
@@ -2183,11 +2183,11 @@ class Trip_request(APIView):
     def post(self,request):
         trip_id=request.data['id']
         username=request.data['username']
-        trip=Walk.objects.get(trip_id=trip_id)
-        bot=TripMember.objects.filter(walk_id=trip,username=Owner.objects.get(username=username))
+        trip=Trip.objects.get(trip_id=trip_id)
+        bot=TripMember.objects.filter(trip_id=trip,username=Owner.objects.get(username=username))
         if(len(bot)>0):
             return Response({"user": bot[0].username.username})      
-        members=TripMember.objects.create(username=Owner.objects.get(username=username),walk_id=Trip.objects.get(trip_id=trip_id),cancel=0,accept=0)
+        members=TripMember.objects.create(username=Owner.objects.get(username=username),trip_id=Trip.objects.get(trip_id=trip_id),cancel=0,accept=0)
         members.save()
         print("accept koro na?")
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
@@ -2200,9 +2200,9 @@ class TripNotMember(APIView):
         return age 
 
     def get(self,request):
-        walk_id=request.GET.get('id')
-        walk=Walk.objects.get(walk_id=walk_id)
-        members=WalkMember.objects.filter(walk_id=walk_id,accept=0)
+        trip_id=request.GET.get('id')
+        trip=Trip.objects.get(trip_id=trip_id)
+        members=TripMember.objects.filter(trip_id=trip_id,accept=0)
         print(members)
         members_data=[]
         print("moner mto kw nai!")
@@ -2225,22 +2225,22 @@ class TripNotMember(APIView):
 class HandleTripmember(APIView):
     def post(self,request):
         if request.data['type'] == 'confirm':
-            walk_id=request.data['walk_id']
+            trip_id=request.data['trip_id']
             user_id=request.data['id']
             user=Owner.objects.get(id=user_id)
-            walk=Walk.objects.get(walk_id=walk_id)
-            members=WalkMember.objects.filter(walk_id=walk,username=user)
+            trip=Trip.objects.get(trip_id=trip_id)
+            members=WalkMember.objects.filter(trip_id=trip,username=user)
             print(members)
             if(len(members)>0):
                 members[0].accept=1
                 members[0].save()
                 return Response({"user": members[0].username.username})
         if request.data['type'] == 'delete':
-            walk_id=request.data['walk_id']
+            trip_id=request.data['trip_id']
             user_id=request.data['id']
             user=Owner.objects.get(id=user_id)
-            walk=Walk.objects.get(walk_id=walk_id)
-            members=WalkMember.objects.filter(walk_id=walk,username=user)
+            trip=Trip.objects.get(trip_id=trip_id)
+            members=TripMember.objects.filter(trip_id=trip,username=user)
             print(members)
             if(len(members)>0):
                 members[0].delete()
