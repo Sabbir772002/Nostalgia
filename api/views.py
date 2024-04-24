@@ -13,7 +13,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana,User,PlanEvent,Upvote,Blog,Chat,Notification
+from api.models import Owner, Overseer,Friend,Thana,User,Event,Upvote,Blog,Chat,Notification,Trip
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -25,8 +25,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 import os
 from django.shortcuts import render
-
-
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = (permissions.AllowAny,)
     
@@ -86,7 +84,6 @@ class Owner_update(APIView):
         serializer = OwnwerUpdateSerializer(owner, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            
             return Response(serializer.data, status=status.HTTP_200_OK)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -121,12 +118,14 @@ class sign(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class _sign(views.APIView):
     def post(self, request):
-        serializer = OverseerSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # serializer = OverseerSerializer(data=request.data)
+        # if serializer.is_valid():
+        #     user = serializer.save()
+        data=request.data   
+        overseer=Overseer(username=data['username'],password=data['password'],email=data['email'],phone=data['phone'],address=data['address'],nid=data['nid'],thana_id=data['thana_id']) 
+        return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
+        # print(serializer.errors)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from django.contrib.auth import authenticate, login
 
@@ -159,8 +158,11 @@ class login_api(views.APIView):
             print(user)
             if user is not None:
                 login(request,user)
-                user=Owner.objects.get(username=username)
-                serializer = OwnerSerializer(user)
+                user=Owner.objects.filter(username=username)
+                if len(user) > 0:
+                    serializer = OwnerSerializer(user[0])
+                    return Response({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
+                serializer = OverseerSerializer(Overseer.objects.get(username=username))
 
                 return JsonResponse({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
         
@@ -759,7 +761,7 @@ class Profile(APIView):
         try:
             user2 = request.GET.get('user')
             user = Owner.objects.get(username=username)
-            if(user2!=username):
+            if(user2 is not None and user2!=username):
                    user2=Owner.objects.get(username=user2)
             else:
                 user2=user
@@ -784,6 +786,7 @@ class Profile(APIView):
                 'good': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                 'status': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                  'img_privacy': 0,
+                 'walk_type':user.walk_type
             }
             print(user)
            
@@ -964,8 +967,9 @@ class FaceApiCompare:
 
         # Send POST request to Face++ API
         response = requests.post(self.URL, data=payload)
+        if(response.json().get('error_message')):
+            return "Error: {}".format(response.json().get('error_message'))
         response_json = response.json()
-
         # Process the response and return the result
         confidence = response_json.get('confidence', 0)
         threshold = 50
@@ -973,9 +977,8 @@ class FaceApiCompare:
             result = "Match between two photos is successful with confidence: {:.2f}".format(confidence)
         else:
             result = "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
-
         return result
-    
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import base64
@@ -1000,11 +1003,10 @@ class CompareImagesView(APIView):
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
-
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
         image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
-         
+        image_base64_2=""
         response = requests.get(image_file2_url)
         if response.status_code == 200:
             # Save the image file
@@ -1016,6 +1018,9 @@ class CompareImagesView(APIView):
             with open(image_file2_path, "rb") as f:
                 image_base64_2 = base64.b64encode(f.read()).decode('utf-8')
         # Perform image comparison using FaceApiCompare class method
+        if not image_base64_2:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+
         result = face_api_compare.compare_images(image_base64_1, image_base64_2)
 
         # Return the comparison result as JSON response
@@ -1072,7 +1077,7 @@ class OverseerList(APIView):
                 'address': user.address,
                 'nid': user.nid,
                 'relation':user.Relation,
-                'thana': Thana.objects.get(id=user.thana_id).name,
+                #'thana': Thana.objects.get(thana=user.thana_id).thana,
             })
         
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
@@ -1128,10 +1133,13 @@ class UpvoteAPIView(APIView):
                 print("banao")
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
-                upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
-                upvote_instance1.save()
+                # upvote_instance1 = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
+                # upvote_instance1.save()
+                print("dont be like that")
                 Noti=Notification(noti_type="Upvote",noti_msg="upvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
                 Noti.save()
+            upvoted = Upvote.objects.filter(
+                Username=Owner.objects.get(username=username), blogid=id)
             if len(upvoted)==1:
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
@@ -1182,9 +1190,6 @@ class BlogSingleView(APIView):
 
             return JsonResponse(blogs_data, safe=False)
 
-
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class BlogCreateView(CreateAPIView):
     #serializer_class = BlogSerializer
@@ -1215,7 +1220,7 @@ class BlogCreateView(CreateAPIView):
             )
             blog.save()
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
-    
+
 class PlanEventCreateAPIView(APIView):
     def post(self, request):
         fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
@@ -1227,7 +1232,6 @@ class PlanEventCreateAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class PlanEventListAPIView(APIView):
     def get(self, request):
         events = PlanEvent.objects.all()
@@ -1288,8 +1292,8 @@ class WalkListView(APIView):
                 'member': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user).exists() else 0,
                 'not_ac': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user, accept=0).exists() else 0,
                 'cancel': 1 if WalkMember.objects.filter(walk_id=walk.walk_id,username=user, cancel=1).exists() else 0,
-                #time banate hbe
-            }
+                'time': walk.time
+             }
             walks_data.append(walk_data)
         print(walks_data)
         return Response(walks_data, status=status.HTTP_200_OK)
@@ -1297,13 +1301,16 @@ class WalkListView(APIView):
     @csrf_exempt
     def post(self, request):
         data = request.data
+        print(data)
         username = data.get('w_creator')
         user = Owner.objects.get(username=username)
         data['propose_date'] = data['walk_date']
         data['privacy'] = "Bondhu"
         data['w_creator'] = user.id
         serializer = WalkSerializer(data=data)
+    
         if serializer.is_valid():
+            print(serializer)
             serializer.save()
             walk_member=WalkMember(walk_id=Walk.objects.get(walk_id=serializer.data['walk_id']),username=user,accept=1,cancel=0)
             walk_member.save()
@@ -1395,7 +1402,7 @@ class BlogCommentsView(APIView):
                     'author': blog.username.username,
                     'author_img': Owner.objects.get(username=blog.username).p_image.url if Owner.objects.get(username=blog.username).p_image else "/media/image/download_lsX6bjA6.jpeg",
                     'content': blog.comment,
-                    'time': blog.time,
+                    'time': blog.time.strftime('%Y-%m-%d %H:%M:%S'),
                     'blog': blog.blogid.blogid
                 }
                 blogs_data.append(blog_data)
@@ -1435,7 +1442,7 @@ class CommentCreateView(CreateAPIView):
             blog.save()
         return Response({"message": "Comment created successfully"}, status=status.HTTP_201_CREATED)
 
-
+#GOOD ONE
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
@@ -1449,14 +1456,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 class HTimeline(APIView):
     def get(self, request):
-        username=request.GET.get("username")
-        print(username)
-        user=User.objects.get(username=username)
-        print(user)
+        username = request.GET.get("username")
+        user = User.objects.get(username=username)
         user_blogs = Blog.objects.filter(author__username=username)
         user_comments = Comment.objects.filter(username__username=username)
 
-        user_content=[]
+        user_content = []
         for blog in user_blogs:
             user_content.append(blog.content)
         for comment in user_comments:
@@ -1476,7 +1481,6 @@ class HTimeline(APIView):
         # Calculate TF-IDF vectors
         vectorizer = TfidfVectorizer()
         tfidf_matrix = vectorizer.fit_transform(user_content + all_content)
-        print(tfidf_matrix)
 
         # Calculate cosine similarity
         user_tfidf = tfidf_matrix[:len(user_content)]
@@ -1487,22 +1491,31 @@ class HTimeline(APIView):
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
         sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
         # Retrieve sorted blogs
-        sorted_blogs = [all_blogs[i] for i in sorted_indices]
+        #sorted_blogs = [all_blogs[i] for i in sorted_indices]
+
+        # blogs_data = []
+        # for d in sorted_indices:
+        #     if(len(all_blogs)>d):
+        #         blog = all_blogs[d]
+        # sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
 
         blogs_data = []
-        for blog in sorted_blogs:
-            blog_data = {
-                'id': blog.blogid,
-                'author': blog.author.username,
-                'author_img': blog.author.p_image.url if blog.author.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'content': blog.content,
-                'post_date': blog.post_date,
-                'post_time': blog.post_time,
-                'blog_img': blog.blog_img.url if blog.blog_img else None,
-                'upvote': blog.upvote_set.count(),
-                'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
-            }
-            blogs_data.append(blog_data)
+        for idx in sorted_indices:
+            idx = int(idx)  # Convert idx to regular integer
+            if idx < len(all_blogs):
+                blog = all_blogs[idx]
+                blog_data = {
+                    'id': blog.blogid,
+                    'author': blog.author.username,
+                    'author_img': blog.author.p_image.url if blog.author.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                    'content': blog.content,
+                    'post_date': blog.post_date,
+                    'post_time': blog.post_time,
+                    'blog_img': blog.blog_img.url if blog.blog_img else None,
+                    'upvote': blog.upvote_set.count(),
+                    'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
+                }
+                blogs_data.append(blog_data)
 
         return Response(blogs_data)
 
@@ -1602,6 +1615,16 @@ class Handlemember(APIView):
                 members[0].accept=1
                 members[0].save()
                 return Response({"user": members[0].username.username})
+        if request.data['type'] == 'delete':
+            walk_id=request.data['walk_id']
+            user_id=request.data['id']
+            user=Owner.objects.get(id=user_id)
+            walk=Walk.objects.get(walk_id=walk_id)
+            members=WalkMember.objects.filter(walk_id=walk,username=user)
+            print(members)
+            if(len(members)>0):
+                members[0].delete()
+                return Response({"user": members[0].username.username})
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 from .models import Group
 class Add_group(APIView):
@@ -1646,7 +1669,7 @@ class GroupProfile(APIView):
             'username': group.G_username,
             'name': group.G_name,
              'img': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
-            'creator': group.Creator.username,
+            'admin': group.Creator.username,
             'created_date': group.CreatedDate,
             'privacy': group.Privacy,
             'topic': group.Topic,
@@ -1738,7 +1761,7 @@ class AddGroupPost(CreateAPIView):
         #print(blog_img)
         if blog_img is not None:
             blog = GroupPost.objects.create(
-                    G_username=Group.objects.get(G_username=data['gp']),
+                    G_username=Group.objects.get(G_username=data['group_username']),
                     p_username=user,
                     GPost_contents=data['content'],
                     GPost_date=data['post_date'],
@@ -1970,3 +1993,302 @@ class NIDText(APIView):
 
 #         except Exception as e:
 #             return JsonResponse({"error": str(e)}, status=500)
+from .models import Caregiver
+class CareGiver(APIView):
+    def get(self,request):
+        caregivers=Caregiver.objects.all()
+        caregivers_data=[]
+        for caregiver in caregivers:
+            caregivers_data.append({
+                'id': caregiver.caregiver_id,
+                'name': caregiver.name,
+                #'img': caregiver.img.url if caregiver.img else "/media/image/download_lsX6bjA6.jpeg",
+                'img': "media\images\download.jpeg",
+                #'email': caregiver.email,
+                'phone': caregiver.phone,
+               # 'dob': caregiver.dob,
+                 'Experience': caregiver.experience,
+                'gender': caregiver.gender,
+                'type':caregiver.type.type
+            })
+        print(caregivers_data)
+        return Response(caregivers_data)
+class EventListView(APIView):
+    def get(self, request):
+        events = Event.objects.all()
+        # Serialize the data
+        serialized_data = []
+        for event in events:
+            serialized_data.append({
+                'id': event.id,
+                'Description': event.Description,
+                'Event_title': event.Event_title,
+                'start_time': event.start_time,
+                'end_time': event.end_time,
+                'start_date': event.start_date,
+                'end_date': event.end_date,
+                'Address': event.Address,
+                'create_date': event.create_date,
+                'Approve': event.Approve,
+                'E_type': event.E_type,
+                'Image': event.Image.url if event.Image else "media\image\default.jpeg",
+                'E_creator': event.E_creator.username,  
+                'Thana': event.Thana.thana if event.Thana else None  
+            })
+        
+        return Response({"events": serialized_data, "message": "event information retrieved successfully"}, status=status.HTTP_200_OK)
+
+from .models import JoinEvent
+class EventMembers(APIView):
+    def get_age(self, dob):
+        today = datetime.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        return age
+
+    def get(self,request):
+        event_id=request.GET.get('id')
+        event=Event.objects.get(event_id_id=event_id)
+        members=JoinEvent.objects.filter(event_id_id=event_id,cancel=0,accept=1)
+        members_data=[]
+        print("ami hatar manush khuji akhon!")
+        for member in members:
+            members_data.append({
+                'id': member.username.id,
+                'username': member.username.username,
+                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.username.first_name,
+                'last_name': member.username.last_name,
+                'email': member.username.email,
+                'phone': member.username.phone,
+                'dob': self.get_age(member.username.dob),
+                'gender': member.username.gender
+            })
+        print(members_data)
+        return Response(members_data)
+    
+        return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
+
+class EventNotMember(APIView):
+    def get_age(self, dob):
+        today = datetime.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        return age 
+
+    def get(self,request):
+        event_id=request.GET.get('id')
+        event=Event.objects.get(event_id=event_id)
+        members=JoinEvent.objects.filter(event_id=event_id,accept=0)
+        print(members)
+        members_data=[]
+        print("moner mto kw nai!")
+        for member in members:
+            members_data.append({
+                'id': member.username.id,
+                'username': member.username.username,
+                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.username.first_name,
+                'last_name': member.username.last_name,
+                'email': member.username.email,
+                'phone': member.username.phone,
+                'dob': self.get_age(member.username.dob),
+                'gender': member.username.gender 
+            
+            })
+        print(members_data) 
+        return Response(members_data)
+
+class HandleEventmember(APIView):
+    def post(self,request):
+        if request.data['type'] == 'confirm':
+            event_id=request.data['event_id']
+            user_id=request.data['id']
+            user=Owner.objects.get(id=user_id)
+            event=Event.objects.get(event_id=event_id)
+            members=JoinEvent.objects.filter(event_id=event,username=user)
+            print(members)
+            if(len(members)>0):
+                members[0].accept=1
+                members[0].save()
+                return Response({"user": members[0].username.username})
+        if request.data['type'] == 'delete':
+            event_id=request.data['event_id']
+            user_id=request.data['id']
+            user=Owner.objects.get(id=user_id)
+            event=Event.objects.get(walk_id=walk_id)
+            members=JoinEvent.objects.filter(event_id=event,username=user)
+            print(members)
+            if(len(members)>0):
+                members[0].delete()
+                return Response({"user": members[0].username.username})
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class Event_request(APIView):
+    def post(self,request):
+        event_id=request.data['id']
+        username=request.data['username']
+        event=Event.objects.get(event_id=event_id)
+        bot=JoinEvent.objects.filter(event_id=event,username=Owner.objects.get(username=username))
+        if(len(bot)>0):
+            return Response({"user": bot[0].username.username})      
+        members=JoinEvent.objects.create(username=Owner.objects.get(username=username),event_id=Event.objects.get(event_id=event_id),cancel=0,accept=0)
+        members.save()
+        print("accept koro na?")
+        return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
+          
+class TripListView(APIView):
+    def get(self, request):
+        trips = Trip.objects.all()
+        # Serialize the data
+        serialized_data = []
+        for trip in trips:
+            serialized_data.append({
+                'TripID': trip.TripID,
+                'Location': trip.Location,
+                'start_date': trip.start_date,
+                'end_date': trip.end_date,
+                'propose_date': trip.propose_date,
+                'Privacy': trip.Privacy,
+                'Creator': trip.Creator.id,  
+                'Thana': trip.Thana.thana,  
+                'Guide': trip.Guide.id  
+            })
+        
+        return Response({"trips": serialized_data, "message": "Trip information retrieved successfully"}, status=status.HTTP_200_OK)
+
+from .models import TripMember
+class TripMembers(APIView):
+    def get_age(self, dob):
+        today = datetime.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        return age
+
+    def get(self,request):
+        trip_id=request.GET.get('id')
+        trip=TripMember.objects.get(trip_id=trip_id)
+        members=TripMember.objects.filter(trip_id=trip_id,cancel=0,accept=1)
+        members_data=[]
+        print("ami hatar manush khuji akhon!")
+        for member in members:
+            members_data.append({
+                'id': member.username.id,
+                'username': member.username.username,
+                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.username.first_name,
+                'last_name': member.username.last_name,
+                'email': member.username.email,
+                'phone': member.username.phone,
+                'dob': self.get_age(member.username.dob),
+                'gender': member.username.gender
+            })
+        print(members_data)
+        return Response(members_data)
+    
+        return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
+    
+class Trip_request(APIView):
+    def post(self,request):
+        trip_id=request.data['id']
+        username=request.data['username']
+        trip=Trip.objects.get(trip_id=trip_id)
+        bot=TripMember.objects.filter(trip_id=trip,username=Owner.objects.get(username=username))
+        if(len(bot)>0):
+            return Response({"user": bot[0].username.username})      
+        members=TripMember.objects.create(username=Owner.objects.get(username=username),trip_id=Trip.objects.get(trip_id=trip_id),cancel=0,accept=0)
+        members.save()
+        print("accept koro na?")
+        return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
+
+
+class TripNotMember(APIView):
+    def get_age(self, dob):
+        today = datetime.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        return age 
+
+    def get(self,request):
+        trip_id=request.GET.get('id')
+        trip=Trip.objects.get(trip_id=trip_id)
+        members=TripMember.objects.filter(trip_id=trip_id,accept=0)
+        print(members)
+        members_data=[]
+        print("moner mto kw nai!")
+        for member in members:
+            members_data.append({
+                'id': member.username.id,
+                'username': member.username.username,
+                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.username.first_name,
+                'last_name': member.username.last_name,
+                'email': member.username.email,
+                'phone': member.username.phone,
+                'dob': self.get_age(member.username.dob),
+                'gender': member.username.gender 
+            
+            })
+        print(members_data) 
+        return Response(members_data)
+
+class HandleTripmember(APIView):
+    def post(self,request):
+        if request.data['type'] == 'confirm':
+            trip_id=request.data['trip_id']
+            user_id=request.data['id']
+            user=Owner.objects.get(id=user_id)
+            trip=Trip.objects.get(trip_id=trip_id)
+            members=WalkMember.objects.filter(trip_id=trip,username=user)
+            print(members)
+            if(len(members)>0):
+                members[0].accept=1
+                members[0].save()
+                return Response({"user": members[0].username.username})
+        if request.data['type'] == 'delete':
+            trip_id=request.data['trip_id']
+            user_id=request.data['id']
+            user=Owner.objects.get(id=user_id)
+            trip=Trip.objects.get(trip_id=trip_id)
+            members=TripMember.objects.filter(trip_id=trip,username=user)
+            print(members)
+            if(len(members)>0):
+                members[0].delete()
+                return Response({"user": members[0].username.username})
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)        
+from .models import Medication
+
+class MedicationBox(APIView):
+    def get(self, request):
+        user=request.GET.get('username')
+        print(user)
+        user=Owner.objects.get(username=user)
+        medications=Medication.objects.filter(user=user)
+        medications_data=[]
+        for med in medications:
+            if(datetime.now().date()< med.meds_start_date) or (datetime.now().date()>med.meds_end_date):
+                print("time sesh")
+                continue
+            med_times = []
+            # Check the morning, noon, and night attributes and append corresponding times to med_times
+            if med.morning:
+                med_times.append('Morning')
+            if med.noon:
+                med_times.append('Noon')
+            if med.night:
+                med_times.append('Night')
+            medications_data.append({
+                'id': med.medication_id,
+                'name': med.med_name,
+                'dosage': med.dose,
+                'note': med.note,
+                'after': med.after,
+                'times':med_times,
+                'image': 'http://localhost:8000/media/d.png'
+            })
+        print(medications_data)
+        return Response(medications_data)
+    def post(self,request):
+        data=request.data
+        print(data)
+        print("ye kiya hogaye")
+        user=Owner.objects.get(username=data['user'])
+        med=Medication.objects.create(user=user,med_name=data['name'],note=data['note'],dose=data['dosage'],morning=1 if data['morning'] else 0,noon=1 if data['noon'] else 0,night=1 if data['night'] else 0,after=data['after'],meds_start_date=data['start_date'],meds_end_date=data['end_date'])
+        med.save()
+        return Response({"message": "Medication created successfully"}, status=status.HTTP_201_CREATED)

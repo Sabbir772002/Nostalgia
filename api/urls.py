@@ -9,7 +9,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
 
-urlpatterns = [
+urlpatterns=[
     path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
     path('orm', MyAPIView.as_view(), name='MyAPIView'),
     path('changepass', ChangePass.as_view(), name='changepass'),
@@ -61,12 +61,22 @@ urlpatterns = [
     path('requestmembers',views.RequestMembers.as_view(), name='requestmembers'),
     path('grouprequest',views.GroupRequest.as_view(), name='grouprequest'),
     path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
+    path('caregiver',views.CareGiver.as_view(), name='caregiver'),
+    path('medication',views.MedicationBox.as_view(), name='medication'),
     # path('nidtext',views.NIDText.as_view(), name='nidtext'),
     # path('nidimg',views.NIDImage.as_view(), name='nidimg'),
     # path('dnid',views.DecodeImageView.as_view(), name='dnid'),
-
+    path('event', views.EventListView.as_view(), name='event'),
+    path('eventmembers', views.EventMembers.as_view(), name='event_members'),
+    path('event_request', views.Event_request.as_view(), name='event_request'),
+    path('event!members', views.EventNotMember.as_view(), name='event!members'),
+    path('handle_eventmember', views.HandleEventmember.as_view(), name='handle_eventmember'),
+    path('trip', views.TripListView.as_view(), name='trip'),
+    path('tripmembers', views.TripMembers.as_view(), name='trip_members'),
+    path('trip_request', views.Trip_request.as_view(), name='trip_request'),
+    path('trip!members', views.TripNotMember.as_view(), name='trip!members'),
+    path('handle_tripmember', views.HandleTripmember.as_view(), name='handle_tripmember'),
+    #work done
 ]
-
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
