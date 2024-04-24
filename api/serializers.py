@@ -66,7 +66,8 @@ class OwnwerUpdateSerializer(UserSerializer):
 class OverseerSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Overseer
-        fields = UserSerializer.Meta.fields + ['Location', 'Relation']
+        fields = [field for field in UserSerializer.Meta.fields if field != 'thana'] + ['Location', 'Relation']
+
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)

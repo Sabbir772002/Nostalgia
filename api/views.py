@@ -156,8 +156,11 @@ class login_api(views.APIView):
             print(user)
             if user is not None:
                 login(request,user)
-                user=Owner.objects.get(username=username)
-                serializer = OwnerSerializer(user)
+                user=Owner.objects.filter(username=username)
+                if len(user) > 0:
+                    serializer = OwnerSerializer(user[0])
+                    return Response({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
+                serializer = OverseerSerializer(Overseer.objects.get(username=username))
 
                 return JsonResponse({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
         
@@ -1073,7 +1076,7 @@ class OverseerList(APIView):
                 'address': user.address,
                 'nid': user.nid,
                 'relation':user.Relation,
-                'thana': Thana.objects.get(id=user.thana_id).name,
+                #'thana': Thana.objects.get(thana=user.thana_id).thana,
             })
         
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
