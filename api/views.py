@@ -962,7 +962,6 @@ class FaceApiCompare:
             "image_base64_2": image_base64_2,
         }
 
-
         # Send POST request to Face++ API
         response = requests.post(self.URL, data=payload)
         if(response.json().get('error_message')):
@@ -975,9 +974,8 @@ class FaceApiCompare:
             result = "Match between two photos is successful with confidence: {:.2f}".format(confidence)
         else:
             result = "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
-
         return result
-    
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import base64
@@ -998,12 +996,13 @@ class CompareImagesView(APIView):
 
         if not (image_file1 and image_file2):
             return JsonResponse({'error': 'Missing image data in request'}, status=400)
+
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
-        image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\image_file2.jpg"
+        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
         image_base64_2=""
         response = requests.get(image_file2_url)
         if response.status_code == 200:
@@ -1188,9 +1187,6 @@ class BlogSingleView(APIView):
 
             return JsonResponse(blogs_data, safe=False)
 
-
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class BlogCreateView(CreateAPIView):
     #serializer_class = BlogSerializer
@@ -1221,7 +1217,7 @@ class BlogCreateView(CreateAPIView):
             )
             blog.save()
         return Response({"message": "Blog created successfully"}, status=status.HTTP_201_CREATED)
-    
+
 class PlanEventCreateAPIView(APIView):
     def post(self, request):
         fields = ['Description', 'Event_title', 'Event_start_time', 'Event_end_time',
@@ -1233,7 +1229,6 @@ class PlanEventCreateAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class PlanEventListAPIView(APIView):
     def get(self, request):
         events = PlanEvent.objects.all()
@@ -1491,7 +1486,15 @@ class HTimeline(APIView):
 
         # Sort blogs based on cosine similarity
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
-        sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
+        sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
+        # Retrieve sorted blogs
+        #sorted_blogs = [all_blogs[i] for i in sorted_indices]
+
+        # blogs_data = []
+        # for d in sorted_indices:
+        #     if(len(all_blogs)>d):
+        #         blog = all_blogs[d]
+        # sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
 
         blogs_data = []
         for idx in sorted_indices:
