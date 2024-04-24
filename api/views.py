@@ -118,12 +118,15 @@ class sign(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class _sign(views.APIView):
     def post(self, request):
-        # serializer = OverseerSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     user = serializer.save()
-        data=request.data   
-        overseer=Overseer(username=data['username'],password=data['password'],email=data['email'],phone=data['phone'],address=data['address'],nid=data['nid'],thana_id=data['thana_id']) 
-        return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
+        serializer = OverseerSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+        print(serializer.errors)
+        user.id=0 if user is None else user.id
+        # data=request.data   
+        # overseer=Overseer(username=data['username'],password=data['password'],email=data['email'],phone=data['phone'],address=data['address'],nid=data['nid'],thana_id=data['thana'])
+        # overseer.save()
+        return Response({"message": "User created successfully", "user_id":user.id}, status=status.HTTP_201_CREATED)
         # print(serializer.errors)
         # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -2251,9 +2254,9 @@ class HandleTripmember(APIView):
             if(len(members)>0):
                 members[0].delete()
                 return Response({"user": members[0].username.username})
-            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)        
-from .models import Medication
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)   
 
+from .models import Medication
 class MedicationBox(APIView):
     def get(self, request):
         user=request.GET.get('username')
