@@ -182,10 +182,15 @@ class Medication(models.Model):
     medication_id = models.AutoField(primary_key=True)
     meds_start_date = models.DateField()
     meds_end_date = models.DateField()
-    dose = models.IntegerField()
-    times = models.IntegerField()
+    dose = models.CharField(max_length=100)
+    after= models.IntegerField()
+    night= models.IntegerField()
+    morning = models.IntegerField()
+    noon = models.IntegerField()
+    note= models.CharField(max_length=255)
     user = models.ForeignKey(Owner, on_delete=models.CASCADE)
-    med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
+   # med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
+    med_name = models.CharField(max_length=255)
     def __str__(self):
         return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
 class Medicine(models.Model):

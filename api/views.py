@@ -120,12 +120,14 @@ class sign(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class _sign(views.APIView):
     def post(self, request):
-        serializer = OverseerSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # serializer = OverseerSerializer(data=request.data)
+        # if serializer.is_valid():
+        #     user = serializer.save()
+        data=request.data   
+        overseer=Overseer(username=data['username'],password=data['password'],email=data['email'],phone=data['phone'],address=data['address'],nid=data['nid'],thana_id=data['thana_id']) 
+        return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
+        # print(serializer.errors)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from django.contrib.auth import authenticate, login
 
@@ -2010,3 +2012,43 @@ class CareGiver(APIView):
             })
         print(caregivers_data)
         return Response(caregivers_data)
+from .models import Medication
+
+class MedicationBox(APIView):
+    def get(self, request):
+        user=request.GET.get('username')
+        print(user)
+        user=Owner.objects.get(username=user)
+        medications=Medication.objects.filter(user=user)
+        medications_data=[]
+        for med in medications:
+            if(datetime.now().date()< med.meds_start_date) or (datetime.now().date()>med.meds_end_date):
+                print("time sesh")
+                continue
+            med_times = []
+            # Check the morning, noon, and night attributes and append corresponding times to med_times
+            if med.morning:
+                med_times.append('Morning')
+            if med.noon:
+                med_times.append('Noon')
+            if med.night:
+                med_times.append('Night')
+            medications_data.append({
+                'id': med.medication_id,
+                'name': med.med_name,
+                'dosage': med.dose,
+                'note': med.note,
+                'after': med.after,
+                'times':med_times,
+                'image': 'http://localhost:8000/media/d.png'
+            })
+        print(medications_data)
+        return Response(medications_data)
+    def post(self,request):
+        data=request.data
+        print(data)
+        print("ye kiya hogaye")
+        user=Owner.objects.get(username=data['user'])
+        med=Medication.objects.create(user=user,med_name=data['name'],note=data['note'],dose=data['dosage'],morning=1 if data['morning'] else 0,noon=1 if data['noon'] else 0,night=1 if data['night'] else 0,after=data['after'],meds_start_date=data['start_date'],meds_end_date=data['end_date'])
+        med.save()
+        return Response({"message": "Medication created successfully"}, status=status.HTTP_201_CREATED)
