@@ -62,9 +62,11 @@ urlpatterns=[
     path('grouprequest',views.GroupRequest.as_view(), name='grouprequest'),
     path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
     path('caregiver',views.CareGiver.as_view(), name='caregiver'),
+    path('medication',views.MedicationBox.as_view(), name='medication'),
     # path('nidtext',views.NIDText.as_view(), name='nidtext'),
     # path('nidimg',views.NIDImage.as_view(), name='nidimg'),
     # path('dnid',views.DecodeImageView.as_view(), name='dnid'),
+<<<<<<< HEAD
     path('event', views.EventListView.as_view(), name='event'),
     path('eventmembers', views.EventMembers.as_view(), name='event_members'),
     path('event_request', views.Event_request.as_view(), name='event_request'),
@@ -76,7 +78,9 @@ urlpatterns=[
     path('trip!members', views.TripNotMember.as_view(), name='trip!members'),
     path('handle_tripmember', views.HandleTripmember.as_view(), name='handle_tripmember'),
     #work doneZZ
+=======
+    #work done
+>>>>>>> 6ee4143f1625114952106da4976f60b6f6fd1155
 ]
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
