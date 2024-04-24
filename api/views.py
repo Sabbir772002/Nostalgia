@@ -2294,3 +2294,4 @@ class MedicationBox(APIView):
         med=Medication.objects.create(user=user,med_name=data['name'],note=data['note'],dose=data['dosage'],morning=1 if data['morning'] else 0,noon=1 if data['noon'] else 0,night=1 if data['night'] else 0,after=data['after'],meds_start_date=data['start_date'],meds_end_date=data['end_date'])
         med.save()
         return Response({"message": "Medication created successfully"}, status=status.HTTP_201_CREATED)
+        
