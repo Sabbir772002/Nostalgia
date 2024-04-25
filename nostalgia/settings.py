@@ -28,11 +28,13 @@ DEBUG = True
 
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "web",
     "api",
+    'channels',
+    'rest_framework_simplejwt.token_blacklist',
+    'rest_framework',
     'corsheaders',
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -110,6 +112,7 @@ DATABASES = {
         'HOST': 'localhost',    # Or your MySQL host address
         'PORT': '3306',         # Or your MySQL port
     }
+
 }
 
 
@@ -130,7 +133,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
