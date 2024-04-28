@@ -118,12 +118,15 @@ class sign(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class _sign(views.APIView):
     def post(self, request):
-        # serializer = OverseerSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     user = serializer.save()
-        data=request.data   
-        overseer=Overseer(username=data['username'],password=data['password'],email=data['email'],phone=data['phone'],address=data['address'],nid=data['nid'],thana_id=data['thana_id']) 
-        return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
+        serializer = OverseerSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+        print(serializer.errors)
+        user.id=0 if user is None else user.id
+        # data=request.data   
+        # overseer=Overseer(username=data['username'],password=data['password'],email=data['email'],phone=data['phone'],address=data['address'],nid=data['nid'],thana_id=data['thana'])
+        # overseer.save()
+        return Response({"message": "User created successfully", "user_id":user.id}, status=status.HTTP_201_CREATED)
         # print(serializer.errors)
         # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1005,7 +1008,7 @@ class CompareImagesView(APIView):
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
-        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+        image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\2_FpHsaZL.png"
         image_base64_2=""
         response = requests.get(image_file2_url)
         if response.status_code == 200:
@@ -1455,6 +1458,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 class HTimeline(APIView):
+    
     def get(self, request):
         username = request.GET.get("username")
         user = User.objects.get(username=username)
@@ -1467,43 +1471,124 @@ class HTimeline(APIView):
         for comment in user_comments:
             user_content.append(comment.comment)
 
-        # Get all blogs excluding the user's blogs
-        all_blogs = Blog.objects.exclude(author__username=username)
-        # Combine the content of all blogs and comments
-        all_content = []
-        for blog in all_blogs:
-            all_content.append(blog.content)
-            # Also consider comments associated with this blog
-            comments = Comment.objects.filter(blogid=blog.blogid)
-            for comment in comments:
-                all_content.append(comment.comment)
+        # # Get all blogs excluding the user's blogs
+        # all_blogs = Blog.objects.exclude(author__username=username)
+        # # Combine the content of all blogs and comments
+        # all_content = []
+        # print(len(all_blogs))
+        # for blog in all_blogs:
+        #     all_content.append(blog.content)
+        #     # Also consider comments associated with this blog
+        #     comments = Comment.objects.filter(blogid=blog.blogid)
+        #     for comment in comments:
+        #         all_content.append(comment.comment)
 
-        # Calculate TF-IDF vectors
-        vectorizer = TfidfVectorizer()
-        tfidf_matrix = vectorizer.fit_transform(user_content + all_content)
+        # # Calculate TF-IDF vectors
+        # vectorizer = TfidfVectorizer()
+        # tfidf_matrix = vectorizer.fit_transform(user_content + all_content)
 
-        # Calculate cosine similarity
-        user_tfidf = tfidf_matrix[:len(user_content)]
-        all_tfidf = tfidf_matrix[len(user_content):]
-        similarity_matrix = cosine_similarity(user_tfidf, all_tfidf)
+        # # Calculate cosine similarity
+        # user_tfidf = tfidf_matrix[:len(user_content)]
+        # all_tfidf = tfidf_matrix[len(user_content):]
+        # similarity_matrix = cosine_similarity(user_tfidf, all_tfidf)
 
-        # Sort blogs based on cosine similarity
-        similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
-        sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
-        # Retrieve sorted blogs
-        #sorted_blogs = [all_blogs[i] for i in sorted_indices]
+        # # Sort blogs based on cosine similarity
+        # similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
+        # sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
+        # # Retrieve sorted blogs
+        # #sorted_blogs = [all_blogs[i] for i in sorted_indices]
+
+
+
+
 
         # blogs_data = []
         # for d in sorted_indices:
         #     if(len(all_blogs)>d):
         #         blog = all_blogs[d]
         # sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
+        def preprocess_text(text):
+            return text
+
+        def combine_text(posts):
+            combined_text = ''
+            for post in posts:
+                combined_text += post.content + ' '
+            return combined_text
+        def combine_cmnt(posts):
+            combined_text = ''
+            for post in posts:
+                combined_text += post.comment + ' '
+            return combined_text
+        def combine_gp(posts):
+            combined_text = ''
+            for post in posts:
+                combined_text += post.GPost_contents + ' '
+            return combined_text
+        all_blog_posts = Blog.objects.all()
+        all_comments = Comment.objects.all()
+        all_group_posts = GroupPost.objects.all()
+        # Combine text from all posts
+        all_posts_text = combine_text(all_blog_posts) + combine_cmnt(all_comments) + combine_gp(all_group_posts)
+
+        # Preprocess all posts text
+        all_posts_text = preprocess_text(all_posts_text)
+
+        # Calculate TF-IDF vectors for all posts
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform([all_posts_text])
+
+        # Retrieve the posts of the given user
+        user_blog_posts = Blog.objects.filter(author=user)
+        user_comments = Comment.objects.filter(username=user)
+        user_group_posts = GroupPost.objects.filter(p_username=user)
+
+        # Combine text from the user's posts
+        user_posts_text = combine_text(user_blog_posts) + combine_text(user_comments) + combine_text(user_group_posts)
+
+        # Preprocess the user's posts text
+        user_posts_text = preprocess_text(user_posts_text)
+        print(user_posts_text)
+
+        # Calculate TF-IDF vectors for the user's posts
+        user_tfidf = vectorizer.transform([user_posts_text])
+
+        # Calculate cosine similarity between the user's posts and all other posts
+        similarities = []
+        for post in all_blog_posts:
+            post_text = combine_text([post])
+            post_text = preprocess_text(post_text)
+            post_tfidf = vectorizer.transform([post_text])
+            similarity = cosine_similarity(user_tfidf, post_tfidf)[0][0]
+            similarities.append((post, similarity))
+
+        # Sort posts based on similarity scores
+        sorted_posts = sorted(similarities, key=lambda x: x[1], reverse=True)
+        sorted_posts = [post for post, similarity in sorted_posts]
+        # for post in sorted_posts:
+        #     print(post.blogid)
+
+        # # sorted_posts, _ = zip(*sorted_posts)
+        print("jassetai")
+        # print(sorted_posts) 
+
 
         blogs_data = []
-        for idx in sorted_indices:
-            idx = int(idx)  # Convert idx to regular integer
-            if idx < len(all_blogs):
-                blog = all_blogs[idx]
+        for post in sorted_posts:
+        # for idx in sorted_indices:
+        #     idx = int(idx)  # Convert idx to regular integer
+        #     if idx < len(all_blogs):
+        #         blog = all_blogs[idx]
+                #print(post.blogid)
+                blog=Blog.objects.filter(blogid=post.blogid)
+                if(blog[0] is None):
+                    continue
+                else:
+                    blog=blog[0]
+                # print(blog.blogid)
+                if(post.author.username==username):
+                    continue
+
                 blog_data = {
                     'id': blog.blogid,
                     'author': blog.author.username,
@@ -2251,9 +2336,9 @@ class HandleTripmember(APIView):
             if(len(members)>0):
                 members[0].delete()
                 return Response({"user": members[0].username.username})
-            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)        
-from .models import Medication
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)   
 
+from .models import Medication
 class MedicationBox(APIView):
     def get(self, request):
         user=request.GET.get('username')
