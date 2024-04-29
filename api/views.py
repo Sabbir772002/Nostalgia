@@ -599,7 +599,6 @@ class FriendSuggestion(APIView):
         
         # Sort users based on similarity scores
         sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
-        
         # Prepare response
         serialized_data = []
         for sorted_user, similarity_score in sorted_users:
@@ -663,10 +662,8 @@ class FriendSugg(APIView):
 
     def get(self, request):
         userid = request.GET.get('user_id')
-
         # Retrieve the user
         user = Owner.objects.get(username=userid)
-        
         # Retrieve the IDs of the user's friends where user1 is the given user
         friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
         # Retrieve the IDs of the user's friends where user2 is the given user
@@ -768,6 +765,14 @@ class Profile(APIView):
                    user2=Owner.objects.get(username=user2)
             else:
                 user2=user
+            from .models import Verified
+            b=Verified.objects.filter(user=Owner.objects.get(username=username))
+            if len(b)>0:
+                b=b[0]
+            else:
+                b=None
+            v=1 if b is not None else 0
+
             user={
                 'id': user.id,
                 'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
@@ -789,7 +794,8 @@ class Profile(APIView):
                 'good': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                 'status': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                  'img_privacy': 0,
-                 'walk_type':user.walk_type
+                 'walk_type':user.walk_type,
+                 'verify':1 if b is not None and b.verified==1 else 0,
             }
             print(user)
            
@@ -975,13 +981,8 @@ class FaceApiCompare:
         response_json = response.json()
         # Process the response and return the result
         confidence = response_json.get('confidence', 0)
-        threshold = 50
-        if confidence >= threshold:
-            result = "Match between two photos is successful with confidence: {:.2f}".format(confidence)
-        else:
-            result = "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
-        return Response({"result": result,"conf": confidence},  status=status.HTTP_200_OK)
-    
+        return confidence
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import base64
@@ -1014,7 +1015,7 @@ class CompareImagesView(APIView):
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
         print(image_file2_url)
-        image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\2_FpHsaZL.png"
+        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
         image_base64_2=""
         response = requests.get(image_file2_url)
         if response.status_code == 200:
@@ -1032,6 +1033,60 @@ class CompareImagesView(APIView):
 
         result = face_api_compare.compare_images(image_base64_1, image_base64_2)
 
+        # Return the comparison result as JSON response
+        return JsonResponse({'result': result})
+        
+class CompareImages(APIView):
+      def post(self, request, *args, **kwargs):
+        # Get image data from the POST request
+        print(request.data)
+        # image_file2 = request.FILES.get('image2')
+        image_file2 = request.data['image2']
+        image_file1 = request.data['image1']
+        if(image_file1 is not None):
+            print("image1")
+        if(image_file2 is not None):
+            print(image_file2)
+        if not (image_file1 and image_file2):
+            return JsonResponse({'error': 'Missing image data in request'}, status=400)
+        
+        image_file1_url = "http://localhost:8000" + image_file2
+        print(image_file1_url)
+        image_file1_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+        image_base64_1=""
+        response = requests.get(image_file1_url)
+        if response.status_code == 200:
+            # Save the image file
+            with open(image_file1_path, "wb") as f:
+                f.write(response.content)
+                print("Image file saved successfully.")
+            
+            # Convert the saved image file to base64
+            with open(image_file1_path, "rb") as f:
+                image_base64_1 = base64.b64encode(f.read()).decode('utf-8')
+        # Perform image comparison using FaceApiCompare class method
+        if not image_base64_1:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+        # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
+        # Download and save the second image file
+        image_file2_url = "http://localhost:8000" + image_file2
+        print(image_file2_url)
+        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+        image_base64_2=""
+        response = requests.get(image_file2_url)
+        if response.status_code == 200:
+            # Save the image file
+            with open(image_file2_path, "wb") as f:
+                f.write(response.content)
+                print("Image file saved successfully.")
+            # Convert the saved image file to base64
+            with open(image_file2_path, "rb") as f:
+                image_base64_2 = base64.b64encode(f.read()).decode('utf-8')
+        # Perform image comparison using FaceApiCompare class method
+        if not image_base64_2:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+
+        result = face_api_compare.compare_images(image_base64_1, image_base64_2)
         # Return the comparison result as JSON response
         return JsonResponse({'result': result})
 
@@ -1923,27 +1978,20 @@ import io
 import easyocr
 import cv2
 import re
-
 class NIDImage(APIView):
     def post(self,request):
 
         def compare_nid(image1, image2):
-            url = 'http://127.0.0.1:8000/compare'
-
-            files = {
-                'image1': image2
-            }
+            url = 'http://127.0.0.1:8000/comparenid'
             try:
-                response = requests.post(url, files=files, data={'image2': "/media/"+image1})
+                response = requests.post(url, data={'image2': "/media/"+image1,'image1': image2})
                 response.raise_for_status()  # Raise an exception for HTTP errors
                 print('Upload success:', response.json())
-                return response.json().get('conf')
+                return response.json().get('result')
                 # Handle success (e.g., show a success message)
             except requests.exceptions.RequestException as e:
                 print('Error uploading images:', e)
-                # Handle error (e.g., show an error message)
-
-
+            return 0
 
         def match(str1, str2):
             m = len(str1)
@@ -1990,110 +2038,115 @@ class NIDImage(APIView):
             else:
               return Response({"msg": "NID doesnt found"})
         text = []
-        if isinstance(img, InMemoryUploadedFile):
-            # Read the file content as bytes
-            image_bytes = img.read()
-            # Convert bytes to numpy array
-            nparr = np.frombuffer(image_bytes, np.uint8)
-            # Load image using OpenCV
-            img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            # Process the image with EasyOCR
-            reader = easyocr.Reader(['en', 'bn'], gpu=True)
-            result = reader.readtext(img_cv)
+        try:
+            if isinstance(img, InMemoryUploadedFile):
+                # Read the file content as bytes
+                image_bytes = img.read()
+                # Convert bytes to numpy array
+                nparr = np.frombuffer(image_bytes, np.uint8)
+                # Load image using OpenCV
+                img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                # Process the image with EasyOCR
+                reader = easyocr.Reader(['en', 'bn'], gpu=True)
+                result = reader.readtext(img_cv)
 
-            # Continue with processing the result
-            # with open("nid.txt", 'w', encoding='utf-8') as f:
-            #     for detection in result:
-            #         text.append(detection[1])
-            #         f.write(detection[1])
-            #         f.write('\n')
-            #         print(detection[1])
-            #     f.close()
-            for detection in result:
-                #print(detection[1])
-                text.append(detection[1])
-            text = ' '.join(text)
-            # Define regular expressions to extract name, date of birth, and ID number
-            # name_pattern = r'Name:\s*(.+?)\s+'
-            # dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
-            # id_pattern = r'ID NO:\s*(\d+)'
-            name_pattern = r'[Nn][Aa][Mm][Ee]?\s*[: ]\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s+'
-            dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
-            id_pattern = r'(?:ID|NO)s*[: ]\s*(\d+)'
-            # Extract name
-            name_match = re.search(name_pattern, text)
-            if name_match:
-                name = name_match.group(1)
+                # Continue with processing the result
+                # with open("nid.txt", 'w', encoding='utf-8') as f:
+                #     for detection in result:
+                #         text.append(detection[1])
+                #         f.write(detection[1])
+                #         f.write('\n')
+                #         print(detection[1])
+                #     f.close()
+                for detection in result:
+                    #print(detection[1])
+                    text.append(detection[1])
+                text = ' '.join(text)
+                # Define regular expressions to extract name, date of birth, and ID number
+                # name_pattern = r'Name:\s*(.+?)\s+'
+                # dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
+                # id_pattern = r'ID NO:\s*(\d+)'
+                name_pattern = r'[Nn][Aa][Mm][Ee]?\s*[: ]\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s+'
+                dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
+                id_pattern = r'(?:ID|NO)s*[: ]\s*(\d+)'
+                # Extract name
+                name_match = re.search(name_pattern, text)
+                if name_match:
+                    name = name_match.group(1)
+                    
+                # Extract date of birth
+                dob_match = re.search(dob_pattern, text)
+                if dob_match:
+                    dob = dob_match.group(1)
+                # Extract ID number
+                id_match = re.search(id_pattern, text)
+                if id_match:
+                    id= id_match.group(1)
+                # Concatenate the extracted information into one string
+                # result = name + ' ' + dob + ' ' + id
+                # print(result)
                 
-            # Extract date of birth
-            dob_match = re.search(dob_pattern, text)
-            if dob_match:
-                dob = dob_match.group(1)
-            # Extract ID number
-            id_match = re.search(id_pattern, text)
-            if id_match:
-                id= id_match.group(1)
+                # name_pattern = r'STUDENT\s+NAME\s+(.*)'
+                # dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
+                # nationality_pattern = r'NATIONALITY\s+(.*)'
 
-            # Concatenate the extracted information into one string
-            # result = name + ' ' + dob + ' ' + id
-            # print(result)
-            print(name)
-            print(id)
+                # # Initialize variables to store extracted information
+                # student_name = None
+                # date_of_birth = None
+                # nationality = None
+                # # Iterate through detected text and apply regex patterns
+                # for line in text:
+                #     name_match = re.match(name_pattern, line)
+                #     if name_match:
+                #         student_name = name_match.group(1).strip()
+                    
+                #     dob_match = re.match(dob_pattern, line)
+                #     if dob_match:
+                #         date_of_birth = dob_match.group(1).strip()
+                    
+                #     nationality_match = re.match(nationality_pattern, line)
+                #     if nationality_match:
+                #         nationality = nationality_match.group(1).strip()
 
-            
-            # name_pattern = r'STUDENT\s+NAME\s+(.*)'
-            # dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
-            # nationality_pattern = r'NATIONALITY\s+(.*)'
+                # # Print the extracted information
+                # print("Student Name: ", student_name)
+                # print("Date of Birth: ", date_of_birth)
+                # print("Nationality: ", nationality)
 
-            # # Initialize variables to store extracted information
-            # student_name = None
-            # date_of_birth = None
-            # nationality = None
-            # # Iterate through detected text and apply regex patterns
-            # for line in text:
-            #     name_match = re.match(name_pattern, line)
-            #     if name_match:
-            #         student_name = name_match.group(1).strip()
-                
-            #     dob_match = re.match(dob_pattern, line)
-            #     if dob_match:
-            #         date_of_birth = dob_match.group(1).strip()
-                
-            #     nationality_match = re.match(nationality_pattern, line)
-            #     if nationality_match:
-            #         nationality = nationality_match.group(1).strip()
+            else:
+                # If img is a file path or URL
+                IMAGE_PATH = img
+                reader = easyocr.Reader(['en', 'bn'], gpu=True)
+                result = reader.readtext(IMAGE_PATH)
+        except catch(e):
+              return Response({"message": "NID Not Matched"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # # Print the extracted information
-            # print("Student Name: ", student_name)
-            # print("Date of Birth: ", date_of_birth)
-            # print("Nationality: ", nationality)
-
-        else:
-            # If img is a file path or URL
-            IMAGE_PATH = img
-            reader = easyocr.Reader(['en', 'bn'], gpu=True)
-            result = reader.readtext(IMAGE_PATH)
         # print(text)
         user=Owner.objects.get(username=user)
         uname=user.first_name+" "+user.last_name
-        # mtn=match((user.first_name+" "+user.last_name).lower(),name.lower())
-        # mti=match(user.nid,id)
-        # print(mti)
-        # print(mtn)
-        mti=100
-        mtn=100
-        if(mti>=9 and mtn>=len(uname)-2):
+        mtn=match((user.first_name+" "+user.last_name).lower(),name.lower())
+        mti=match(user.nid,id)
+        if(mti>=9 and mtn>=(len(uname)-(len(uname)//6))):
                 print(str(user.p_image))
-                image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\2_FpHsaZL.png"
-                image_base64_2=""
-                with open(img, "wb") as f:
-                    f.write(img.read())
-                    print("Image file saved successfully.")
-
-                to=compare_nid(str(user.p_image),db)
-                if(to>=70):
-                       return Response({"msg": "Nid matched successfully"})
-        return Response({"message": "NID Not Matched"}, status=status.HTTP_201_CREATED)
+                image_file2_path = r"D:\Django\Sad\Nostalgia\media\1.png"
+                with open(image_file2_path, "wb") as f:
+                    for chunk in img.chunks():
+                        f.write(chunk)
+                    print("Image file saved(1) successfully.")
+                to=compare_nid(str(user.p_image),"\media\image\1_6xohGA6.png")
+                print("ye mera kam hoyae ga")
+                print(to)
+                if(int(to)>=70):
+                    from .models import Verified
+                    if(Verified.objects.filter(user=user).exists()):
+                        v=Verified.objects.get(user=user)
+                        v.verified=1
+                        v.save()
+                    else:
+                        v=Verified.objects.create(user=user,verified=1)
+                        v.save()
+                    return Response({"msg": "Nid Verified successfully"},status=status.HTTP_201_CREATED)
+        return Response({"message": "NID Not Matched"}, status=status.HTTP_400_BAD_REQUEST)
 
 class NIDText(APIView):
     def post(self,request):
@@ -2104,8 +2157,6 @@ class NIDText(APIView):
         nid=NID.objects.create(NID_number=data['nid'],NID_text=data['text'])
         nid.save()
         return Response({"message": "NID created successfully"}, status=status.HTTP_201_CREATED)
-
-
 
 # from django.http import JsonResponse
 # from django.views import View
@@ -2180,7 +2231,7 @@ class EventListView(APIView):
         serialized_data = []
         for event in events:
             serialized_data.append({
-                'id': event.id,
+                'id': event.EventID,
                 'Description': event.Description,
                 'Event_title': event.Event_title,
                 'start_time': event.start_time,
@@ -2193,35 +2244,58 @@ class EventListView(APIView):
                 'E_type': event.E_type,
                 'Image': event.Image.url if event.Image else "media\image\default.jpeg",
                 'E_creator': event.E_creator.username,  
-                'Thana': event.Thana.thana if event.Thana else None  
+                'privacy':event.privacy,
+                'Thana': event.Thana.thana if event.Thana else None ,
+                'Member' : 1 if JoinEvent.objects.filter(EventID=event,Member=Owner.objects.get(username=request.GET.get('username'))).exists() else 0 
             })
-        
+        print(serialized_data)
         return Response({"events": serialized_data, "message": "event information retrieved successfully"}, status=status.HTTP_200_OK)
-
+    def post(self,request):
+        user=Owner.objects.get(username=request.data["e_creator"])
+        data=request.data
+        print("ay to he event ayegi...")
+        print(data)
+        event = Event.objects.create(
+            E_creator=Owner.objects.get(username=data['e_creator']),
+            Event_title=data['title'],
+            start_date=data['start_date'],
+            create_date=data['create_date'],
+            end_date=data['end_date'],
+            privacy=data['privacy'],
+            Address=data['address'],
+            Approve=1,  # Assuming this is a boolean field indicating approval
+            start_time=data['start_time'],  # Fixing the syntax here
+            end_time=data['end_time'],
+            Description=data['Description'],  # Fixing the typo in 'Description'
+            E_type=data['type'],
+            Thana=Thana.objects.get(thana=data['thana'])  # Assuming 'thana' is a foreign key to Thana model
+        )
+        event.save()
+        print("ye he to hamari...")
+        return Response({"message": "Event Created successfully"}, status=status.HTTP_200_OK)
 from .models import JoinEvent
 class EventMembers(APIView):
     def get_age(self, dob):
         today = datetime.today()
         age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
         return age
-
     def get(self,request):
         event_id=request.GET.get('id')
-        event=Event.objects.get(event_id_id=event_id)
-        members=JoinEvent.objects.filter(event_id_id=event_id,cancel=0,accept=1)
+        event=Event.objects.get(EventID=event_id)
+        members=JoinEvent.objects.filter(EventID=event_id,cancel=0)
         members_data=[]
         print("ami hatar manush khuji akhon!")
         for member in members:
             members_data.append({
-                'id': member.username.id,
-                'username': member.username.username,
-                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.username.first_name,
-                'last_name': member.username.last_name,
-                'email': member.username.email,
-                'phone': member.username.phone,
-                'dob': self.get_age(member.username.dob),
-                'gender': member.username.gender
+                'id': member.Member.id,
+                'username': member.Member.username,
+                'img': member.Member.p_image.url if member.Member.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.Member.first_name,
+                'last_name': member.Member.last_name,
+                'email': member.Member.email,
+                'phone': member.Member.phone,
+                'dob': self.get_age(member.Member.dob),
+                'gender': member.Member.gender
             })
         print(members_data)
         return Response(members_data)
@@ -2286,11 +2360,11 @@ class Event_request(APIView):
     def post(self,request):
         event_id=request.data['id']
         username=request.data['username']
-        event=Event.objects.get(event_id=event_id)
-        bot=JoinEvent.objects.filter(event_id=event,username=Owner.objects.get(username=username))
+        event=Event.objects.get(EventID=event_id)
+        bot=JoinEvent.objects.filter(EventID=event,Member=Owner.objects.get(username=username))
         if(len(bot)>0):
             return Response({"user": bot[0].username.username})      
-        members=JoinEvent.objects.create(username=Owner.objects.get(username=username),event_id=Event.objects.get(event_id=event_id),cancel=0,accept=0)
+        members=JoinEvent.objects.create(Member=Owner.objects.get(username=username),EventID=Event.objects.get(EventID=event_id),cancel=0,Approve=1)
         members.save()
         print("accept koro na?")
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
