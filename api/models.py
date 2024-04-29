@@ -328,6 +328,7 @@ class Event(models.Model):
     create_date = models.DateField()
     Approve = models.IntegerField()
     E_type = models.CharField(max_length=255)
+    privacy = models.CharField(max_length=255)
     Image = models.ImageField(upload_to='Eventimage/', null=True)
     E_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)

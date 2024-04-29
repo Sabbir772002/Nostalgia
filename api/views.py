@@ -2095,8 +2095,6 @@ class NIDImage(APIView):
                        return Response({"msg": "Nid matched successfully"})
         return Response({"message": "NID Not Matched"}, status=status.HTTP_201_CREATED)
 
-
-
 class NIDText(APIView):
     def post(self,request):
         data=request.data
