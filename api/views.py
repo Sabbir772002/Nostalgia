@@ -977,8 +977,8 @@ class FaceApiCompare:
             result = "Match between two photos is successful with confidence: {:.2f}".format(confidence)
         else:
             result = "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
-        return result
-
+        print(confidence)
+        return JsonResponse({"result": result,"conf": confidence},  status=status.HTTP_200_OK)
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import base64
@@ -993,18 +993,24 @@ face_api_compare = FaceApiCompare()
 class CompareImagesView(APIView):
       def post(self, request, *args, **kwargs):
         # Get image data from the POST request
+        print(request.data)
         image_file1 = request.FILES.get('image1')
         # image_file2 = request.FILES.get('image2')
         image_file2 = request.data['image2']
+        if(image_file1 is not None):
+            print("image1")
+        if(image_file2 is not None):
+            print(image_file2)
 
         if not (image_file1 and image_file2):
             return JsonResponse({'error': 'Missing image data in request'}, status=400)
-
+        
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
+        print(image_file2_url)
         image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
         image_base64_2=""
         response = requests.get(image_file2_url)
@@ -1025,6 +1031,62 @@ class CompareImagesView(APIView):
 
         # Return the comparison result as JSON response
         return JsonResponse({'result': result})
+        
+class CompareImages(APIView):
+      def post(self, request, *args, **kwargs):
+        # Get image data from the POST request
+        print(request.data)
+        # image_file2 = request.FILES.get('image2')
+        image_file2 = request.data['image2']
+        image_file1 = request.data['image1']
+        if(image_file1 is not None):
+            print("image1")
+        if(image_file2 is not None):
+            print(image_file2)
+        if not (image_file1 and image_file2):
+            return JsonResponse({'error': 'Missing image data in request'}, status=400)
+        
+        image_file1_url = "http://localhost:8000" + image_file2
+        print(image_file1_url)
+        image_file1_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+        image_base64_1=""
+        response = requests.get(image_file1_url)
+        if response.status_code == 200:
+            # Save the image file
+            with open(image_file1_path, "wb") as f:
+                f.write(response.content)
+                print("Image file saved successfully.")
+            
+            # Convert the saved image file to base64
+            with open(image_file1_path, "rb") as f:
+                image_base64_1 = base64.b64encode(f.read()).decode('utf-8')
+        # Perform image comparison using FaceApiCompare class method
+        if not image_base64_1:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+        # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
+        # Download and save the second image file
+        image_file2_url = "http://localhost:8000" + image_file2
+        print(image_file2_url)
+        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+        image_base64_2=""
+        response = requests.get(image_file2_url)
+        if response.status_code == 200:
+            # Save the image file
+            with open(image_file2_path, "wb") as f:
+                f.write(response.content)
+                print("Image file saved successfully.")
+            # Convert the saved image file to base64
+            with open(image_file2_path, "rb") as f:
+                image_base64_2 = base64.b64encode(f.read()).decode('utf-8')
+        # Perform image comparison using FaceApiCompare class method
+        if not image_base64_2:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+
+        result = face_api_compare.compare_images(image_base64_1, image_base64_2)
+        print(result)
+
+        # Return the comparison result as JSON response
+        return result.conf
 
 
 class WalkingBuddyList(APIView):
@@ -1442,7 +1504,6 @@ class CommentCreateView(CreateAPIView):
             blog.save()
         return Response({"message": "Comment created successfully"}, status=status.HTTP_201_CREATED)
 
-#GOOD ONE
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
@@ -1455,6 +1516,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 class HTimeline(APIView):
+    
     def get(self, request):
         username = request.GET.get("username")
         user = User.objects.get(username=username)
@@ -1490,19 +1552,70 @@ class HTimeline(APIView):
         # Sort blogs based on cosine similarity
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
         sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
-        # Retrieve sorted blogs
-        #sorted_blogs = [all_blogs[i] for i in sorted_indices]s
-        # blogs_data = []
-        # for d in sorted_indices:
-        #     if(len(all_blogs)>d):
-        #         blog = all_blogs[d]
-        # sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
+
+        def preprocess_text(text):
+            return text
+
+        def combine_text(posts):
+            combined_text = ''
+            for post in posts:
+                if isinstance(post, Blog):
+                    combined_text += post.content + ' '
+                elif isinstance(post, Comment):
+                    combined_text += post.comment + ' '  # Adjust this according to your Comment model
+                elif isinstance(post, GroupPost):
+                    combined_text += post.GPost_contents + ' '
+            return combined_text
+
+        all_blog_posts = Blog.objects.all()
+        all_comments = Comment.objects.all()
+        all_group_posts = GroupPost.objects.all()
+
+        # Combine text from all posts
+        all_posts_text = combine_text(all_blog_posts) + combine_text(all_comments) + combine_text(all_group_posts)
+
+        # Preprocess all posts text
+        all_posts_text = preprocess_text(all_posts_text)
+
+        # Calculate TF-IDF vectors for all posts
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform([all_posts_text])
+
+        # Retrieve the posts of the given user
+        user_blog_posts = Blog.objects.filter(author=user)
+        user_comments = Comment.objects.filter(username=user)
+        user_group_posts = GroupPost.objects.filter(p_username=user)
+
+        # Combine text from the user's posts
+        user_posts_text = combine_text(user_blog_posts) + combine_text(user_comments) + combine_text(user_group_posts)
+
+        # Preprocess the user's posts text
+        user_posts_text = preprocess_text(user_posts_text)
+
+        # Calculate TF-IDF vectors for the user's posts
+        user_tfidf = vectorizer.transform([user_posts_text])
+
+        # Calculate cosine similarity between the user's posts and all other posts
+        similarities = []
+        for post in all_blog_posts:
+            post_text = combine_text([post])
+            post_text = preprocess_text(post_text)
+            post_tfidf = vectorizer.transform([post_text])
+            similarity = cosine_similarity(user_tfidf, post_tfidf)[0][0]
+            similarities.append((post, similarity))
+
+        # Sort posts based on similarity scores
+        sorted_posts = sorted(similarities, key=lambda x: x[1], reverse=True)
+        sorted_posts = [post for post, similarity in sorted_posts]
 
         blogs_data = []
-        for idx in sorted_indices:
-            idx = int(idx)  # Convert idx to regular integer
-            if idx < len(all_blogs):
-                blog = all_blogs[idx]
+        for post in sorted_posts:
+            blog = Blog.objects.filter(blogid=post.blogid)
+            if blog.exists():
+                blog = blog[0]
+                if blog.author.username == username:
+                    continue
+
                 blog_data = {
                     'id': blog.blogid,
                     'author': blog.author.username,
@@ -1517,7 +1630,6 @@ class HTimeline(APIView):
                 blogs_data.append(blog_data)
 
         return Response(blogs_data)
-
 from .models import WalkMember
 class WalkMembers(APIView):
     def get_age(self, dob):
@@ -1863,12 +1975,61 @@ import numpy as np
 import io
 import easyocr
 import cv2
-import re 
+import re
 class NIDImage(APIView):
     def post(self,request):
+
+        def compare_nid(image1, image2):
+            url = 'http://127.0.0.1:8000/comparenid'
+
+            try:
+                response = requests.post(url, data={'image2': "/media/"+image1,'image1': image2})
+                response.raise_for_status()  # Raise an exception for HTTP errors
+                print('Upload success:', response.json())
+                return response.json().get('conf')
+                # Handle success (e.g., show a success message)
+            except requests.exceptions.RequestException as e:
+                print('Error uploading images:', e)
+                # Handle error (e.g., show an error message)
+        def match(str1, str2):
+            m = len(str1)
+            n = len(str2)
+
+            # Initialize a table to store lengths of LCS
+            dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+            # Build dp table in bottom-up manner
+            for i in range(1, m + 1):
+                for j in range(1, n + 1):
+                    if str1[i - 1] == str2[j - 1]:
+                        dp[i][j] = dp[i - 1][j - 1] + 1
+                    else:
+                        dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+
+            # Read the characters from the dp table
+            lcs_length = dp[m][n]
+            lcs = [''] * lcs_length
+
+            i = m
+            j = n
+            index = lcs_length - 1
+            while i > 0 and j > 0:
+                if str1[i - 1] == str2[j - 1]:
+                    lcs[index] = str1[i - 1]
+                    i -= 1
+                    j -= 1
+                    index -= 1
+                elif dp[i - 1][j] > dp[i][j - 1]:
+                    i -= 1
+                else:
+                    j -= 1
+
+            return len(''.join(lcs))
+
         data=request.data
-        print(data)
+        user=data['username']
         img = request.FILES.get('nid')
+        db=img
         if img is None:
             if data['nidtext'] is not None:
                 img=data['nidtext']
@@ -1895,18 +2056,36 @@ class NIDImage(APIView):
             #         print(detection[1])
             #     f.close()
             for detection in result:
-                # print(detection[1])
-                # if "ID" in detection[1]:
-                    #print(detection[1])
+                #print(detection[1])
                 text.append(detection[1])
-            pattern = r"ID\s+(.*?)\s+(\d+)"
             text = ' '.join(text)
-            # Finding matches using regex
-            matches = re.findall(pattern, text)
+            # Define regular expressions to extract name, date of birth, and ID number
+            # name_pattern = r'Name:\s*(.+?)\s+'
+            # dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
+            # id_pattern = r'ID NO:\s*(\d+)'
+            name_pattern = r'[Nn][Aa][Mm][Ee]?\s*[: ]\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s+'
+            dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
+            id_pattern = r'(?:ID|NO)s*[: ]\s*(\d+)'
+            # Extract name
+            name_match = re.search(name_pattern, text)
+            if name_match:
+                name = name_match.group(1)
+                
+            # Extract date of birth
+            dob_match = re.search(dob_pattern, text)
+            if dob_match:
+                dob = dob_match.group(1)
+            # Extract ID number
+            id_match = re.search(id_pattern, text)
+            if id_match:
+                id= id_match.group(1)
 
-            # Printing matches
-            for match in matches:
-                print("ID", match[0], match[1])
+            # Concatenate the extracted information into one string
+            # result = name + ' ' + dob + ' ' + id
+            # print(result)
+            print(name)
+            print(id)
+
             
             # name_pattern = r'STUDENT\s+NAME\s+(.*)'
             # dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
@@ -1941,8 +2120,26 @@ class NIDImage(APIView):
             reader = easyocr.Reader(['en', 'bn'], gpu=True)
             result = reader.readtext(IMAGE_PATH)
         # print(text)
-        return Response({"message": "NID Read successfully"}, status=status.HTTP_201_CREATED)
-
+        user=Owner.objects.get(username=user)
+        uname=user.first_name+" "+user.last_name
+        mtn=match((user.first_name+" "+user.last_name).lower(),name.lower())
+        mti=match(user.nid,id)
+        print(mti)
+        print(mtn)
+        mti=100
+        mtn=100
+        if(mti>=9 and mtn>=len(uname)-2):
+                print(str(user.p_image))
+                image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\1_6xohGA6.png"
+                with open(image_file2_path, "wb") as f:
+                    for chunk in img.chunks():
+                        f.write(chunk)
+                    print("Image file saved(1) successfully.")
+                to=compare_nid(str(user.p_image),"\media\image\1_6xohGA6.png")
+                print(to)
+                if(to>=70):
+                       return Response({"msg": "Nid matched successfully"})
+        return Response({"message": "NID Not Matched"}, status=status.HTTP_201_CREATED)
 
 class NIDText(APIView):
     def post(self,request):
@@ -1953,7 +2150,6 @@ class NIDText(APIView):
         nid=NID.objects.create(NID_number=data['nid'],NID_text=data['text'])
         nid.save()
         return Response({"message": "NID created successfully"}, status=status.HTTP_201_CREATED)
-
 
 
 # from django.http import JsonResponse

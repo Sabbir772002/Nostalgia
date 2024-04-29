@@ -9,7 +9,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
 
-
 urlpatterns=[
     path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
     path('orm', MyAPIView.as_view(), name='MyAPIView'),
@@ -41,21 +40,21 @@ urlpatterns=[
     path('g_profile/<username>', views.GroupProfile.as_view(), name='g_profile'),
     path('gp_post', views.GP_post.as_view(), name='GP_post'),
     path('gt_post', views.GT_post.as_view(), name='GT_post'),
-    path('groupupvote', views.UpvoteAPIView.as_view(), name='GroupUpvote'),
     path('api/events/create/', PlanEventCreateAPIView.as_view(), name='event-create'),
     path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
     path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
     path('compare', views.CompareImagesView.as_view(), name='compare_images'),
+    path('comparenid', views.CompareImages.as_view(), name='compare_images'),
     path('upvote', views.UpvoteAPIView.as_view(), name='upvote'),
     path('walk', views.WalkListView.as_view(), name='walk'),
-    path('walk_members', views.WalkMembers.as_view(), name='walk_members'),
+    path('walkmembers', views.WalkMembers.as_view(), name='walk_members'),
     path('delete_fnd', views.Delete_fnd.as_view(), name='delete_fnd'),
     path('notification', views.NotificationView.as_view(), name='notification'),
     path('comments', views.BlogCommentsView.as_view(), name='comments'),
     path('comment', views.CommentCreateView.as_view(), name='newcomment'),
     path('htimeline', views.HTimeline.as_view(), name='htimeline'),
     path('walk_request', views.Walk_request.as_view(), name='walk_request'),
-    path('walkmembers', views.WalkNotMember.as_view(), name='walkmembers'),
+    path('walk!members', views.WalkNotMember.as_view(), name='walk!members'),
     path('handlemember', views.Handlemember.as_view(), name='Handlemember'),
     path('join_group', views.JoinGroup.as_view(), name='join_group'),
     path('addgroupost', views.AddGroupPost.as_view(), name='addgroupost'),
@@ -64,6 +63,7 @@ urlpatterns=[
     path('grouprequest',views.GroupRequest.as_view(), name='grouprequest'),
     path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
     path('caregiver',views.CareGiver.as_view(), name='caregiver'),
+    path('medication',views.MedicationBox.as_view(), name='medication'),
     # path('nidtext',views.NIDText.as_view(), name='nidtext'),
     path('nidimg',views.NIDImage.as_view(), name='nidimg'),
     # path('dnid',views.DecodeImageView.as_view(), name='dnid'),
