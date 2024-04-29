@@ -93,11 +93,9 @@ class Owner(User):
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
-
 class Overseer(User):
     Location = models.CharField(max_length=255)
     Relation = models.CharField(max_length=255)
-
     class Meta:
         verbose_name = _('Overseer')
         verbose_name_plural = _('Overseers')
@@ -106,7 +104,11 @@ class Overseer(User):
         # Update other common fields
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
-
+class Verified(models.Model):
+    verified = models.BooleanField(default=False)
+    user=models.ForeignKey(Owner, on_delete=models.CASCADE,primary_key=True)
+    def __str__(self):
+        return self.verified
 class Hospital(models.Model):
     h_id = models.AutoField(primary_key=True)
     h_name = models.CharField(max_length=255)
@@ -314,14 +316,13 @@ class IndividualPost(models.Model):
 
     def __str__(self):
         return f'Post ID: {self.PostID}, Contents: {self.Post_contents}'
-    
 
 class Event(models.Model):
     EventID = models.AutoField(primary_key=True)
     Description = models.CharField(max_length=255)
     Event_title = models.CharField(max_length=255)
-    start_time = models.IntegerField()
-    end_time = models.IntegerField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
     start_date = models.DateField()
     end_date = models.DateField()
     Address = models.CharField(max_length=255)
@@ -331,6 +332,7 @@ class Event(models.Model):
     Image = models.ImageField(upload_to='Eventimage/', null=True)
     E_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    privacy=models.CharField(max_length=255)
     def __str__(self):
         return self.Event_title
     
