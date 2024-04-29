@@ -762,7 +762,6 @@ class FriendSugg(APIView):
 class Profile(APIView):
     def get(self, request, username):
         try:
-            user2 = request.GET.get('user')
             user = Owner.objects.get(username=username)
             if(user2 is not None and user2!=username):
                    user2=Owner.objects.get(username=user2)
@@ -1501,7 +1500,15 @@ class HTimeline(APIView):
 
 
 
+<<<<<<< HEAD
 
+=======
+        # Sort blogs based on cosine similarity
+        similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
+        sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
+        # Retrieve sorted blogs
+        #sorted_blogs = [all_blogs[i] for i in sorted_indices]s
+>>>>>>> cd513ac34570a9fb9a85730e31f13bc5e327ee5c
         # blogs_data = []
         # for d in sorted_indices:
         #     if(len(all_blogs)>d):
@@ -2089,12 +2096,16 @@ class CareGiver(APIView):
                 'name': caregiver.name,
                 #'img': caregiver.img.url if caregiver.img else "/media/image/download_lsX6bjA6.jpeg",
                 'img': "media\images\download.jpeg",
-                #'email': caregiver.email,
+                'email': caregiver.email,
                 'phone': caregiver.phone,
-               # 'dob': caregiver.dob,
-                 'Experience': caregiver.experience,
+                'dob': caregiver.dob,
+                 'experience': caregiver.experience,
                 'gender': caregiver.gender,
-                'type':caregiver.type.type
+                'type':caregiver.type.type,
+                'hname': caregiver.h_id.h_name,
+                'branch':   caregiver.h_id.branch,
+                'thana': caregiver.h_id.thana.thana,
+                'location': caregiver.h_id.h_location
             })
         print(caregivers_data)
         return Response(caregivers_data)
