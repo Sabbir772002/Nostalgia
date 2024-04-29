@@ -599,7 +599,6 @@ class FriendSuggestion(APIView):
         
         # Sort users based on similarity scores
         sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
-        
         # Prepare response
         serialized_data = []
         for sorted_user, similarity_score in sorted_users:
@@ -663,10 +662,8 @@ class FriendSugg(APIView):
 
     def get(self, request):
         userid = request.GET.get('user_id')
-
         # Retrieve the user
         user = Owner.objects.get(username=userid)
-        
         # Retrieve the IDs of the user's friends where user1 is the given user
         friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
         # Retrieve the IDs of the user's friends where user2 is the given user
@@ -761,6 +758,7 @@ class FriendSugg(APIView):
 
 class Profile(APIView):
     def get(self, request, username):
+        user2=request.GET.get('user2')
         try:
             user = Owner.objects.get(username=username)
             if(user2 is not None and user2!=username):
@@ -1865,8 +1863,7 @@ import numpy as np
 import io
 import easyocr
 import cv2
-import re
-
+import re 
 class NIDImage(APIView):
     def post(self,request):
         data=request.data
@@ -1875,7 +1872,6 @@ class NIDImage(APIView):
         if img is None:
             if data['nidtext'] is not None:
                 img=data['nidtext']
-
             else:
               return Response({"msg": "NID doesnt found"})
         text = []
@@ -1899,45 +1895,53 @@ class NIDImage(APIView):
             #         print(detection[1])
             #     f.close()
             for detection in result:
-                print(detection[1])
+                # print(detection[1])
+                # if "ID" in detection[1]:
+                    #print(detection[1])
                 text.append(detection[1])
+            pattern = r"ID\s+(.*?)\s+(\d+)"
+            text = ' '.join(text)
+            # Finding matches using regex
+            matches = re.findall(pattern, text)
 
-            name_pattern = r'STUDENT\s+NAME\s+(.*)'
-            dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
-            nationality_pattern = r'NATIONALITY\s+(.*)'
+            # Printing matches
+            for match in matches:
+                print("ID", match[0], match[1])
+            
+            # name_pattern = r'STUDENT\s+NAME\s+(.*)'
+            # dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
+            # nationality_pattern = r'NATIONALITY\s+(.*)'
 
-            # Initialize variables to store extracted information
-            student_name = None
-            date_of_birth = None
-            nationality = None
-
-            # Iterate through detected text and apply regex patterns
-            for line in text:
-                name_match = re.match(name_pattern, line)
-                if name_match:
-                    student_name = name_match.group(1).strip()
+            # # Initialize variables to store extracted information
+            # student_name = None
+            # date_of_birth = None
+            # nationality = None
+            # # Iterate through detected text and apply regex patterns
+            # for line in text:
+            #     name_match = re.match(name_pattern, line)
+            #     if name_match:
+            #         student_name = name_match.group(1).strip()
                 
-                dob_match = re.match(dob_pattern, line)
-                if dob_match:
-                    date_of_birth = dob_match.group(1).strip()
+            #     dob_match = re.match(dob_pattern, line)
+            #     if dob_match:
+            #         date_of_birth = dob_match.group(1).strip()
                 
-                nationality_match = re.match(nationality_pattern, line)
-                if nationality_match:
-                    nationality = nationality_match.group(1).strip()
+            #     nationality_match = re.match(nationality_pattern, line)
+            #     if nationality_match:
+            #         nationality = nationality_match.group(1).strip()
 
-            # Print the extracted information
-            print("Student Name: ", student_name)
-            print("Date of Birth: ", date_of_birth)
-            print("Nationality: ", nationality)
+            # # Print the extracted information
+            # print("Student Name: ", student_name)
+            # print("Date of Birth: ", date_of_birth)
+            # print("Nationality: ", nationality)
 
         else:
             # If img is a file path or URL
             IMAGE_PATH = img
             reader = easyocr.Reader(['en', 'bn'], gpu=True)
             result = reader.readtext(IMAGE_PATH)
-        print(text)
+        # print(text)
         return Response({"message": "NID Read successfully"}, status=status.HTTP_201_CREATED)
-
 
 
 class NIDText(APIView):
