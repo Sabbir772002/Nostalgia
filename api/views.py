@@ -2376,18 +2376,37 @@ class TripListView(APIView):
         serialized_data = []
         for trip in trips:
             serialized_data.append({
-                'TripID': trip.TripID,
-                'Location': trip.Location,
+                'id': trip.TripID,
+                'location': trip.Location,
                 'start_date': trip.start_date,
                 'end_date': trip.end_date,
                 'propose_date': trip.propose_date,
-                'Privacy': trip.Privacy,
-                'Creator': trip.Creator.id,  
-                'Thana': trip.Thana.thana,  
-                'Guide': trip.Guide.id  
+                'privacy': trip.Privacy,
+                'creator': trip.Creator.id,  
+                'thana': trip.Thana.thana,  
+                'guide': trip.Guide.id  
             })
         
         return Response({"trips": serialized_data, "message": "Trip information retrieved successfully"}, status=status.HTTP_200_OK)
+    def post(self,request):
+        user=Owner.objects.get(username=request.data["creator"])
+        data=request.data
+        print("ay to he event ayegi...")
+        print(data)
+        trip = Trip.objects.create(
+            Creator=Owner.objects.get(username=data['creator']),
+            Location=data['location'],
+            start_date=data['start_date'],
+            propose_date=data['propose_date'],
+            end_date=data['end_date'],
+            Privacy=data['privacy'],
+            Thana=Thana.objects.get(thana=data['thana']),
+            Guide=Owner.objects.get(username=data['guide'])
+        )
+        trip.save()
+        print("ye he to hamari...")
+        return Response({"message": "Trip Created successfully"}, status=status.HTTP_200_OK)
+    
 
 from .models import TripMember
 class TripMembers(APIView):
