@@ -1470,50 +1470,29 @@ class HTimeline(APIView):
         for comment in user_comments:
             user_content.append(comment.comment)
 
-        # # Get all blogs excluding the user's blogs
-        # all_blogs = Blog.objects.exclude(author__username=username)
-        # # Combine the content of all blogs and comments
-        # all_content = []
-        # print(len(all_blogs))
-        # for blog in all_blogs:
-        #     all_content.append(blog.content)
-        #     # Also consider comments associated with this blog
-        #     comments = Comment.objects.filter(blogid=blog.blogid)
-        #     for comment in comments:
-        #         all_content.append(comment.comment)
+        # Get all blogs excluding the user's blogs
+        all_blogs = Blog.objects.exclude(author__username=username)
+        # Combine the content of all blogs and comments
+        all_content = []
+        for blog in all_blogs:
+            all_content.append(blog.content)
+            # Also consider comments associated with this blog
+            comments = Comment.objects.filter(blogid=blog.blogid)
+            for comment in comments:
+                all_content.append(comment.comment)
 
-        # # Calculate TF-IDF vectors
-        # vectorizer = TfidfVectorizer()
-        # tfidf_matrix = vectorizer.fit_transform(user_content + all_content)
+        # Calculate TF-IDF vectors
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform(user_content + all_content)
 
-        # # Calculate cosine similarity
-        # user_tfidf = tfidf_matrix[:len(user_content)]
-        # all_tfidf = tfidf_matrix[len(user_content):]
-        # similarity_matrix = cosine_similarity(user_tfidf, all_tfidf)
+        # Calculate cosine similarity
+        user_tfidf = tfidf_matrix[:len(user_content)]
+        all_tfidf = tfidf_matrix[len(user_content):]
+        similarity_matrix = cosine_similarity(user_tfidf, all_tfidf)
 
-        # # Sort blogs based on cosine similarity
-        # similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
-        # sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
-        # # Retrieve sorted blogs
-        # #sorted_blogs = [all_blogs[i] for i in sorted_indices]
-
-
-
-
-<<<<<<< HEAD
-
-=======
         # Sort blogs based on cosine similarity
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
         sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
-        # Retrieve sorted blogs
-        #sorted_blogs = [all_blogs[i] for i in sorted_indices]s
->>>>>>> cd513ac34570a9fb9a85730e31f13bc5e327ee5c
-        # blogs_data = []
-        # for d in sorted_indices:
-        #     if(len(all_blogs)>d):
-        #         blog = all_blogs[d]
-        # sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
         def preprocess_text(text):
             return text
 
@@ -1522,19 +1501,23 @@ class HTimeline(APIView):
             for post in posts:
                 combined_text += post.content + ' '
             return combined_text
+
         def combine_cmnt(posts):
             combined_text = ''
             for post in posts:
                 combined_text += post.comment + ' '
             return combined_text
+
         def combine_gp(posts):
             combined_text = ''
             for post in posts:
                 combined_text += post.GPost_contents + ' '
             return combined_text
+
         all_blog_posts = Blog.objects.all()
         all_comments = Comment.objects.all()
         all_group_posts = GroupPost.objects.all()
+
         # Combine text from all posts
         all_posts_text = combine_text(all_blog_posts) + combine_cmnt(all_comments) + combine_gp(all_group_posts)
 
@@ -1555,7 +1538,6 @@ class HTimeline(APIView):
 
         # Preprocess the user's posts text
         user_posts_text = preprocess_text(user_posts_text)
-        print(user_posts_text)
 
         # Calculate TF-IDF vectors for the user's posts
         user_tfidf = vectorizer.transform([user_posts_text])
@@ -1572,28 +1554,13 @@ class HTimeline(APIView):
         # Sort posts based on similarity scores
         sorted_posts = sorted(similarities, key=lambda x: x[1], reverse=True)
         sorted_posts = [post for post, similarity in sorted_posts]
-        # for post in sorted_posts:
-        #     print(post.blogid)
-
-        # # sorted_posts, _ = zip(*sorted_posts)
-        print("jassetai")
-        # print(sorted_posts) 
-
 
         blogs_data = []
         for post in sorted_posts:
-        # for idx in sorted_indices:
-        #     idx = int(idx)  # Convert idx to regular integer
-        #     if idx < len(all_blogs):
-        #         blog = all_blogs[idx]
-                #print(post.blogid)
-                blog=Blog.objects.filter(blogid=post.blogid)
-                if(blog[0] is None):
-                    continue
-                else:
-                    blog=blog[0]
-                # print(blog.blogid)
-                if(post.author.username==username):
+            blog = Blog.objects.filter(blogid=post.blogid)
+            if blog.exists():
+                blog = blog[0]
+                if blog.author.username == username:
                     continue
 
                 blog_data = {
@@ -1608,9 +1575,8 @@ class HTimeline(APIView):
                     'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
                 }
                 blogs_data.append(blog_data)
-
+        print(blogs_data)
         return Response(blogs_data)
-
 from .models import WalkMember
 class WalkMembers(APIView):
     def get_age(self, dob):
