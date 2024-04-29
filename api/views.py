@@ -761,6 +761,7 @@ class FriendSugg(APIView):
 
 class Profile(APIView):
     def get(self, request, username):
+        user2=request.GET.get('user2')
         try:
             user = Owner.objects.get(username=username)
             if(user2 is not None and user2!=username):
@@ -979,8 +980,8 @@ class FaceApiCompare:
             result = "Match between two photos is successful with confidence: {:.2f}".format(confidence)
         else:
             result = "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
-        return result
-
+        return Response({"result": result,"conf": confidence},  status=status.HTTP_200_OK)
+    
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import base64
@@ -995,18 +996,24 @@ face_api_compare = FaceApiCompare()
 class CompareImagesView(APIView):
       def post(self, request, *args, **kwargs):
         # Get image data from the POST request
+        print(request.data)
         image_file1 = request.FILES.get('image1')
         # image_file2 = request.FILES.get('image2')
         image_file2 = request.data['image2']
+        if(image_file1 is not None):
+            print("image1")
+        if(image_file2 is not None):
+            print(image_file2)
 
         if not (image_file1 and image_file2):
             return JsonResponse({'error': 'Missing image data in request'}, status=400)
-
+        
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
+        print(image_file2_url)
         image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\2_FpHsaZL.png"
         image_base64_2=""
         response = requests.get(image_file2_url)
@@ -1444,7 +1451,6 @@ class CommentCreateView(CreateAPIView):
             blog.save()
         return Response({"message": "Comment created successfully"}, status=status.HTTP_201_CREATED)
 
-#GOOD ONE
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
@@ -1493,25 +1499,19 @@ class HTimeline(APIView):
         # Sort blogs based on cosine similarity
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
         sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
+
         def preprocess_text(text):
             return text
 
         def combine_text(posts):
             combined_text = ''
             for post in posts:
-                combined_text += post.content + ' '
-            return combined_text
-
-        def combine_cmnt(posts):
-            combined_text = ''
-            for post in posts:
-                combined_text += post.comment + ' '
-            return combined_text
-
-        def combine_gp(posts):
-            combined_text = ''
-            for post in posts:
-                combined_text += post.GPost_contents + ' '
+                if isinstance(post, Blog):
+                    combined_text += post.content + ' '
+                elif isinstance(post, Comment):
+                    combined_text += post.comment + ' '  # Adjust this according to your Comment model
+                elif isinstance(post, GroupPost):
+                    combined_text += post.GPost_contents + ' '
             return combined_text
 
         all_blog_posts = Blog.objects.all()
@@ -1519,7 +1519,7 @@ class HTimeline(APIView):
         all_group_posts = GroupPost.objects.all()
 
         # Combine text from all posts
-        all_posts_text = combine_text(all_blog_posts) + combine_cmnt(all_comments) + combine_gp(all_group_posts)
+        all_posts_text = combine_text(all_blog_posts) + combine_text(all_comments) + combine_text(all_group_posts)
 
         # Preprocess all posts text
         all_posts_text = preprocess_text(all_posts_text)
@@ -1575,7 +1575,7 @@ class HTimeline(APIView):
                     'is_upvoted': 1 if blog.upvote_set.filter(Username__username=username).exists() else 0
                 }
                 blogs_data.append(blog_data)
-        print(blogs_data)
+
         return Response(blogs_data)
 from .models import WalkMember
 class WalkMembers(APIView):
@@ -1926,13 +1926,67 @@ import re
 
 class NIDImage(APIView):
     def post(self,request):
+
+        def compare_nid(image1, image2):
+            url = 'http://127.0.0.1:8000/compare'
+
+            files = {
+                'image1': image2
+            }
+            try:
+                response = requests.post(url, files=files, data={'image2': "/media/"+image1})
+                response.raise_for_status()  # Raise an exception for HTTP errors
+                print('Upload success:', response.json())
+                return response.json().get('conf')
+                # Handle success (e.g., show a success message)
+            except requests.exceptions.RequestException as e:
+                print('Error uploading images:', e)
+                # Handle error (e.g., show an error message)
+
+
+
+        def match(str1, str2):
+            m = len(str1)
+            n = len(str2)
+
+            # Initialize a table to store lengths of LCS
+            dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+            # Build dp table in bottom-up manner
+            for i in range(1, m + 1):
+                for j in range(1, n + 1):
+                    if str1[i - 1] == str2[j - 1]:
+                        dp[i][j] = dp[i - 1][j - 1] + 1
+                    else:
+                        dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+
+            # Read the characters from the dp table
+            lcs_length = dp[m][n]
+            lcs = [''] * lcs_length
+
+            i = m
+            j = n
+            index = lcs_length - 1
+            while i > 0 and j > 0:
+                if str1[i - 1] == str2[j - 1]:
+                    lcs[index] = str1[i - 1]
+                    i -= 1
+                    j -= 1
+                    index -= 1
+                elif dp[i - 1][j] > dp[i][j - 1]:
+                    i -= 1
+                else:
+                    j -= 1
+
+            return len(''.join(lcs))
+
         data=request.data
-        print(data)
+        user=data['username']
         img = request.FILES.get('nid')
+        db=img
         if img is None:
             if data['nidtext'] is not None:
                 img=data['nidtext']
-
             else:
               return Response({"msg": "NID doesnt found"})
         text = []
@@ -1956,44 +2010,90 @@ class NIDImage(APIView):
             #         print(detection[1])
             #     f.close()
             for detection in result:
-                print(detection[1])
+                #print(detection[1])
                 text.append(detection[1])
-
-            name_pattern = r'STUDENT\s+NAME\s+(.*)'
-            dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
-            nationality_pattern = r'NATIONALITY\s+(.*)'
-
-            # Initialize variables to store extracted information
-            student_name = None
-            date_of_birth = None
-            nationality = None
-
-            # Iterate through detected text and apply regex patterns
-            for line in text:
-                name_match = re.match(name_pattern, line)
-                if name_match:
-                    student_name = name_match.group(1).strip()
+            text = ' '.join(text)
+            # Define regular expressions to extract name, date of birth, and ID number
+            # name_pattern = r'Name:\s*(.+?)\s+'
+            # dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
+            # id_pattern = r'ID NO:\s*(\d+)'
+            name_pattern = r'[Nn][Aa][Mm][Ee]?\s*[: ]\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s+'
+            dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
+            id_pattern = r'(?:ID|NO)s*[: ]\s*(\d+)'
+            # Extract name
+            name_match = re.search(name_pattern, text)
+            if name_match:
+                name = name_match.group(1)
                 
-                dob_match = re.match(dob_pattern, line)
-                if dob_match:
-                    date_of_birth = dob_match.group(1).strip()
-                
-                nationality_match = re.match(nationality_pattern, line)
-                if nationality_match:
-                    nationality = nationality_match.group(1).strip()
+            # Extract date of birth
+            dob_match = re.search(dob_pattern, text)
+            if dob_match:
+                dob = dob_match.group(1)
+            # Extract ID number
+            id_match = re.search(id_pattern, text)
+            if id_match:
+                id= id_match.group(1)
 
-            # Print the extracted information
-            print("Student Name: ", student_name)
-            print("Date of Birth: ", date_of_birth)
-            print("Nationality: ", nationality)
+            # Concatenate the extracted information into one string
+            # result = name + ' ' + dob + ' ' + id
+            # print(result)
+            print(name)
+            print(id)
+
+            
+            # name_pattern = r'STUDENT\s+NAME\s+(.*)'
+            # dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
+            # nationality_pattern = r'NATIONALITY\s+(.*)'
+
+            # # Initialize variables to store extracted information
+            # student_name = None
+            # date_of_birth = None
+            # nationality = None
+            # # Iterate through detected text and apply regex patterns
+            # for line in text:
+            #     name_match = re.match(name_pattern, line)
+            #     if name_match:
+            #         student_name = name_match.group(1).strip()
+                
+            #     dob_match = re.match(dob_pattern, line)
+            #     if dob_match:
+            #         date_of_birth = dob_match.group(1).strip()
+                
+            #     nationality_match = re.match(nationality_pattern, line)
+            #     if nationality_match:
+            #         nationality = nationality_match.group(1).strip()
+
+            # # Print the extracted information
+            # print("Student Name: ", student_name)
+            # print("Date of Birth: ", date_of_birth)
+            # print("Nationality: ", nationality)
 
         else:
             # If img is a file path or URL
             IMAGE_PATH = img
             reader = easyocr.Reader(['en', 'bn'], gpu=True)
             result = reader.readtext(IMAGE_PATH)
-        print(text)
-        return Response({"message": "NID Read successfully"}, status=status.HTTP_201_CREATED)
+        # print(text)
+        user=Owner.objects.get(username=user)
+        uname=user.first_name+" "+user.last_name
+        # mtn=match((user.first_name+" "+user.last_name).lower(),name.lower())
+        # mti=match(user.nid,id)
+        # print(mti)
+        # print(mtn)
+        mti=100
+        mtn=100
+        if(mti>=9 and mtn>=len(uname)-2):
+                print(str(user.p_image))
+                image_file2_path = r"D:\Django\Sad\Nostalgia\media\image\2_FpHsaZL.png"
+                image_base64_2=""
+                with open(img, "wb") as f:
+                    f.write(img.read())
+                    print("Image file saved successfully.")
+
+                to=compare_nid(str(user.p_image),db)
+                if(to>=70):
+                       return Response({"msg": "Nid matched successfully"})
+        return Response({"message": "NID Not Matched"}, status=status.HTTP_201_CREATED)
 
 
 
