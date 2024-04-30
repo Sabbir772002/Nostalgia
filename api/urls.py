@@ -76,7 +76,7 @@ urlpatterns=[
     path('tripmembers', views.TripMembers.as_view(), name='trip_members'),
     path('trip_request', views.Trip_request.as_view(), name='trip_request'),
     path('trip!members', views.TripNotMember.as_view(), name='trip!members'),
-    path('handle_tripmember', views.HandleTripmember.as_view(), name='handle_tripmember'),
+    path('handletripmember', views.HandleTripmember.as_view(), name='handletripmember'),
     #work done
 ]
 if settings.DEBUG:

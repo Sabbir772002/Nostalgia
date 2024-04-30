@@ -279,7 +279,8 @@ class Trip(models.Model):
     Privacy = models.CharField(max_length=255)
     Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
-    Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+    #guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+    guide=models.CharField(max_length=255)
 
     def __str__(self):
         return f'Trip ID: {self.TripID}, Location: {self.Location}'
@@ -291,7 +292,7 @@ class TripMember(models.Model):
     member = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Approve = models.IntegerField()
     def __str__(self):
-        return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
+        return f'Trip ID: {self.TripID}, Member ID: {self.member}'
 
 class GroupPost(models.Model):
     GPost_id = models.AutoField(primary_key=True)
@@ -329,6 +330,7 @@ class Event(models.Model):
     create_date = models.DateField()
     Approve = models.IntegerField()
     E_type = models.CharField(max_length=255)
+    privacy = models.CharField(max_length=255)
     Image = models.ImageField(upload_to='Eventimage/', null=True)
     E_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)

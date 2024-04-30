@@ -2128,7 +2128,7 @@ class NIDImage(APIView):
         mti=match(user.nid,id)
         if(mti>=9 and mtn>=(len(uname)-(len(uname)//6))):
                 print(str(user.p_image))
-                image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\1_6xohGA6.png"
+                image_file2_path = r"D:\Django\Sad\Nostalgia\media\1.png"
                 with open(image_file2_path, "wb") as f:
                     for chunk in img.chunks():
                         f.write(chunk)
@@ -2245,7 +2245,8 @@ class EventListView(APIView):
                 'Image': event.Image.url if event.Image else "media\image\default.jpeg",
                 'E_creator': event.E_creator.username,  
                 'privacy':event.privacy,
-                'Thana': event.Thana.thana if event.Thana else None  
+                'Thana': event.Thana.thana if event.Thana else None ,
+                'Member' : 1 if JoinEvent.objects.filter(EventID=event,Member=Owner.objects.get(username=request.GET.get('username'))).exists() else 0 
             })
         print(serialized_data)
         return Response({"events": serialized_data, "message": "event information retrieved successfully"}, status=status.HTTP_200_OK)
@@ -2280,21 +2281,21 @@ class EventMembers(APIView):
         return age
     def get(self,request):
         event_id=request.GET.get('id')
-        event=Event.objects.get(event_id_id=event_id)
-        members=JoinEvent.objects.filter(event_id_id=event_id,cancel=0,accept=1)
+        event=Event.objects.get(EventID=event_id)
+        members=JoinEvent.objects.filter(EventID=event_id,cancel=0)
         members_data=[]
         print("ami hatar manush khuji akhon!")
         for member in members:
             members_data.append({
-                'id': member.username.id,
-                'username': member.username.username,
-                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.username.first_name,
-                'last_name': member.username.last_name,
-                'email': member.username.email,
-                'phone': member.username.phone,
-                'dob': self.get_age(member.username.dob),
-                'gender': member.username.gender
+                'id': member.Member.id,
+                'username': member.Member.username,
+                'img': member.Member.p_image.url if member.Member.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.Member.first_name,
+                'last_name': member.Member.last_name,
+                'email': member.Member.email,
+                'phone': member.Member.phone,
+                'dob': self.get_age(member.Member.dob),
+                'gender': member.Member.gender
             })
         print(members_data)
         return Response(members_data)
@@ -2359,15 +2360,14 @@ class Event_request(APIView):
     def post(self,request):
         event_id=request.data['id']
         username=request.data['username']
-        event=Event.objects.get(event_id=event_id)
-        bot=JoinEvent.objects.filter(event_id=event,username=Owner.objects.get(username=username))
+        event=Event.objects.get(EventID=event_id)
+        bot=JoinEvent.objects.filter(EventID=event,Member=Owner.objects.get(username=username))
         if(len(bot)>0):
             return Response({"user": bot[0].username.username})      
-        members=JoinEvent.objects.create(username=Owner.objects.get(username=username),event_id=Event.objects.get(event_id=event_id),cancel=0,accept=0)
+        members=JoinEvent.objects.create(Member=Owner.objects.get(username=username),EventID=Event.objects.get(EventID=event_id),cancel=0,Approve=1)
         members.save()
         print("accept koro na?")
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
-          
 class TripListView(APIView):
     def get(self, request):
         trips = Trip.objects.all()
@@ -2375,18 +2375,41 @@ class TripListView(APIView):
         serialized_data = []
         for trip in trips:
             serialized_data.append({
-                'TripID': trip.TripID,
-                'Location': trip.Location,
+                'id': trip.TripID,
+                'location': trip.Location,
                 'start_date': trip.start_date,
                 'end_date': trip.end_date,
                 'propose_date': trip.propose_date,
-                'Privacy': trip.Privacy,
-                'Creator': trip.Creator.id,  
-                'Thana': trip.Thana.thana,  
-                'Guide': trip.Guide.id  
+                'privacy': trip.Privacy,
+                'creator': trip.Creator.username,  
+                'thana': trip.Thana.thana,  
+                'guide': trip.guide,
+                'member' : 1 if TripMember.objects.filter(TripID=trip,member=Owner.objects.get(username=request.GET.get('username')),Approve=1,cancel=0).exists() else 0,
+                'join' : 1 if TripMember.objects.filter(TripID=trip,member=Owner.objects.get(username=request.GET.get('username')),Approve=0,cancel=0).exists() else 0
             })
+        print(serialized_data)
         
         return Response({"trips": serialized_data, "message": "Trip information retrieved successfully"}, status=status.HTTP_200_OK)
+    def post(self,request):
+        user=Owner.objects.get(username=request.data["t_creator"])
+        data=request.data
+        print("ay to he event ayegi...")
+        print(data)
+        trip = Trip.objects.create(
+            Creator=Owner.objects.get(username=data['t_creator']),
+            Location=data['address'],
+            start_date=data['start_date'],
+            propose_date=data['propose_date'],
+            end_date=data['end_date'],
+            Privacy=data['privacy'],
+            Thana=Thana.objects.get(thana=data['thana']),
+            # guide=Owner.objects.get(username=data['guide'])
+            guide=data['guide']
+        )
+        trip.save()
+        print("ye he to hamari...")
+        return Response({"message": "Trip Created successfully"}, status=status.HTTP_200_OK)
+    
 
 from .models import TripMember
 class TripMembers(APIView):
@@ -2397,21 +2420,22 @@ class TripMembers(APIView):
 
     def get(self,request):
         trip_id=request.GET.get('id')
-        trip=TripMember.objects.get(trip_id=trip_id)
-        members=TripMember.objects.filter(trip_id=trip_id,cancel=0,accept=1)
+        trip=TripMember.objects.get(TripID=trip_id)
+        members=TripMember.objects.filter(TripID=trip_id,cancel=0,Approve=1)
         members_data=[]
         print("ami hatar manush khuji akhon!")
         for member in members:
             members_data.append({
-                'id': member.username.id,
-                'username': member.username.username,
-                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.username.first_name,
-                'last_name': member.username.last_name,
-                'email': member.username.email,
-                'phone': member.username.phone,
-                'dob': self.get_age(member.username.dob),
-                'gender': member.username.gender
+                'id': member.member.id,
+                 'trip': member.TripID.TripID,
+                'username': member.member.username,
+                'img': member.member.p_image.url if member.member.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.member.first_name,
+                'last_name': member.member.last_name,
+                'email': member.member.email,
+                'phone': member.member.phone,
+                'dob': self.get_age(member.member.dob),
+                'gender': member.member.gender
             })
         print(members_data)
         return Response(members_data)
@@ -2422,11 +2446,11 @@ class Trip_request(APIView):
     def post(self,request):
         trip_id=request.data['id']
         username=request.data['username']
-        trip=Trip.objects.get(trip_id=trip_id)
-        bot=TripMember.objects.filter(trip_id=trip,username=Owner.objects.get(username=username))
+        trip=Trip.objects.get(TripID=trip_id)
+        bot=TripMember.objects.filter(TripID=trip,member=Owner.objects.get(username=username))
         if(len(bot)>0):
             return Response({"user": bot[0].username.username})      
-        members=TripMember.objects.create(username=Owner.objects.get(username=username),trip_id=Trip.objects.get(trip_id=trip_id),cancel=0,accept=0)
+        members=TripMember.objects.create(member=Owner.objects.get(username=username),TripID=Trip.objects.get(TripID=trip_id),cancel=0,Approve=0)
         members.save()
         print("accept koro na?")
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
@@ -2440,22 +2464,24 @@ class TripNotMember(APIView):
 
     def get(self,request):
         trip_id=request.GET.get('id')
-        trip=Trip.objects.get(trip_id=trip_id)
-        members=TripMember.objects.filter(trip_id=trip_id,accept=0)
+        print("trip id")
+        print(trip_id)
+        trip=Trip.objects.get(TripID=trip_id)
+        members=TripMember.objects.filter(TripID=trip_id,Approve=0,cancel=0)
         print(members)
         members_data=[]
         print("moner mto kw nai!")
         for member in members:
             members_data.append({
-                'id': member.username.id,
-                'username': member.username.username,
-                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.username.first_name,
-                'last_name': member.username.last_name,
-                'email': member.username.email,
-                'phone': member.username.phone,
-                'dob': self.get_age(member.username.dob),
-                'gender': member.username.gender 
+                'id': member.member.id,
+                'username': member.member.username,
+                'img': member.member.p_image.url if member.member.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.member.first_name,
+                'last_name': member.member.last_name,
+                'email': member.member.email,
+                'phone': member.member.phone,
+                'dob': self.get_age(member.member.dob),
+                'gender': member.member.gender 
             
             })
         print(members_data) 
@@ -2464,22 +2490,21 @@ class TripNotMember(APIView):
 class HandleTripmember(APIView):
     def post(self,request):
         if request.data['type'] == 'confirm':
-            trip_id=request.data['trip_id']
+            trip_id=request.data['tid']
             user_id=request.data['id']
             user=Owner.objects.get(id=user_id)
-            trip=Trip.objects.get(trip_id=trip_id)
-            members=WalkMember.objects.filter(trip_id=trip,username=user)
-            print(members)
+            trip=Trip.objects.get(TripID=trip_id)
+            members=TripMember.objects.filter(TripID=trip,member=user)
             if(len(members)>0):
-                members[0].accept=1
+                members[0].Approve=1
                 members[0].save()
-                return Response({"user": members[0].username.username})
+                return Response({"user": members[0].member.username})
         if request.data['type'] == 'delete':
-            trip_id=request.data['trip_id']
+            trip_id=request.data['tid']
             user_id=request.data['id']
             user=Owner.objects.get(id=user_id)
-            trip=Trip.objects.get(trip_id=trip_id)
-            members=TripMember.objects.filter(trip_id=trip,username=user)
+            trip=Trip.objects.get(TripID=trip_id)
+            members=TripMember.objects.filter(TripID=trip,member=user)
             print(members)
             if(len(members)>0):
                 members[0].delete()
