@@ -2361,7 +2361,7 @@ class Event_request(APIView):
         event=Event.objects.get(EventID=event_id)
         bot=JoinEvent.objects.filter(EventID=event,Member=Owner.objects.get(username=username))
         if(len(bot)>0):
-            return Response({"user": bot[0].username.username})      
+            return Response({"user": bot[0].Member.username})      
         members=JoinEvent.objects.create(Member=Owner.objects.get(username=username),EventID=Event.objects.get(EventID=event_id),cancel=0,Approve=1)
         members.save()
         print("accept koro na?")
@@ -2447,7 +2447,7 @@ class Trip_request(APIView):
         trip=Trip.objects.get(TripID=trip_id)
         bot=TripMember.objects.filter(TripID=trip,member=Owner.objects.get(username=username))
         if(len(bot)>0):
-            return Response({"user": bot[0].username.username})      
+            return Response({"user": bot[0].member.username})      
         members=TripMember.objects.create(member=Owner.objects.get(username=username),TripID=Trip.objects.get(TripID=trip_id),cancel=0,Approve=0)
         members.save()
         print("accept koro na?")
