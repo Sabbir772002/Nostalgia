@@ -646,7 +646,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 from nltk.stem import WordNetLemmatizer
 
 class FriendSugg(APIView):
-
     def preprocess_text(self, text):
         # Tokenize text
         tokens = word_tokenize(text)
@@ -725,7 +724,6 @@ class FriendSugg(APIView):
         for other_user_tfidf in other_users_tfidf:
             similarity = cosine_similarity(user_tfidf, other_user_tfidf)
             similarities.append(similarity[0][0])
-        
         # Sort users based on similarity scores
         sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
         
@@ -2539,6 +2537,7 @@ class MedicationBox(APIView):
                 'after': med.after,
                 'times':med_times,
                 'image': 'http://localhost:8000/media/d.png'
+
             })
         print(medications_data)
         return Response(medications_data)
@@ -2550,3 +2549,35 @@ class MedicationBox(APIView):
         med=Medication.objects.create(user=user,med_name=data['name'],note=data['note'],dose=data['dosage'],morning=1 if data['morning'] else 0,noon=1 if data['noon'] else 0,night=1 if data['night'] else 0,after=data['after'],meds_start_date=data['start_date'],meds_end_date=data['end_date'])
         med.save()
         return Response({"message": "Medication created successfully"}, status=status.HTTP_201_CREATED)
+from .models import DoneMed
+
+class Done(APIView):
+    def post(self,request):
+        print(request.data)
+        if request.data['type'] == 'done':
+                data=request.data
+                user=Owner.objects.get(username=data['username'])
+                date=data['date']
+                time=data['time']
+                done=DoneMed.objects.create(user=user,done_date=date,done_time=time)
+                done.save()
+                print("Done means done")
+        else :
+            data=request.data
+            user=Owner.objects.get(username=data['username'])
+            date=data['date']
+            time=data['time']
+            done=DoneMed.objects.filter(user=user,done_date=date,done_time=time)
+            if(len(done)>0):
+                done[0].delete()
+        return Response({"message": "Done successfully"}, status=status.HTTP_201_CREATED)
+    def get(self,request):
+        user=request.GET.get('username')
+        print(user)
+        user=Owner.objects.get(username=user)
+        date=request.GET.get('date')
+        time=request.GET.get('time')
+        done=DoneMed.objects.filter(user=user,done_date=date,done_time=time)
+        if(len(done)>0):
+            return Response({"done": 1})
+        return Response({"done": 0})

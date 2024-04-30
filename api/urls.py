@@ -64,6 +64,7 @@ urlpatterns=[
     path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
     path('caregiver',views.CareGiver.as_view(), name='caregiver'),
     path('medication',views.MedicationBox.as_view(), name='medication'),
+    path('done',views.Done.as_view(), name='done'),
     # path('nidtext',views.NIDText.as_view(), name='nidtext'),
     path('nidimg',views.NIDImage.as_view(), name='nidimg'),
     # path('dnid',views.DecodeImageView.as_view(), name='dnid'),

@@ -185,7 +185,7 @@ class Medication(models.Model):
     meds_start_date = models.DateField()
     meds_end_date = models.DateField()
     dose = models.CharField(max_length=100)
-    after= models.IntegerField()
+    after= models.CharField(max_length=100)
     night= models.IntegerField()
     morning = models.IntegerField()
     noon = models.IntegerField()
@@ -195,6 +195,13 @@ class Medication(models.Model):
     med_name = models.CharField(max_length=255)
     def __str__(self):
         return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
+class DoneMed(models.Model):
+    done_id = models.AutoField(primary_key=True)
+    done_date = models.DateField(max_length=255)
+    done_time = models.CharField(max_length=255)
+    user = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    def __str__(self):
+        return f"Done ID: {self.done_id}, User: {self.user}"
 class Medicine(models.Model):
     med_id = models.AutoField(primary_key=True)
     disease = models.CharField(max_length=255)
