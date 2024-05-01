@@ -756,7 +756,9 @@ class FriendSugg(APIView):
 
 class Profile(APIView):
     def get(self, request, username):
-        user2=request.GET.get('user2')
+        print("here is profileview")
+        user2=request.GET.get('user')
+        print(user2)
         try:
             user = Owner.objects.get(username=username)
             if(user2 is not None and user2!=username):
@@ -2587,13 +2589,26 @@ from .models import MedAlert
 
 class MedTime(APIView):
     def get(self,request):
-        
-        return Response({"message": "Time created successfully"}, status=status.HTTP_201_CREATED)
+        user=request.GET.get('username')
+        user=Owner.objects.get(username=user)
+        if(MedAlert.objects.filter(userid=user).exists()):
+            time=MedAlert.objects.get(userid=user)
+            return Response({"night": time.night,"morning": time.morning,"noon": time.noon,"gap": time.interval})
+        else:
+            return Response({"night": "20:00","morning": "08:00","noon":"14:00","gap": "30"})   
 
     def post(self,request):
         data=request.data
         print(data)
         user=Owner.objects.get(username=data['username'])
-        time=MedAlert.objects.create(user=user,time=data['time'])
+        if(MedAlert.objects.filter(userid=user).exists()):
+            time=MedAlert.objects.get(userid=user)
+            time.night=data['night']
+            time.morning=data['morning']
+            time.noon=data['noon']
+            time.interval=data['gap']
+            time.save()
+            return Response({"message": "Time updated successfully"}, status=status.HTTP_201_CREATED)
+        time=MedAlert.objects.create(userid=user,night=data['night'],morning=data['morning'],noon=data['noon'],interval=data['gap'])
         time.save()
         return Response({"message": "Time created successfully"}, status=status.HTTP_201_CREATED)
