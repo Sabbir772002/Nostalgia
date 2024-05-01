@@ -78,7 +78,8 @@ urlpatterns=[
     path('trip_request', views.Trip_request.as_view(), name='trip_request'),
     path('trip!members', views.TripNotMember.as_view(), name='trip!members'),
     path('handletripmember', views.HandleTripmember.as_view(), name='handletripmember'),
-    #work done
-]
+    path('medtime', views.MedTime.as_view(), name='medtime'),
+    
+    ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

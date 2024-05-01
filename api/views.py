@@ -1746,6 +1746,8 @@ class Add_group(APIView):
             return Response({"msg": "Group already exists"})
         group=Group.objects.create(G_name=data['name'],Creator=Owner.objects.get(id=data['id']),CreatedDate=datetime.now().strftime('%Y-%m-%d'),G_username=data['username'],Privacy=data['privacy'],Topic=data['topic'],time=datetime.now().strftime('%H:%M:%S'))
         group.save()
+        admin=GroupMember.objects.create(G_username=Group.objects.get(G_username=data['username']),member_id=Owner.objects.get(id=data['id']).id,accept=1,Block=2)
+        admin.save()
         return Response({"message": "Group created successfully"}, status=status.HTTP_201_CREATED)
         
 class My_Group(APIView):
@@ -1786,7 +1788,7 @@ class GroupProfile(APIView):
             'topic': group.Topic,
             'time': group.time,
             'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
-             'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user).exists() else 0
+             'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
         }
         print(data)
         return Response(data)
@@ -1914,7 +1916,6 @@ class GroupMembers(APIView):
                 'Since': member.JoinDate,
                 'gender': member.member.gender,
             })
-        print(members_data)
         return Response(members_data)
 
 class RequestMembers(APIView):
@@ -1938,7 +1939,6 @@ class RequestMembers(APIView):
                 'dob': member.member.dob,
                 'Since': member.JoinDate,
             })
-        print(members_data)
         return Response(members_data)
 
 class GroupRequest(APIView):
@@ -2353,7 +2353,7 @@ class HandleEventmember(APIView):
                 members[0].delete()
                 return Response({"user": members[0].username.username})
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
 class Event_request(APIView):
     def post(self,request):
         event_id=request.data['id']
@@ -2534,9 +2534,9 @@ class MedicationBox(APIView):
                 'name': med.med_name,
                 'dosage': med.dose,
                 'note': med.note,
-                'after': med.after,
+                'after': med.after, 
                 'times':med_times,
-                'image': 'http://localhost:8000/media/d.png'
+                'image': med.img.url if med.img else'media/d.png'
 
             })
         print(medications_data)
@@ -2545,8 +2545,10 @@ class MedicationBox(APIView):
         data=request.data
         print(data)
         print("ye kiya hogaye")
+        img = request.FILES.get('img')
+        print(img)
         user=Owner.objects.get(username=data['user'])
-        med=Medication.objects.create(user=user,med_name=data['name'],note=data['note'],dose=data['dosage'],morning=1 if data['morning'] else 0,noon=1 if data['noon'] else 0,night=1 if data['night'] else 0,after=data['after'],meds_start_date=data['start_date'],meds_end_date=data['end_date'])
+        med=Medication.objects.create(user=user,img=img,med_name=data['name'],note=data['note'],dose=data['dosage'],morning= data['morning'],noon= data['noon'],night=data['night'],after=data['after'],meds_start_date=data['start_date'],meds_end_date=data['end_date'])
         med.save()
         return Response({"message": "Medication created successfully"}, status=status.HTTP_201_CREATED)
 from .models import DoneMed
@@ -2581,3 +2583,17 @@ class Done(APIView):
         if(len(done)>0):
             return Response({"done": 1})
         return Response({"done": 0})
+from .models import MedAlert
+
+class MedTime(APIView):
+    def get(self,request):
+        
+        return Response({"message": "Time created successfully"}, status=status.HTTP_201_CREATED)
+
+    def post(self,request):
+        data=request.data
+        print(data)
+        user=Owner.objects.get(username=data['username'])
+        time=MedAlert.objects.create(user=user,time=data['time'])
+        time.save()
+        return Response({"message": "Time created successfully"}, status=status.HTTP_201_CREATED)

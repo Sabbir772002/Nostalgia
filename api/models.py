@@ -193,8 +193,18 @@ class Medication(models.Model):
     user = models.ForeignKey(Owner, on_delete=models.CASCADE)
    # med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
     med_name = models.CharField(max_length=255)
+    img = models.ImageField(upload_to='med_images/', null=True, blank=True)
     def __str__(self):
         return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
+class MedAlert(models.Model):
+    userid = models.ForeignKey(Owner, on_delete=models.CASCADE,primary_key=True)
+    morning = models.TimeField()
+    noon = models.TimeField()
+    night = models.TimeField()
+    interval = models.IntegerField()
+    alert_message = models.CharField(max_length=255)
+    def str(self):
+     return f"Med Alert: Morning: {self.morning}, Noon: {self.noon}, Night: {self.night}"
 class DoneMed(models.Model):
     done_id = models.AutoField(primary_key=True)
     done_date = models.DateField(max_length=255)
