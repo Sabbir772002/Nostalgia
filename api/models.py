@@ -230,12 +230,7 @@ class Blog(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
-    blog_img = models.ImageField(upload_to='images/', null=True, blank=True) 
-    author = models.ForeignKey(Owner, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.blogid
+        return self.content
 class Group(models.Model):
     G_username = models.CharField(max_length=255,primary_key=True)
     G_name = models.CharField(max_length=255)

@@ -727,7 +727,6 @@ class FriendSugg(APIView):
         # Sort users based on similarity scores
         sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
         
-        # Prepare response
         serialized_data = []
         for sorted_user, similarity_score in sorted_users:
             serialized_data.append({
@@ -1523,7 +1522,6 @@ class HTimeline(APIView):
         user = User.objects.get(username=username)
         user_blogs = Blog.objects.filter(author__username=username)
         user_comments = Comment.objects.filter(username__username=username)
-
         user_content = []
         for blog in user_blogs:
             user_content.append(blog.content)
@@ -2586,7 +2584,6 @@ class Done(APIView):
             return Response({"done": "1"})
         return Response({"done": "0"})
 
-        
 from .models import MedAlert
 
 class MedTime(APIView):
@@ -2614,3 +2611,58 @@ class MedTime(APIView):
         time=MedAlert.objects.create(userid=user,night=data['night'],morning=data['morning'],noon=data['noon'],interval=data['gap'])
         time.save()
         return Response({"message": "Time created successfully"}, status=status.HTTP_201_CREATED)
+
+class Search(APIView):
+    def get(self,reqeust):
+        search=reqeust.GET.get('search')
+        username=reqeust.GET.get('username')
+        blog=Blog.objects.filter(content__icontains=search)
+        blog_data=[]
+        if search==" ":
+            blog=Blog.objects.all()
+        for b in blog:
+            blog_data.append({
+                'id': b.blogid,
+                'author': b.author.username,
+                'content': b.content,
+                'author_img': b.author.p_image.url if b.author.p_image else '/media/image/download_lsX6bjA6.jpeg',
+                'date': b.post_date,
+                'time': b.post_time,
+                'img': b.blog_img.url if b.blog_img else None,
+                'upvote': Upvote.objects.filter(blogid=b).count(),
+                'is_upvoted': 1 if Upvote.objects.filter(blogid=b,Username=Owner.objects.get(username=username)).exists() else 0
+            })
+        return Response(blog_data)
+from django.db.models import Q
+class Searchfnd(APIView):
+    def get(self,request):
+        search=request.GET.get('search')
+        print(request.GET.get('username'))
+        user=Owner.objects.get(username=request.GET.get('username'))
+        userbox=User.objects.filter(Q(username__icontains=search) | Q(first_name__icontains=search) | Q(last_name__icontains=search))
+        user_data=[]
+        for sorted_user in userbox:
+            if sorted_user==user:
+                continue
+            user_data.append({
+                'id': sorted_user.id,
+                'first_name': sorted_user.first_name,
+                'last_name': sorted_user.last_name,
+                'username': sorted_user.username,
+                'email': sorted_user.email,
+                'gender': sorted_user.gender,
+                'phone': sorted_user.phone,
+                'dob': sorted_user.dob,
+                'address': sorted_user.address,
+                'nid': sorted_user.nid,
+                'thana': Thana.objects.get(thana=sorted_user.thana).thana,
+                'pp': sorted_user.p_image.url if sorted_user.p_image else 'media/image/download_lX6bjA6.jpeg',
+                'is_fnf': 0,
+                'type': Friend.objects.filter(user1=user, user2=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Frined.objects.filter(user2=user, user1=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'f_created_date':Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'f_id': Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'abedon': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 0,
+                'good': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
+                'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
+                 })
+        return Response({"users":user_data, "message": "User retrieved successfully"}, status=status.HTTP_200_OK)
