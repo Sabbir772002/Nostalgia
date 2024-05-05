@@ -971,7 +971,6 @@ class FaceApiCompare:
             "image_base64_1": image_base64_1,
             "image_base64_2": image_base64_2,
         }
-
         # Send POST request to Face++ API
         response = requests.post(self.URL, data=payload)
         if(response.json().get('error_message')):
@@ -980,7 +979,7 @@ class FaceApiCompare:
         # Process the response and return the result
         confidence = response_json.get('confidence', 0)
         return confidence
-
+        
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import base64
@@ -2125,7 +2124,7 @@ class NIDImage(APIView):
         mti=match(user.nid,id)
         if(mti>=9 and mtn>=(len(uname)-(len(uname)//6))):
                 print(str(user.p_image))
-                image_file2_path = r"D:\Django\Sad\Nostalgia\media\1.png"
+                image_file2_path = r"D:\DEV\Django\Nostalgia\media\1.png"
                 with open(image_file2_path, "wb") as f:
                     for chunk in img.chunks():
                         f.write(chunk)
@@ -2628,10 +2627,12 @@ class Search(APIView):
                 'author_img': b.author.p_image.url if b.author.p_image else '/media/image/download_lsX6bjA6.jpeg',
                 'date': b.post_date,
                 'time': b.post_time,
-                'img': b.blog_img.url if b.blog_img else None,
+                'blog_img': b.blog_img.url if b.blog_img else None,
                 'upvote': Upvote.objects.filter(blogid=b).count(),
                 'is_upvoted': 1 if Upvote.objects.filter(blogid=b,Username=Owner.objects.get(username=username)).exists() else 0
             })
+        print("tomake ami khujei ber korbo ,chander o pahar theke")
+        print(blog_data)
         return Response(blog_data)
 from django.db.models import Q
 class Searchfnd(APIView):
