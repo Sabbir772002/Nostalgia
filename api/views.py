@@ -1463,7 +1463,7 @@ class BlogCommentsView(APIView):
                     'author': blog.username.username,
                     'author_img': Owner.objects.get(username=blog.username).p_image.url if Owner.objects.get(username=blog.username).p_image else "/media/image/download_lsX6bjA6.jpeg",
                     'content': blog.comment,
-                    'time': blog.time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'time': "in "+blog.time.strftime('%d-%m-%Y')+ " at "+blog.time.strftime('%H:%M'),
                     'blog': blog.blogid.blogid
                 }
                 blogs_data.append(blog_data)
