@@ -44,6 +44,7 @@ urlpatterns=[
     path('api/events/list/', PlanEventListAPIView.as_view(), name='event-list'),
     path('api/events/update/<int:pk>/', PlanEventUpdateAPIView.as_view(), name='event-update'),
     path('compare', views.CompareImagesView.as_view(), name='compare_images'),
+    path('comparenid', views.CompareImages.as_view(), name='compare_images'),
     path('upvote', views.UpvoteAPIView.as_view(), name='upvote'),
     path('walk', views.WalkListView.as_view(), name='walk'),
     path('walkmembers', views.WalkMembers.as_view(), name='walk_members'),
@@ -63,8 +64,9 @@ urlpatterns=[
     path('friendsugg',views.FriendSugg.as_view(), name='friendsugg'),
     path('caregiver',views.CareGiver.as_view(), name='caregiver'),
     path('medication',views.MedicationBox.as_view(), name='medication'),
+    path('done',views.Done.as_view(), name='done'),
     # path('nidtext',views.NIDText.as_view(), name='nidtext'),
-    # path('nidimg',views.NIDImage.as_view(), name='nidimg'),
+    path('nidimg',views.NIDImage.as_view(), name='nidimg'),
     # path('dnid',views.DecodeImageView.as_view(), name='dnid'),
     path('event', views.EventListView.as_view(), name='event'),
     path('eventmembers', views.EventMembers.as_view(), name='event_members'),
@@ -75,8 +77,10 @@ urlpatterns=[
     path('tripmembers', views.TripMembers.as_view(), name='trip_members'),
     path('trip_request', views.Trip_request.as_view(), name='trip_request'),
     path('trip!members', views.TripNotMember.as_view(), name='trip!members'),
-    path('handle_tripmember', views.HandleTripmember.as_view(), name='handle_tripmember'),
-    #work done
-]
+    path('handletripmember', views.HandleTripmember.as_view(), name='handletripmember'),
+    path('medtime', views.MedTime.as_view(), name='medtime'),
+    path('search', views.Search.as_view(), name='search'),
+    path('searchfnd', views.Searchfnd.as_view(), name='searchfnd'),
+    ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

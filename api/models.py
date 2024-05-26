@@ -93,11 +93,9 @@ class Owner(User):
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
-
 class Overseer(User):
     Location = models.CharField(max_length=255)
     Relation = models.CharField(max_length=255)
-
     class Meta:
         verbose_name = _('Overseer')
         verbose_name_plural = _('Overseers')
@@ -106,7 +104,11 @@ class Overseer(User):
         # Update other common fields
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
-
+class Verified(models.Model):
+    verified = models.BooleanField(default=False)
+    user=models.ForeignKey(Owner, on_delete=models.CASCADE,primary_key=True)
+    def __str__(self):
+        return self.verified
 class Hospital(models.Model):
     h_id = models.AutoField(primary_key=True)
     h_name = models.CharField(max_length=255)
@@ -183,7 +185,7 @@ class Medication(models.Model):
     meds_start_date = models.DateField()
     meds_end_date = models.DateField()
     dose = models.CharField(max_length=100)
-    after= models.IntegerField()
+    after= models.CharField(max_length=100)
     night= models.IntegerField()
     morning = models.IntegerField()
     noon = models.IntegerField()
@@ -191,8 +193,25 @@ class Medication(models.Model):
     user = models.ForeignKey(Owner, on_delete=models.CASCADE)
    # med_name = models.ForeignKey('Medicine', on_delete=models.CASCADE)
     med_name = models.CharField(max_length=255)
+    img = models.ImageField(upload_to='med_images/', null=True, blank=True)
     def __str__(self):
         return f"Medication ID: {self.medication_id}, User: {self.user}, Med Name: {self.med_name}"
+class MedAlert(models.Model):
+    userid = models.ForeignKey(Owner, on_delete=models.CASCADE,primary_key=True)
+    morning = models.TimeField()
+    noon = models.TimeField()
+    night = models.TimeField()
+    interval = models.IntegerField()
+    alert_message = models.CharField(max_length=255)
+    def str(self):
+     return f"Med Alert: Morning: {self.morning}, Noon: {self.noon}, Night: {self.night}"
+class DoneMed(models.Model):
+    done_id = models.AutoField(primary_key=True)
+    done_date = models.DateField(max_length=255)
+    done_time = models.CharField(max_length=255)
+    user = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    def __str__(self):
+        return f"Done ID: {self.done_id}, User: {self.user}"
 class Medicine(models.Model):
     med_id = models.AutoField(primary_key=True)
     disease = models.CharField(max_length=255)
@@ -207,18 +226,11 @@ class Blog(models.Model):
     post_date = models.DateField()
     post_time=models.TimeField()
     content = models.TextField()
-   # title = models.CharField(max_length=255,blank=True, null=True)  
-    # title = models.CharField(max_length=255)
     blog_img = models.ImageField(upload_to='blog_images/', null=True, blank=True)  # Assuming blog images are uploaded and stored
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
-    blog_img = models.ImageField(upload_to='images/', null=True, blank=True) 
-    author = models.ForeignKey(Owner, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.blogid
+        return self.content
 class Group(models.Model):
     G_username = models.CharField(max_length=255,primary_key=True)
     G_name = models.CharField(max_length=255)
@@ -279,7 +291,8 @@ class Trip(models.Model):
     Privacy = models.CharField(max_length=255)
     Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
-    Guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+    #guide = models.ForeignKey(Guide, on_delete=models.CASCADE)
+    guide=models.CharField(max_length=255)
 
     def __str__(self):
         return f'Trip ID: {self.TripID}, Location: {self.Location}'
@@ -291,7 +304,7 @@ class TripMember(models.Model):
     member = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Approve = models.IntegerField()
     def __str__(self):
-        return f'Trip Member ID: {self.TM_id}, Trip ID: {self.TripID}, Member ID: {self.T_member}'
+        return f'Trip ID: {self.TripID}, Member ID: {self.member}'
 
 class GroupPost(models.Model):
     GPost_id = models.AutoField(primary_key=True)
@@ -316,23 +329,24 @@ class IndividualPost(models.Model):
 
     def __str__(self):
         return f'Post ID: {self.PostID}, Contents: {self.Post_contents}'
-    
 
 class Event(models.Model):
     EventID = models.AutoField(primary_key=True)
     Description = models.CharField(max_length=255)
     Event_title = models.CharField(max_length=255)
-    start_time = models.IntegerField()
-    end_time = models.IntegerField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
     start_date = models.DateField()
     end_date = models.DateField()
     Address = models.CharField(max_length=255)
     create_date = models.DateField()
     Approve = models.IntegerField()
     E_type = models.CharField(max_length=255)
+    privacy = models.CharField(max_length=255)
     Image = models.ImageField(upload_to='Eventimage/', null=True)
     E_creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
     Thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    privacy=models.CharField(max_length=255)
     def __str__(self):
         return self.Event_title
     
@@ -362,7 +376,6 @@ class Comment(models.Model):
         Owner, on_delete=models.CASCADE)
     comment = models.CharField(max_length=500)
     time = models.DateTimeField(default=timezone.now())
-
     def __str__(self):
         return f"Comment ID: {self.cmnt_id}, Post ID: {self.blogid}, Username: {self.username}, Name: {self.comment}"
 
@@ -391,3 +404,34 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification ID: {self.noti_id}, Message: {self.noti_msg}"
+    
+class GroupUpvote(models.Model):
+    blogid = models.ForeignKey(GroupPost, on_delete=models.CASCADE)
+    Username = models.ForeignKey(Owner, on_delete=models.CASCADE)
+
+
+    def __str__(self):
+        return f"GroupUpvote - Post ID: {self.blogid.blogid}, Username: {self.Username.username}"    
+    
+class GroupComment(models.Model):
+    cmnt_id = models.AutoField(primary_key=True)
+    blogid = models.ForeignKey(GroupPost, on_delete=models.CASCADE)
+    username = models.ForeignKey(
+        Owner, on_delete=models.CASCADE)
+    comment = models.CharField(max_length=500)
+    time = models.DateTimeField(default=timezone.now())
+    def __str__(self):
+        return f"GroupComment ID: {self.cmnt_id}, Post ID: {self.blogid}, Username: {self.username}, Name: {self.comment}"
+    
+class GroupReply(models.Model):
+    Reply_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        Owner, on_delete=models.CASCADE)
+    cmnt_id = models.ForeignKey(
+        GroupComment, on_delete=models.CASCADE, related_name="replies")
+    Reply_msg = models.CharField(max_length=500)
+    time = models.DateTimeField(default=timezone.now())
+
+    def __str__(self):
+        return f"GroupComment ID: {self.cmnt_id}, Post ID: {self.Reply_id}, Username: {self.user}, Name: {self.Reply_msg}"        
+

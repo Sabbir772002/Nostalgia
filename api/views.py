@@ -118,12 +118,15 @@ class sign(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class _sign(views.APIView):
     def post(self, request):
-        # serializer = OverseerSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     user = serializer.save()
-        data=request.data   
-        overseer=Overseer(username=data['username'],password=data['password'],email=data['email'],phone=data['phone'],address=data['address'],nid=data['nid'],thana_id=data['thana_id']) 
-        return Response({"message": "User created successfully", "user_id": user.id}, status=status.HTTP_201_CREATED)
+        serializer = OverseerSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+        print(serializer.errors)
+        user.id=0 if user is None else user.id
+        # data=request.data   
+        # overseer=Overseer(username=data['username'],password=data['password'],email=data['email'],phone=data['phone'],address=data['address'],nid=data['nid'],thana_id=data['thana'])
+        # overseer.save()
+        return Response({"message": "User created successfully", "user_id":user.id}, status=status.HTTP_201_CREATED)
         # print(serializer.errors)
         # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -596,7 +599,6 @@ class FriendSuggestion(APIView):
         
         # Sort users based on similarity scores
         sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
-        
         # Prepare response
         serialized_data = []
         for sorted_user, similarity_score in sorted_users:
@@ -644,7 +646,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 from nltk.stem import WordNetLemmatizer
 
 class FriendSugg(APIView):
-
     def preprocess_text(self, text):
         # Tokenize text
         tokens = word_tokenize(text)
@@ -660,10 +661,8 @@ class FriendSugg(APIView):
 
     def get(self, request):
         userid = request.GET.get('user_id')
-
         # Retrieve the user
         user = Owner.objects.get(username=userid)
-        
         # Retrieve the IDs of the user's friends where user1 is the given user
         friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
         # Retrieve the IDs of the user's friends where user2 is the given user
@@ -725,11 +724,9 @@ class FriendSugg(APIView):
         for other_user_tfidf in other_users_tfidf:
             similarity = cosine_similarity(user_tfidf, other_user_tfidf)
             similarities.append(similarity[0][0])
-        
         # Sort users based on similarity scores
         sorted_users = sorted(zip(users, similarities), key=lambda x: x[1], reverse=True)
         
-        # Prepare response
         serialized_data = []
         for sorted_user, similarity_score in sorted_users:
             serialized_data.append({
@@ -758,13 +755,22 @@ class FriendSugg(APIView):
 
 class Profile(APIView):
     def get(self, request, username):
+        print("here is profileview")
+        user2=request.GET.get('user')
+        print(user2)
         try:
-            user2 = request.GET.get('user')
             user = Owner.objects.get(username=username)
             if(user2 is not None and user2!=username):
                    user2=Owner.objects.get(username=user2)
             else:
                 user2=user
+            from .models import Verified
+            b=Verified.objects.filter(user=Owner.objects.get(username=username))
+            if len(b)>0:
+                b=b[0]
+            else:
+                b=None
+            v=1 if b is not None else 0
             user={
                 'id': user.id,
                 'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
@@ -786,7 +792,8 @@ class Profile(APIView):
                 'good': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                 'status': 1 if Friend.objects.filter(user1=user, user2=user2).exists() else 1 if Friend.objects.filter(user2=user, user1=user2).exists() else 0,
                  'img_privacy': 0,
-                 'walk_type':user.walk_type
+                 'walk_type':user.walk_type,
+                 'verify':1 if b is not None and b.verified==1 else 0,
             }
             print(user)
            
@@ -964,7 +971,6 @@ class FaceApiCompare:
             "image_base64_1": image_base64_1,
             "image_base64_2": image_base64_2,
         }
-
         # Send POST request to Face++ API
         response = requests.post(self.URL, data=payload)
         if(response.json().get('error_message')):
@@ -972,13 +978,8 @@ class FaceApiCompare:
         response_json = response.json()
         # Process the response and return the result
         confidence = response_json.get('confidence', 0)
-        threshold = 50
-        if confidence >= threshold:
-            result = "Match between two photos is successful with confidence: {:.2f}".format(confidence)
-        else:
-            result = "Match between two photos is not successful. Confidence is too low: {:.2f}".format(confidence)
-        return result
-
+        return confidence
+        
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import base64
@@ -993,18 +994,24 @@ face_api_compare = FaceApiCompare()
 class CompareImagesView(APIView):
       def post(self, request, *args, **kwargs):
         # Get image data from the POST request
+        print(request.data)
         image_file1 = request.FILES.get('image1')
         # image_file2 = request.FILES.get('image2')
         image_file2 = request.data['image2']
+        if(image_file1 is not None):
+            print("image1")
+        if(image_file2 is not None):
+            print(image_file2)
 
         if not (image_file1 and image_file2):
             return JsonResponse({'error': 'Missing image data in request'}, status=400)
-
+        
         # Convert images to base64 strings
         image_base64_1 = base64.b64encode(image_file1.read()).decode('utf-8')
         # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
         # Download and save the second image file
         image_file2_url = "http://localhost:8000" + image_file2
+        print(image_file2_url)
         image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
         image_base64_2=""
         response = requests.get(image_file2_url)
@@ -1023,6 +1030,60 @@ class CompareImagesView(APIView):
 
         result = face_api_compare.compare_images(image_base64_1, image_base64_2)
 
+        # Return the comparison result as JSON response
+        return JsonResponse({'result': result})
+        
+class CompareImages(APIView):
+      def post(self, request, *args, **kwargs):
+        # Get image data from the POST request
+        print(request.data)
+        # image_file2 = request.FILES.get('image2')
+        image_file2 = request.data['image2']
+        image_file1 = request.data['image1']
+        if(image_file1 is not None):
+            print("image1")
+        if(image_file2 is not None):
+            print(image_file2)
+        if not (image_file1 and image_file2):
+            return JsonResponse({'error': 'Missing image data in request'}, status=400)
+        
+        image_file1_url = "http://localhost:8000" + image_file2
+        print(image_file1_url)
+        image_file1_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+        image_base64_1=""
+        response = requests.get(image_file1_url)
+        if response.status_code == 200:
+            # Save the image file
+            with open(image_file1_path, "wb") as f:
+                f.write(response.content)
+                print("Image file saved successfully.")
+            
+            # Convert the saved image file to base64
+            with open(image_file1_path, "rb") as f:
+                image_base64_1 = base64.b64encode(f.read()).decode('utf-8')
+        # Perform image comparison using FaceApiCompare class method
+        if not image_base64_1:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+        # image_base64_1 = base64.b64encode(image_file2.read()).decode('utf-8')
+        # Download and save the second image file
+        image_file2_url = "http://localhost:8000" + image_file2
+        print(image_file2_url)
+        image_file2_path = r"D:\DEV\Django\Nostalgia\media\image\image_file2.jpg"
+        image_base64_2=""
+        response = requests.get(image_file2_url)
+        if response.status_code == 200:
+            # Save the image file
+            with open(image_file2_path, "wb") as f:
+                f.write(response.content)
+                print("Image file saved successfully.")
+            # Convert the saved image file to base64
+            with open(image_file2_path, "rb") as f:
+                image_base64_2 = base64.b64encode(f.read()).decode('utf-8')
+        # Perform image comparison using FaceApiCompare class method
+        if not image_base64_2:
+            return JsonResponse({'error': 'Failed to download the Profile image file'}, status=500)
+
+        result = face_api_compare.compare_images(image_base64_1, image_base64_2)
         # Return the comparison result as JSON response
         return JsonResponse({'result': result})
 
@@ -1402,7 +1463,7 @@ class BlogCommentsView(APIView):
                     'author': blog.username.username,
                     'author_img': Owner.objects.get(username=blog.username).p_image.url if Owner.objects.get(username=blog.username).p_image else "/media/image/download_lsX6bjA6.jpeg",
                     'content': blog.comment,
-                    'time': blog.time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'time': "in "+blog.time.strftime('%d-%m-%Y')+ " at "+blog.time.strftime('%H:%M'),
                     'blog': blog.blogid.blogid
                 }
                 blogs_data.append(blog_data)
@@ -1442,7 +1503,6 @@ class CommentCreateView(CreateAPIView):
             blog.save()
         return Response({"message": "Comment created successfully"}, status=status.HTTP_201_CREATED)
 
-#GOOD ONE
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
@@ -1455,12 +1515,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 class HTimeline(APIView):
+    
     def get(self, request):
         username = request.GET.get("username")
         user = User.objects.get(username=username)
         user_blogs = Blog.objects.filter(author__username=username)
         user_comments = Comment.objects.filter(username__username=username)
-
         user_content = []
         for blog in user_blogs:
             user_content.append(blog.content)
@@ -1490,20 +1550,70 @@ class HTimeline(APIView):
         # Sort blogs based on cosine similarity
         similarity_scores = similarity_matrix.mean(axis=0)  # Taking mean across user content
         sorted_indices = [int(i) for i in np.argsort(similarity_scores)[::-1]]
-        # Retrieve sorted blogs
-        #sorted_blogs = [all_blogs[i] for i in sorted_indices]
 
-        # blogs_data = []
-        # for d in sorted_indices:
-        #     if(len(all_blogs)>d):
-        #         blog = all_blogs[d]
-        # sorted_indices = np.argsort(similarity_scores)[::-1]  # Sort indices in descending order
+        def preprocess_text(text):
+            return text
+
+        def combine_text(posts):
+            combined_text = ''
+            for post in posts:
+                if isinstance(post, Blog):
+                    combined_text += post.content + ' '
+                elif isinstance(post, Comment):
+                    combined_text += post.comment + ' '  # Adjust this according to your Comment model
+                elif isinstance(post, GroupPost):
+                    combined_text += post.GPost_contents + ' '
+            return combined_text
+
+        all_blog_posts = Blog.objects.all()
+        all_comments = Comment.objects.all()
+        all_group_posts = GroupPost.objects.all()
+
+        # Combine text from all posts
+        all_posts_text = combine_text(all_blog_posts) + combine_text(all_comments) + combine_text(all_group_posts)
+
+        # Preprocess all posts text
+        all_posts_text = preprocess_text(all_posts_text)
+
+        # Calculate TF-IDF vectors for all posts
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform([all_posts_text])
+
+        # Retrieve the posts of the given user
+        user_blog_posts = Blog.objects.filter(author=user)
+        user_comments = Comment.objects.filter(username=user)
+        user_group_posts = GroupPost.objects.filter(p_username=user)
+
+        # Combine text from the user's posts
+        user_posts_text = combine_text(user_blog_posts) + combine_text(user_comments) + combine_text(user_group_posts)
+
+        # Preprocess the user's posts text
+        user_posts_text = preprocess_text(user_posts_text)
+
+        # Calculate TF-IDF vectors for the user's posts
+        user_tfidf = vectorizer.transform([user_posts_text])
+
+        # Calculate cosine similarity between the user's posts and all other posts
+        similarities = []
+        for post in all_blog_posts:
+            post_text = combine_text([post])
+            post_text = preprocess_text(post_text)
+            post_tfidf = vectorizer.transform([post_text])
+            similarity = cosine_similarity(user_tfidf, post_tfidf)[0][0]
+            similarities.append((post, similarity))
+
+        # Sort posts based on similarity scores
+        sorted_posts = sorted(similarities, key=lambda x: x[1], reverse=True)
+        sorted_posts = [post for post, similarity in sorted_posts]
 
         blogs_data = []
-        for idx in sorted_indices:
-            idx = int(idx)  # Convert idx to regular integer
-            if idx < len(all_blogs):
-                blog = all_blogs[idx]
+        for post in sorted_posts:
+            blog = Blog.objects.filter(blogid=post.blogid)
+            if blog.exists():
+                blog = blog[0]
+                if blog.author.username == username:
+                    continue
+
                 blog_data = {
                     'id': blog.blogid,
                     'author': blog.author.username,
@@ -1518,7 +1628,6 @@ class HTimeline(APIView):
                 blogs_data.append(blog_data)
 
         return Response(blogs_data)
-
 from .models import WalkMember
 class WalkMembers(APIView):
     def get_age(self, dob):
@@ -1635,6 +1744,8 @@ class Add_group(APIView):
             return Response({"msg": "Group already exists"})
         group=Group.objects.create(G_name=data['name'],Creator=Owner.objects.get(id=data['id']),CreatedDate=datetime.now().strftime('%Y-%m-%d'),G_username=data['username'],Privacy=data['privacy'],Topic=data['topic'],time=datetime.now().strftime('%H:%M:%S'))
         group.save()
+        admin=GroupMember.objects.create(G_username=Group.objects.get(G_username=data['username']),member_id=Owner.objects.get(id=data['id']).id,accept=1,Block=2)
+        admin.save()
         return Response({"message": "Group created successfully"}, status=status.HTTP_201_CREATED)
         
 class My_Group(APIView):
@@ -1675,7 +1786,7 @@ class GroupProfile(APIView):
             'topic': group.Topic,
             'time': group.time,
             'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
-             'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user).exists() else 0
+             'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
         }
         print(data)
         return Response(data)
@@ -1803,7 +1914,6 @@ class GroupMembers(APIView):
                 'Since': member.JoinDate,
                 'gender': member.member.gender,
             })
-        print(members_data)
         return Response(members_data)
 
 class RequestMembers(APIView):
@@ -1827,7 +1937,6 @@ class RequestMembers(APIView):
                 'dob': member.member.dob,
                 'Since': member.JoinDate,
             })
-        print(members_data)
         return Response(members_data)
 
 class GroupRequest(APIView):
@@ -1865,79 +1974,175 @@ import io
 import easyocr
 import cv2
 import re
-
 class NIDImage(APIView):
     def post(self,request):
+
+        def compare_nid(image1, image2):
+            url = 'http://127.0.0.1:8000/comparenid'
+            try:
+                response = requests.post(url, data={'image2': "/media/"+image1,'image1': image2})
+                response.raise_for_status()  # Raise an exception for HTTP errors
+                print('Upload success:', response.json())
+                return response.json().get('result')
+                # Handle success (e.g., show a success message)
+            except requests.exceptions.RequestException as e:
+                print('Error uploading images:', e)
+            return 0
+
+        def match(str1, str2):
+            m = len(str1)
+            n = len(str2)
+
+            # Initialize a table to store lengths of LCS
+            dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+            # Build dp table in bottom-up manner
+            for i in range(1, m + 1):
+                for j in range(1, n + 1):
+                    if str1[i - 1] == str2[j - 1]:
+                        dp[i][j] = dp[i - 1][j - 1] + 1
+                    else:
+                        dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+
+            # Read the characters from the dp table
+            lcs_length = dp[m][n]
+            lcs = [''] * lcs_length
+
+            i = m
+            j = n
+            index = lcs_length - 1
+            while i > 0 and j > 0:
+                if str1[i - 1] == str2[j - 1]:
+                    lcs[index] = str1[i - 1]
+                    i -= 1
+                    j -= 1
+                    index -= 1
+                elif dp[i - 1][j] > dp[i][j - 1]:
+                    i -= 1
+                else:
+                    j -= 1
+
+            return len(''.join(lcs))
+
         data=request.data
-        print(data)
+        user=data['username']
         img = request.FILES.get('nid')
+        db=img
         if img is None:
             if data['nidtext'] is not None:
                 img=data['nidtext']
-
             else:
               return Response({"msg": "NID doesnt found"})
         text = []
-        if isinstance(img, InMemoryUploadedFile):
-            # Read the file content as bytes
-            image_bytes = img.read()
-            # Convert bytes to numpy array
-            nparr = np.frombuffer(image_bytes, np.uint8)
-            # Load image using OpenCV
-            img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            # Process the image with EasyOCR
-            reader = easyocr.Reader(['en', 'bn'], gpu=True)
-            result = reader.readtext(img_cv)
+        try:
+            if isinstance(img, InMemoryUploadedFile):
+                # Read the file content as bytes
+                image_bytes = img.read()
+                # Convert bytes to numpy array
+                nparr = np.frombuffer(image_bytes, np.uint8)
+                # Load image using OpenCV
+                img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                # Process the image with EasyOCR
+                reader = easyocr.Reader(['en', 'bn'], gpu=True)
+                result = reader.readtext(img_cv)
 
-            # Continue with processing the result
-            # with open("nid.txt", 'w', encoding='utf-8') as f:
-            #     for detection in result:
-            #         text.append(detection[1])
-            #         f.write(detection[1])
-            #         f.write('\n')
-            #         print(detection[1])
-            #     f.close()
-            for detection in result:
-                print(detection[1])
-                text.append(detection[1])
-
-            name_pattern = r'STUDENT\s+NAME\s+(.*)'
-            dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
-            nationality_pattern = r'NATIONALITY\s+(.*)'
-
-            # Initialize variables to store extracted information
-            student_name = None
-            date_of_birth = None
-            nationality = None
-
-            # Iterate through detected text and apply regex patterns
-            for line in text:
-                name_match = re.match(name_pattern, line)
+                # Continue with processing the result
+                # with open("nid.txt", 'w', encoding='utf-8') as f:
+                #     for detection in result:
+                #         text.append(detection[1])
+                #         f.write(detection[1])
+                #         f.write('\n')
+                #         print(detection[1])
+                #     f.close()
+                for detection in result:
+                    #print(detection[1])
+                    text.append(detection[1])
+                text = ' '.join(text)
+                # Define regular expressions to extract name, date of birth, and ID number
+                # name_pattern = r'Name:\s*(.+?)\s+'
+                # dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
+                # id_pattern = r'ID NO:\s*(\d+)'
+                name_pattern = r'[Nn][Aa][Mm][Ee]?\s*[: ]\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)\s+'
+                dob_pattern = r'Date of Birth:\s*(\d{2}\s+[A-Za-z]+\s+\d{4})'
+                id_pattern = r'(?:ID|NO)s*[: ]\s*(\d+)'
+                # Extract name
+                name_match = re.search(name_pattern, text)
                 if name_match:
-                    student_name = name_match.group(1).strip()
-                
-                dob_match = re.match(dob_pattern, line)
+                    name = name_match.group(1)
+                    
+                # Extract date of birth
+                dob_match = re.search(dob_pattern, text)
                 if dob_match:
-                    date_of_birth = dob_match.group(1).strip()
+                    dob = dob_match.group(1)
+                # Extract ID number
+                id_match = re.search(id_pattern, text)
+                if id_match:
+                    id= id_match.group(1)
+                # Concatenate the extracted information into one string
+                # result = name + ' ' + dob + ' ' + id
+                # print(result)
                 
-                nationality_match = re.match(nationality_pattern, line)
-                if nationality_match:
-                    nationality = nationality_match.group(1).strip()
+                # name_pattern = r'STUDENT\s+NAME\s+(.*)'
+                # dob_pattern = r'DATE\s+OF\s+BIRTH\s+(.*)'
+                # nationality_pattern = r'NATIONALITY\s+(.*)'
 
-            # Print the extracted information
-            print("Student Name: ", student_name)
-            print("Date of Birth: ", date_of_birth)
-            print("Nationality: ", nationality)
+                # # Initialize variables to store extracted information
+                # student_name = None
+                # date_of_birth = None
+                # nationality = None
+                # # Iterate through detected text and apply regex patterns
+                # for line in text:
+                #     name_match = re.match(name_pattern, line)
+                #     if name_match:
+                #         student_name = name_match.group(1).strip()
+                    
+                #     dob_match = re.match(dob_pattern, line)
+                #     if dob_match:
+                #         date_of_birth = dob_match.group(1).strip()
+                    
+                #     nationality_match = re.match(nationality_pattern, line)
+                #     if nationality_match:
+                #         nationality = nationality_match.group(1).strip()
 
-        else:
-            # If img is a file path or URL
-            IMAGE_PATH = img
-            reader = easyocr.Reader(['en', 'bn'], gpu=True)
-            result = reader.readtext(IMAGE_PATH)
-        print(text)
-        return Response({"message": "NID Read successfully"}, status=status.HTTP_201_CREATED)
+                # # Print the extracted information
+                # print("Student Name: ", student_name)
+                # print("Date of Birth: ", date_of_birth)
+                # print("Nationality: ", nationality)
 
+            else:
+                # If img is a file path or URL
+                IMAGE_PATH = img
+                reader = easyocr.Reader(['en', 'bn'], gpu=True)
+                result = reader.readtext(IMAGE_PATH)
+        except catch(e):
+              return Response({"message": "NID Not Matched"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # print(text)
+        user=Owner.objects.get(username=user)
+        uname=user.first_name+" "+user.last_name
+        mtn=match((user.first_name+" "+user.last_name).lower(),name.lower())
+        mti=match(user.nid,id)
+        if(mti>=9 and mtn>=(len(uname)-(len(uname)//6))):
+                print(str(user.p_image))
+                image_file2_path = r"D:\DEV\Django\Nostalgia\media\1.png"
+                with open(image_file2_path, "wb") as f:
+                    for chunk in img.chunks():
+                        f.write(chunk)
+                    print("Image file saved(1) successfully.")
+                to=compare_nid(str(user.p_image),"\media\image\1_6xohGA6.png")
+                print("ye mera kam hoyae ga")
+                print(to)
+                if(int(to)>=70):
+                    from .models import Verified
+                    if(Verified.objects.filter(user=user).exists()):
+                        v=Verified.objects.get(user=user)
+                        v.verified=1
+                        v.save()
+                    else:
+                        v=Verified.objects.create(user=user,verified=1)
+                        v.save()
+                    return Response({"msg": "Nid Verified successfully"},status=status.HTTP_201_CREATED)
+        return Response({"message": "NID Not Matched"}, status=status.HTTP_400_BAD_REQUEST)
 
 class NIDText(APIView):
     def post(self,request):
@@ -1948,8 +2153,6 @@ class NIDText(APIView):
         nid=NID.objects.create(NID_number=data['nid'],NID_text=data['text'])
         nid.save()
         return Response({"message": "NID created successfully"}, status=status.HTTP_201_CREATED)
-
-
 
 # from django.http import JsonResponse
 # from django.views import View
@@ -2004,12 +2207,16 @@ class CareGiver(APIView):
                 'name': caregiver.name,
                 #'img': caregiver.img.url if caregiver.img else "/media/image/download_lsX6bjA6.jpeg",
                 'img': "media\images\download.jpeg",
-                #'email': caregiver.email,
+                'email': caregiver.email,
                 'phone': caregiver.phone,
-               # 'dob': caregiver.dob,
-                 'Experience': caregiver.experience,
+                'dob': caregiver.dob,
+                 'experience': caregiver.experience,
                 'gender': caregiver.gender,
-                'type':caregiver.type.type
+                'type':caregiver.type.type,
+                'hname': caregiver.h_id.h_name,
+                'branch':   caregiver.h_id.branch,
+                'thana': caregiver.h_id.thana.thana,
+                'location': caregiver.h_id.h_location
             })
         print(caregivers_data)
         return Response(caregivers_data)
@@ -2020,7 +2227,7 @@ class EventListView(APIView):
         serialized_data = []
         for event in events:
             serialized_data.append({
-                'id': event.id,
+                'id': event.EventID,
                 'Description': event.Description,
                 'Event_title': event.Event_title,
                 'start_time': event.start_time,
@@ -2033,35 +2240,58 @@ class EventListView(APIView):
                 'E_type': event.E_type,
                 'Image': event.Image.url if event.Image else "media\image\default.jpeg",
                 'E_creator': event.E_creator.username,  
-                'Thana': event.Thana.thana if event.Thana else None  
+                'privacy':event.privacy,
+                'Thana': event.Thana.thana if event.Thana else None ,
+                'Member' : 1 if JoinEvent.objects.filter(EventID=event,Member=Owner.objects.get(username=request.GET.get('username'))).exists() else 0 
             })
-        
+        print(serialized_data)
         return Response({"events": serialized_data, "message": "event information retrieved successfully"}, status=status.HTTP_200_OK)
-
+    def post(self,request):
+        user=Owner.objects.get(username=request.data["e_creator"])
+        data=request.data
+        print("ay to he event ayegi...")
+        print(data)
+        event = Event.objects.create(
+            E_creator=Owner.objects.get(username=data['e_creator']),
+            Event_title=data['title'],
+            start_date=data['start_date'],
+            create_date=data['create_date'],
+            end_date=data['end_date'],
+            privacy=data['privacy'],
+            Address=data['address'],
+            Approve=1,  # Assuming this is a boolean field indicating approval
+            start_time=data['start_time'],  # Fixing the syntax here
+            end_time=data['end_time'],
+            Description=data['Description'],  # Fixing the typo in 'Description'
+            E_type=data['type'],
+            Thana=Thana.objects.get(thana=data['thana'])  # Assuming 'thana' is a foreign key to Thana model
+        )
+        event.save()
+        print("ye he to hamari...")
+        return Response({"message": "Event Created successfully"}, status=status.HTTP_200_OK)
 from .models import JoinEvent
 class EventMembers(APIView):
     def get_age(self, dob):
         today = datetime.today()
         age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
         return age
-
     def get(self,request):
         event_id=request.GET.get('id')
-        event=Event.objects.get(event_id_id=event_id)
-        members=JoinEvent.objects.filter(event_id_id=event_id,cancel=0,accept=1)
+        event=Event.objects.get(EventID=event_id)
+        members=JoinEvent.objects.filter(EventID=event_id,cancel=0)
         members_data=[]
         print("ami hatar manush khuji akhon!")
         for member in members:
             members_data.append({
-                'id': member.username.id,
-                'username': member.username.username,
-                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.username.first_name,
-                'last_name': member.username.last_name,
-                'email': member.username.email,
-                'phone': member.username.phone,
-                'dob': self.get_age(member.username.dob),
-                'gender': member.username.gender
+                'id': member.Member.id,
+                'username': member.Member.username,
+                'img': member.Member.p_image.url if member.Member.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.Member.first_name,
+                'last_name': member.Member.last_name,
+                'email': member.Member.email,
+                'phone': member.Member.phone,
+                'dob': self.get_age(member.Member.dob),
+                'gender': member.Member.gender
             })
         print(members_data)
         return Response(members_data)
@@ -2121,20 +2351,19 @@ class HandleEventmember(APIView):
                 members[0].delete()
                 return Response({"user": members[0].username.username})
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
 class Event_request(APIView):
     def post(self,request):
         event_id=request.data['id']
         username=request.data['username']
-        event=Event.objects.get(event_id=event_id)
-        bot=JoinEvent.objects.filter(event_id=event,username=Owner.objects.get(username=username))
+        event=Event.objects.get(EventID=event_id)
+        bot=JoinEvent.objects.filter(EventID=event,Member=Owner.objects.get(username=username))
         if(len(bot)>0):
-            return Response({"user": bot[0].username.username})      
-        members=JoinEvent.objects.create(username=Owner.objects.get(username=username),event_id=Event.objects.get(event_id=event_id),cancel=0,accept=0)
+            return Response({"user": bot[0].Member.username})      
+        members=JoinEvent.objects.create(Member=Owner.objects.get(username=username),EventID=Event.objects.get(EventID=event_id),cancel=0,Approve=1)
         members.save()
         print("accept koro na?")
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
-          
 class TripListView(APIView):
     def get(self, request):
         trips = Trip.objects.all()
@@ -2142,18 +2371,41 @@ class TripListView(APIView):
         serialized_data = []
         for trip in trips:
             serialized_data.append({
-                'TripID': trip.TripID,
-                'Location': trip.Location,
+                'id': trip.TripID,
+                'location': trip.Location,
                 'start_date': trip.start_date,
                 'end_date': trip.end_date,
                 'propose_date': trip.propose_date,
-                'Privacy': trip.Privacy,
-                'Creator': trip.Creator.id,  
-                'Thana': trip.Thana.thana,  
-                'Guide': trip.Guide.id  
+                'privacy': trip.Privacy,
+                'creator': trip.Creator.username,  
+                'thana': trip.Thana.thana,  
+                'guide': trip.guide,
+                'member' : 1 if TripMember.objects.filter(TripID=trip,member=Owner.objects.get(username=request.GET.get('username')),Approve=1,cancel=0).exists() else 0,
+                'join' : 1 if TripMember.objects.filter(TripID=trip,member=Owner.objects.get(username=request.GET.get('username')),Approve=0,cancel=0).exists() else 0
             })
+        print(serialized_data)
         
         return Response({"trips": serialized_data, "message": "Trip information retrieved successfully"}, status=status.HTTP_200_OK)
+    def post(self,request):
+        user=Owner.objects.get(username=request.data["t_creator"])
+        data=request.data
+        print("ay to he event ayegi...")
+        print(data)
+        trip = Trip.objects.create(
+            Creator=Owner.objects.get(username=data['t_creator']),
+            Location=data['address'],
+            start_date=data['start_date'],
+            propose_date=data['propose_date'],
+            end_date=data['end_date'],
+            Privacy=data['privacy'],
+            Thana=Thana.objects.get(thana=data['thana']),
+            # guide=Owner.objects.get(username=data['guide'])
+            guide=data['guide']
+        )
+        trip.save()
+        print("ye he to hamari...")
+        return Response({"message": "Trip Created successfully"}, status=status.HTTP_200_OK)
+    
 
 from .models import TripMember
 class TripMembers(APIView):
@@ -2164,21 +2416,22 @@ class TripMembers(APIView):
 
     def get(self,request):
         trip_id=request.GET.get('id')
-        trip=TripMember.objects.get(trip_id=trip_id)
-        members=TripMember.objects.filter(trip_id=trip_id,cancel=0,accept=1)
+        trip=TripMember.objects.get(TripID=trip_id)
+        members=TripMember.objects.filter(TripID=trip_id,cancel=0,Approve=1)
         members_data=[]
         print("ami hatar manush khuji akhon!")
         for member in members:
             members_data.append({
-                'id': member.username.id,
-                'username': member.username.username,
-                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.username.first_name,
-                'last_name': member.username.last_name,
-                'email': member.username.email,
-                'phone': member.username.phone,
-                'dob': self.get_age(member.username.dob),
-                'gender': member.username.gender
+                'id': member.member.id,
+                 'trip': member.TripID.TripID,
+                'username': member.member.username,
+                'img': member.member.p_image.url if member.member.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.member.first_name,
+                'last_name': member.member.last_name,
+                'email': member.member.email,
+                'phone': member.member.phone,
+                'dob': self.get_age(member.member.dob),
+                'gender': member.member.gender
             })
         print(members_data)
         return Response(members_data)
@@ -2189,11 +2442,11 @@ class Trip_request(APIView):
     def post(self,request):
         trip_id=request.data['id']
         username=request.data['username']
-        trip=Trip.objects.get(trip_id=trip_id)
-        bot=TripMember.objects.filter(trip_id=trip,username=Owner.objects.get(username=username))
+        trip=Trip.objects.get(TripID=trip_id)
+        bot=TripMember.objects.filter(TripID=trip,member=Owner.objects.get(username=username))
         if(len(bot)>0):
-            return Response({"user": bot[0].username.username})      
-        members=TripMember.objects.create(username=Owner.objects.get(username=username),trip_id=Trip.objects.get(trip_id=trip_id),cancel=0,accept=0)
+            return Response({"user": bot[0].member.username})      
+        members=TripMember.objects.create(member=Owner.objects.get(username=username),TripID=Trip.objects.get(TripID=trip_id),cancel=0,Approve=0)
         members.save()
         print("accept koro na?")
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
@@ -2207,22 +2460,24 @@ class TripNotMember(APIView):
 
     def get(self,request):
         trip_id=request.GET.get('id')
-        trip=Trip.objects.get(trip_id=trip_id)
-        members=TripMember.objects.filter(trip_id=trip_id,accept=0)
+        print("trip id")
+        print(trip_id)
+        trip=Trip.objects.get(TripID=trip_id)
+        members=TripMember.objects.filter(TripID=trip_id,Approve=0,cancel=0)
         print(members)
         members_data=[]
         print("moner mto kw nai!")
         for member in members:
             members_data.append({
-                'id': member.username.id,
-                'username': member.username.username,
-                'img': member.username.p_image.url if member.username.p_image else "/media/image/download_lsX6bjA6.jpeg",
-                'first_name': member.username.first_name,
-                'last_name': member.username.last_name,
-                'email': member.username.email,
-                'phone': member.username.phone,
-                'dob': self.get_age(member.username.dob),
-                'gender': member.username.gender 
+                'id': member.member.id,
+                'username': member.member.username,
+                'img': member.member.p_image.url if member.member.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'first_name': member.member.first_name,
+                'last_name': member.member.last_name,
+                'email': member.member.email,
+                'phone': member.member.phone,
+                'dob': self.get_age(member.member.dob),
+                'gender': member.member.gender 
             
             })
         print(members_data) 
@@ -2231,29 +2486,28 @@ class TripNotMember(APIView):
 class HandleTripmember(APIView):
     def post(self,request):
         if request.data['type'] == 'confirm':
-            trip_id=request.data['trip_id']
+            trip_id=request.data['tid']
             user_id=request.data['id']
             user=Owner.objects.get(id=user_id)
-            trip=Trip.objects.get(trip_id=trip_id)
-            members=WalkMember.objects.filter(trip_id=trip,username=user)
-            print(members)
+            trip=Trip.objects.get(TripID=trip_id)
+            members=TripMember.objects.filter(TripID=trip,member=user)
             if(len(members)>0):
-                members[0].accept=1
+                members[0].Approve=1
                 members[0].save()
-                return Response({"user": members[0].username.username})
+                return Response({"user": members[0].member.username})
         if request.data['type'] == 'delete':
-            trip_id=request.data['trip_id']
+            trip_id=request.data['tid']
             user_id=request.data['id']
             user=Owner.objects.get(id=user_id)
-            trip=Trip.objects.get(trip_id=trip_id)
-            members=TripMember.objects.filter(trip_id=trip,username=user)
+            trip=Trip.objects.get(TripID=trip_id)
+            members=TripMember.objects.filter(TripID=trip,member=user)
             print(members)
             if(len(members)>0):
                 members[0].delete()
                 return Response({"user": members[0].username.username})
-            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)        
-from .models import Medication
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)   
 
+from .models import Medication
 class MedicationBox(APIView):
     def get(self, request):
         user=request.GET.get('username')
@@ -2278,9 +2532,10 @@ class MedicationBox(APIView):
                 'name': med.med_name,
                 'dosage': med.dose,
                 'note': med.note,
-                'after': med.after,
+                'after': med.after, 
                 'times':med_times,
-                'image': 'http://localhost:8000/media/d.png'
+                'image': med.img.url if med.img else'media/d.png'
+
             })
         print(medications_data)
         return Response(medications_data)
@@ -2288,7 +2543,127 @@ class MedicationBox(APIView):
         data=request.data
         print(data)
         print("ye kiya hogaye")
+        img = request.FILES.get('img')
+        print(img)
         user=Owner.objects.get(username=data['user'])
-        med=Medication.objects.create(user=user,med_name=data['name'],note=data['note'],dose=data['dosage'],morning=1 if data['morning'] else 0,noon=1 if data['noon'] else 0,night=1 if data['night'] else 0,after=data['after'],meds_start_date=data['start_date'],meds_end_date=data['end_date'])
+        med=Medication.objects.create(user=user,img=img,med_name=data['name'],note=data['note'],dose=data['dosage'],morning= data['morning'],noon= data['noon'],night=data['night'],after=data['after'],meds_start_date=data['start_date'],meds_end_date=data['end_date'])
         med.save()
         return Response({"message": "Medication created successfully"}, status=status.HTTP_201_CREATED)
+from .models import DoneMed
+
+class Done(APIView):
+    def post(self,request):
+        print(request.data)
+        if request.data['type'] == 'done':
+                data=request.data
+                user=Owner.objects.get(username=data['username'])
+                date=data['date']
+                time=data['time']
+                done=DoneMed.objects.create(user=user,done_date=date,done_time=time)
+                done.save()
+                print("Done means done")
+        else :
+            data=request.data
+            user=Owner.objects.get(username=data['username'])
+            date=data['date']
+            time=data['time']
+            done=DoneMed.objects.filter(user=user,done_date=date,done_time=time)
+            if(len(done)>0):
+                done[0].delete()
+            
+        return Response({"message": "Done successfully"}, status=status.HTTP_201_CREATED)
+    def get(self,request):
+        user=request.GET.get('username')
+        print(user)
+        user=Owner.objects.get(username=user)
+        date=request.GET.get('date')
+        time=request.GET.get('time')
+        done=DoneMed.objects.filter(user=user,done_date=date,done_time=time)
+        if(len(done)>0):
+            return Response({"done": "1"})
+        return Response({"done": "0"})
+
+from .models import MedAlert
+
+class MedTime(APIView):
+    def get(self,request):
+        user=request.GET.get('username')
+        user=Owner.objects.get(username=user)
+        if(MedAlert.objects.filter(userid=user).exists()):
+            time=MedAlert.objects.get(userid=user)
+            return Response({"night": time.night,"morning": time.morning,"noon": time.noon,"gap": time.interval})
+        else:
+            return Response({"night": "20:00","morning": "08:00","noon":"14:00","gap": "30"})   
+
+    def post(self,request):
+        data=request.data
+        print(data)
+        user=Owner.objects.get(username=data['username'])
+        if(MedAlert.objects.filter(userid=user).exists()):
+            time=MedAlert.objects.get(userid=user)
+            time.night=data['night']
+            time.morning=data['morning']
+            time.noon=data['noon']
+            time.interval=data['gap']
+            time.save()
+            return Response({"message": "Time updated successfully"}, status=status.HTTP_201_CREATED)
+        time=MedAlert.objects.create(userid=user,night=data['night'],morning=data['morning'],noon=data['noon'],interval=data['gap'])
+        time.save()
+        return Response({"message": "Time created successfully"}, status=status.HTTP_201_CREATED)
+
+class Search(APIView):
+    def get(self,reqeust):
+        search=reqeust.GET.get('search')
+        username=reqeust.GET.get('username')
+        blog=Blog.objects.filter(content__icontains=search)
+        blog_data=[]
+        if search==" ":
+            blog=Blog.objects.all()
+        for b in blog:
+            blog_data.append({
+                'id': b.blogid,
+                'author': b.author.username,
+                'content': b.content,
+                'author_img': b.author.p_image.url if b.author.p_image else '/media/image/download_lsX6bjA6.jpeg',
+                'date': b.post_date,
+                'time': b.post_time,
+                'blog_img': b.blog_img.url if b.blog_img else None,
+                'upvote': Upvote.objects.filter(blogid=b).count(),
+                'is_upvoted': 1 if Upvote.objects.filter(blogid=b,Username=Owner.objects.get(username=username)).exists() else 0
+            })
+        print("tomake ami khujei ber korbo ,chander o pahar theke")
+        print(blog_data)
+        return Response(blog_data)
+from django.db.models import Q
+class Searchfnd(APIView):
+    def get(self,request):
+        search=request.GET.get('search')
+        print(request.GET.get('username'))
+        user=Owner.objects.get(username=request.GET.get('username'))
+        userbox=User.objects.filter(Q(username__icontains=search) | Q(first_name__icontains=search) | Q(last_name__icontains=search))
+        user_data=[]
+        for sorted_user in userbox:
+            if sorted_user==user:
+                continue
+            user_data.append({
+                'id': sorted_user.id,
+                'first_name': sorted_user.first_name,
+                'last_name': sorted_user.last_name,
+                'username': sorted_user.username,
+                'email': sorted_user.email,
+                'gender': sorted_user.gender,
+                'phone': sorted_user.phone,
+                'dob': sorted_user.dob,
+                'address': sorted_user.address,
+                'nid': sorted_user.nid,
+                'thana': Thana.objects.get(thana=sorted_user.thana).thana,
+                'pp': sorted_user.p_image.url if sorted_user.p_image else 'media/image/download_lX6bjA6.jpeg',
+                'is_fnf': 0,
+                'type': Friend.objects.filter(user1=user, user2=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Frined.objects.filter(user2=user, user1=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'f_created_date':Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'f_id': Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
+                'abedon': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 0,
+                'good': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
+                'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
+                 })
+        return Response({"users":user_data, "message": "User retrieved successfully"}, status=status.HTTP_200_OK)
