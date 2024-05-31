@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import MyModelListCreateAPIView,MyAPIView,_sign,sign,login_api,ChangePass,show,friends,Owner_update,O_update,UserLogin
+from .views import MyAPIView,_sign,sign,login_api,ChangePass,show,friends,Owner_update,O_update,UserLogin
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView,add_fnf,Profile
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView
 from .views import PlanEventCreateAPIView, PlanEventListAPIView, PlanEventUpdateAPIView
@@ -10,7 +10,7 @@ from django.conf.urls.static import static
 from django.urls import path, include
 
 urlpatterns=[
-    path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
+    # path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
     path('orm', MyAPIView.as_view(), name='MyAPIView'),
     path('changepass', ChangePass.as_view(), name='changepass'),
     path('login', login_api.as_view(), name='login'),

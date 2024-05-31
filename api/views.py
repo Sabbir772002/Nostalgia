@@ -13,7 +13,7 @@ from .serializers import OwnerSerializer, OverseerSerializer,ChangePasswordSeria
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from api.models import Owner, Overseer,Friend,Thana,User,Event,Upvote,Blog,Chat,Notification,Trip
+from api.models import Owner, Overseer,Friend,Thana,User,Event,Upvote,Blog,Chat,Notification,Trip,Additional
 from .serializers import OwnerSerializer, OverseerSerializer,UserLoginSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -38,8 +38,7 @@ class HelloWorldView(APIView):
 
     def get(self, request):
         return Response(data={"message": "Hello, world!"})
-
-
+        
 class O_update(APIView):
     def put(self, request, pk):
         try:
@@ -219,19 +218,22 @@ class MyAPIView(views.APIView):
         return Response(serializer.data)
 
 
-class MyModelListCreateAPIView(views.APIView):
-    def get(self, request):
-        queryset = MyModel.objects.all()
-        serializer = MyModelSerializer(queryset, many=True)
-        print(request.user)
-        return Response(serializer.data)
+# class MyModelListCreateAPIView(views.APIView):
+#     def get(self, request):
+#         queryset = MyModel.objects.all()
+#         serializer = MyModelSerializer(queryset, many=True)
+#         print(request.user)
+#         return Response(serializer.data)
         
-    def post(self, request):
-        serializer = MyModelSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         serializer = MyModelSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -2640,10 +2642,11 @@ class Searchfnd(APIView):
         search=request.GET.get('search')
         print(request.GET.get('username'))
         user=Owner.objects.get(username=request.GET.get('username'))
-        userbox=User.objects.filter(Q(username__icontains=search) | Q(first_name__icontains=search) | Q(last_name__icontains=search))
+        userbox=Owner.objects.filter(Q(username__icontains=search) | Q(first_name__icontains=search) | Q(last_name__icontains=search))
         user_data=[]
         for sorted_user in userbox:
             if sorted_user==user:
+                print("yi to harami hai")
                 continue
             user_data.append({
                 'id': sorted_user.id,
@@ -2667,3 +2670,24 @@ class Searchfnd(APIView):
                 'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
                  })
         return Response({"users":user_data, "message": "User retrieved successfully"}, status=status.HTTP_200_OK)
+
+class GroupDelete(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        Gmember=GroupMember.objects.get(G_username=data['group'],member_id=Owner.objects.get(id=data['user_id']))
+        Gmember.delete()
+        return Response({"message": "Group deleted successfully"}, status=status.HTTP_201_CREATED)
+
+class OverseerDelete(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        name=data['username'].split('@')[0]
+        top=data['username'].split('@')[1]
+        overseer=Overseer.objects.filter(username__icontains="@"+top)
+        if(len(overseer)>1):
+            overseer=Overseer.objects.get(username=name+"@"+top)
+            overseer.delete()
+            return Response({"message": "Overseer deleted successfully"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Overseer Cannot be Deleted!"}, status=status.HTTP_201_CREATED)

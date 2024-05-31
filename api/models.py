@@ -93,6 +93,16 @@ class Owner(User):
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
+
+class Additional(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    type= models.CharField(max_length=255)
+    content = models.CharField(max_length=255)
+    def __str__(self):
+        return self.type+":"+self.content
+
+
 class Overseer(User):
     Location = models.CharField(max_length=255)
     Relation = models.CharField(max_length=255)
