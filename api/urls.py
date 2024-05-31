@@ -37,6 +37,7 @@ urlpatterns=[
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
     path('add_group', views.Add_group.as_view(), name='add_group'),
     path('my_groups', views.My_Group.as_view(), name='my_groups'),
+    path('!my_groups', views.Not_My_Group.as_view(), name='!my_groups'),
     path('g_profile/<username>', views.GroupProfile.as_view(), name='g_profile'),
     path('gp_post', views.GP_post.as_view(), name='GP_post'),
     path('gt_post', views.GT_post.as_view(), name='GT_post'),
@@ -81,6 +82,10 @@ urlpatterns=[
     path('medtime', views.MedTime.as_view(), name='medtime'),
     path('search', views.Search.as_view(), name='search'),
     path('searchfnd', views.Searchfnd.as_view(), name='searchfnd'),
+    path('deletegroup', views.DeleteGroup.as_view(), name='DeleteGroup'),
+    path('doverseer', views.OverseerDelete.as_view(), name='doverseer'),
+    path('addhandle', views.AddHandler.as_view(), name='addhandler'),
+
     ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

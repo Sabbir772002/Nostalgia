@@ -78,8 +78,7 @@ class Thana(models.Model):
     thana = models.CharField(max_length=100,primary_key=True)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
     def __str__(self):
-        return self.thana
-
+        return self.Thana
 
 class Owner(User):
     walk_type = models.CharField(max_length=100)

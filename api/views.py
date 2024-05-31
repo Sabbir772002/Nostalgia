@@ -1748,13 +1748,15 @@ class Add_group(APIView):
         group.save()
         admin=GroupMember.objects.create(G_username=Group.objects.get(G_username=data['username']),member_id=Owner.objects.get(id=data['id']).id,accept=1,Block=2)
         admin.save()
-        return Response({"message": "Group created successfully"}, status=status.HTTP_201_CREATED)
-        
+        return Response({"message": "Group created successfully"}, status=status.HTTP_201_CREATED)\
+
 class My_Group(APIView):
     def get(self,request):
         username=request.GET.get('user_id')
         user=Owner.objects.get(id=username)
-        groups=Group.objects.all()
+        groups=GroupMember.objects.filter(member_id=user,accept=1).values_list('G_username',flat=True).distinct()
+        print(groups)
+        groups=Group.objects.filter(G_username__in=groups)
         groups_data=[]
         for group in groups:
             groups_data.append({
@@ -1766,7 +1768,30 @@ class My_Group(APIView):
                 'topic': group.Topic,
                 'time': group.time,
                 'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
 
+            })
+        return Response(groups_data)
+
+class Not_My_Group(APIView):
+    def get(self,request):
+        username=request.GET.get('user_id')
+        user=Owner.objects.get(id=username)
+        groups=GroupMember.objects.filter(member_id=user,accept=1).values_list('G_username',flat=True).distinct()
+        print(groups)
+        groups=Group.objects.exclude(G_username__in=groups)
+        groups_data=[]
+        for group in groups:
+            groups_data.append({
+                'username': group.G_username,
+                'name': group.G_name,
+                'creator': group.Creator.username,
+                'created_date': group.CreatedDate,
+                'privacy': group.Privacy,
+                'topic': group.Topic,
+                'time': group.time,
+                'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
             })
         return Response(groups_data)
 
@@ -1793,7 +1818,6 @@ class GroupProfile(APIView):
         print(data)
         return Response(data)
 from .models import GroupPost
-
 class GP_post(APIView):
     def get(self,request):
         username=request.GET.get('username')
@@ -1817,15 +1841,14 @@ class GP_post(APIView):
             })
         print(posts_data)
         return Response(posts_data)
-
-
 class GT_post(APIView):
     def get(self,request):
         username=request.GET.get('username')
         # print(username)
         # group=Group.objects.get(G_username=username)
         # posts=GroupPost.objects.filter(G_username=group)
-        posts=GroupPost.objects.all()
+        groups=GroupMember.objects.filter(member_id=Owner.objects.get(username=username),accept=1).values_list('G_username',flat=True).distinct()
+        posts=GroupPost.objects.filter(G_username__in=groups)
         posts_data=[]
         for post in posts:
             posts_data.append({
@@ -2671,11 +2694,11 @@ class Searchfnd(APIView):
                  })
         return Response({"users":user_data, "message": "User retrieved successfully"}, status=status.HTTP_200_OK)
 
-class GroupDelete(APIView):
+class DeleteGroup(APIView):
     def post(self,request):
         data=request.data
         print(data)
-        Gmember=GroupMember.objects.get(G_username=data['group'],member_id=Owner.objects.get(id=data['user_id']))
+        Gmember=GroupMember.objects.get(G_username=data['guser'],member_id=Owner.objects.get(username=data['username']))
         Gmember.delete()
         return Response({"message": "Group deleted successfully"}, status=status.HTTP_201_CREATED)
 
@@ -2691,3 +2714,14 @@ class OverseerDelete(APIView):
             overseer.delete()
             return Response({"message": "Overseer deleted successfully"}, status=status.HTTP_201_CREATED)
         return Response({"message": "Overseer Cannot be Deleted!"}, status=status.HTTP_201_CREATED)
+
+class AddHandler(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        type=data['type']
+        content=data['content']
+        user=Owner.objects.get(username=data['username'])
+        add = Additional.objects.create(user=user, type=type, content=content)
+        add.save()
+        return Response({"message": "Extra Info added successfully"}, status=status.HTTP_201_CREATED)
