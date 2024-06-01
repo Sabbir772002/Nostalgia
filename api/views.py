@@ -2725,3 +2725,57 @@ class AddHandler(APIView):
         add = Additional.objects.create(user=user, type=type, content=content)
         add.save()
         return Response({"message": "Extra Info added successfully"}, status=status.HTTP_201_CREATED)
+
+class PostUpdate(APIView):
+    def put(self,request):
+        data=request.data
+        print(data)
+        post=Blog.objects.get(blogid=data['id'])
+        post.content=data['content']
+        post.save()
+        return Response({"message": "Post updated successfully"}, status=status.HTTP_201_CREATED)
+    def post(self,request):
+        data=request.data
+        print(data)
+        post=Blog.objects.get(blogid=data['id'])
+        post.delete()
+        return Response({"message": "Post deleted successfully"}, status=status.HTTP_201_CREATED)
+
+class SearchFndBox(APIView):
+    def get(self,request):
+        search=request.GET.get('search')
+        box=Owner.objects.get(username=request.GET.get('username'))
+        userbox=Owner.objects.filter(Q(username__icontains=search) | Q(first_name__icontains=search) | Q(last_name__icontains=search))
+        user_data=[]
+        users=Owner.objects.all()
+        for user in users:
+            fnd=Friend.objects.filter(user1=Owner.objects.get(id=box.id),user2=user.id)
+            fnd2=Friend.objects.filter(user2=Owner.objects.get(id=box.id),user1=user.id)
+            fnd=fnd[0] if len(fnd) > 0 else None
+            if user not in userbox:
+                continue
+            if(fnd is not None and fnd.is_fnf ==1) or (len(fnd2)>0  and fnd2[0].is_fnf==1):
+                    user_data.append({
+                        'id': user.id,
+                        'pp': user.p_image.url if user.p_image else "media\image\download_lX6bjA6.jpeg",
+                        'first_name': user.first_name,
+                        'username': user.username,
+                        'last_name': user.last_name,
+                        'email': user.email,
+                        'gender': user.gender,
+                        'phone': user.phone,
+                        'dob': user.dob,
+                        'address': user.address,
+                        'nid': user.nid,
+                        'thana': Thana.objects.get(thana=user.thana_id).thana,
+                        'is_fnf': fnd.is_fnf if fnd is not None else fnd2[0].is_fnf if len(fnd2)>0 else None,
+                        'type': fnd.type if fnd is not None else fnd2[0].type if len(fnd2)>0 else None,
+                        'f_created_date': fnd.f_created_date if fnd is not None else  None,
+                        'f_id': fnd.f_id if fnd is not None else None,
+                        'abedon': 1 if fnd is not None else 0,
+                        'good': fnd.user1.username if fnd is not None else None,
+                        'msg': "gd night",
+                        'time': "12:00",
+                    })
+        print(user_data)
+        return Response({"users": user_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)

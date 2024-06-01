@@ -85,7 +85,8 @@ urlpatterns=[
     path('deletegroup', views.DeleteGroup.as_view(), name='DeleteGroup'),
     path('doverseer', views.OverseerDelete.as_view(), name='doverseer'),
     path('addhandle', views.AddHandler.as_view(), name='addhandler'),
-
+    path('posts',views.PostUpdate.as_view(), name='posts'),
+    path('searchfndbox',views.SearchFndBox.as_view(), name='searchfndbox'),
     ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
