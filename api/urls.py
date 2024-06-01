@@ -26,7 +26,7 @@ urlpatterns=[
     path('friends', views.FriendList.as_view(), name='friend-list'),
     path('overseerlist', views.OverseerList.as_view(), name='overseerlist'),
     path('friend', views.friends, name='friend'),
-    path('findfriend', views.FindFriend.as_view(), name='findfriend'),
+    path('findfriend', views.FriendSugg.as_view(), name='findfriend'),
     path('add_fnf', add_fnf.as_view(), name='add_fnf'),
     path('update_fnf', views.update_fnf.as_view(), name='update_fnf'),
     path('profile/<username>', Profile.as_view(), name='profile'),
@@ -87,6 +87,7 @@ urlpatterns=[
     path('addhandle', views.AddHandler.as_view(), name='addhandler'),
     path('posts',views.PostUpdate.as_view(), name='posts'),
     path('searchfndbox',views.SearchFndBox.as_view(), name='searchfndbox'),
+    path('addinfo',views.Addinfo.as_view(), name='addinfo'),
     ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

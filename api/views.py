@@ -622,7 +622,7 @@ class FriendSuggestion(APIView):
                 'f_created_date':Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
                 'f_id': Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
                 'abedon': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 0,
-                'good': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
+                'good': user.username if Friend.objects.filter(user1=user, user2=sorted_user).exists() else sorted_user.username if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
                 'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
                  })
 
@@ -663,7 +663,7 @@ class FriendSugg(APIView):
     def get(self, request):
         userid = request.GET.get('user_id')
         # Retrieve the user
-        user = Owner.objects.get(username=userid)
+        user = Owner.objects.get(id=userid)
         # Retrieve the IDs of the user's friends where user1 is the given user
         friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
         # Retrieve the IDs of the user's friends where user2 is the given user
@@ -743,13 +743,13 @@ class FriendSugg(APIView):
                 'address': sorted_user.address,
                 'nid': sorted_user.nid,
                 'thana': Thana.objects.get(thana=sorted_user.thana).thana,
-                'p_image': sorted_user.p_image.url if sorted_user.p_image else 'media/image/download_lX6bjA6.jpeg',
+                'pp': sorted_user.p_image.url if sorted_user.p_image else 'media/image/download_lX6bjA6.jpeg',
                 'is_fnf': 0,
                 'type': Friend.objects.filter(user1=user, user2=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('type', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
                 'f_created_date':Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_created_date', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
                 'f_id': Friend.objects.filter(user1=user, user2=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user1=user, user2=sorted_user).exists() else Friend.objects.filter(user2=user, user1=sorted_user).values_list('f_id', flat=True).first() if Friend.objects.filter(user2=user, user1=sorted_user).exists() else None,
                 'abedon': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 0,
-                'good': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
+                'good': user.username if Friend.objects.filter(user1=user, user2=sorted_user).exists() else sorted_user.username if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
                 'status': 1 if Friend.objects.filter(user1=user, user2=sorted_user).exists() else 1 if Friend.objects.filter(user2=user, user1=sorted_user).exists() else 0,
                  })
         return Response({"users": serialized_data, "message": "User suggestions retrieved successfully"}, status=status.HTTP_200_OK)
@@ -1793,7 +1793,6 @@ class Not_My_Group(APIView):
                 'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
             })
         return Response(groups_data)
-
 from .models import GroupMember 
 class GroupProfile(APIView):
     def get(self,request,username):
@@ -1812,7 +1811,8 @@ class GroupProfile(APIView):
             'topic': group.Topic,
             'time': group.time,
             'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
-             'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
+             'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0,
+             'accept': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=0).exists() else 0
         }
         print(data)
         return Response(data)
@@ -2779,3 +2779,24 @@ class SearchFndBox(APIView):
                     })
         print(user_data)
         return Response({"users": user_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
+
+
+class Addinfo(APIView):
+    # def post(self,request):
+    #     data=request.data
+    #     print(data)
+    #     user=Owner.objects.get(username=data['username'])
+    #     add=Additional.objects.create(user=user,type=data['type'],content=data['content'])
+    #     add.save()
+    #     return Response({"message": "Additional info added successfully"}, status=status.HTTP_201_CREATED)
+    def get(self,request):
+        user=Owner.objects.get(id=request.GET.get('user_id'))
+        add=Additional.objects.filter(user=user)
+        add_data=[]
+        for a in add:
+            add_data.append({
+                'id': a.id,
+                'type': 1 if a.type=="Study" or a.type == "College" or a.type=="School" or a.type=="University"  else 0,
+                'content': a.content
+            })
+        return Response(add_data)
