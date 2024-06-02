@@ -1766,7 +1766,7 @@ class My_Group(APIView):
                 'privacy': group.Privacy,
                 'topic': group.Topic,
                 'time': group.time,
-                'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'img': group.img.url if group.img else "/media/image/download_lsX6bjA6.jpeg",
                 'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
 
             })
@@ -1789,11 +1789,11 @@ class Not_My_Group(APIView):
                 'privacy': group.Privacy,
                 'topic': group.Topic,
                 'time': group.time,
-                'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+                'img': group.img.url if group.img else "/media/image/download_lsX6bjA6.jpeg",
                 'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
             })
         return Response(groups_data)
-from .models import GroupMember 
+from .models import GroupMember
 class GroupProfile(APIView):
     def get(self,request,username):
         print("asi nai grope profile")
@@ -1804,12 +1804,13 @@ class GroupProfile(APIView):
         data={
             'username': group.G_username,
             'name': group.G_name,
-             'img': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
+            'img': group.img.url if group.img else "/media/image/download_lsX6bjA6.jpeg",
             'admin': group.Creator.username,
             'created_date': group.CreatedDate,
             'privacy': group.Privacy,
             'topic': group.Topic,
             'time': group.time,
+            'admin': group.Creator.username,
             'gp': group.Creator.p_image.url if group.Creator.p_image else "/media/image/download_lsX6bjA6.jpeg",
              'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0,
              'accept': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=0).exists() else 0
@@ -1822,7 +1823,7 @@ class GP_post(APIView):
         username=request.GET.get('username')
         print(username)
         group=Group.objects.get(G_username=username)
-        posts=GroupPost.objects.filter(G_username=group)
+        posts=GroupPost.objects.filter(G_username=group).order_by('-GPost_date','-GPost_Time')
         posts_data=[]
         for post in posts:
             posts_data.append({
@@ -1833,7 +1834,7 @@ class GP_post(APIView):
                 'author_img': post.p_username.p_image.url if post.p_username.p_image else "/media/image/download_lsX6bjA6.jpeg",
                 'content': post.GPost_contents,
                 'post_date': post.GPost_date,
-                'post_time': post.GPost_Time,
+                'post_time': post.GPost_date,
                 'post_img': post.GPost_image.url if post.GPost_image else None,
                 # 'upvote': GroupUpvote.objects.filter(post_id=post).count(),
                 # 'is_upvoted': 1 if GroupUpvote.objects.filter(post_id=post,Username=Owner.objects.get(username=username)).exists() else 0
@@ -1847,7 +1848,7 @@ class GT_post(APIView):
         # group=Group.objects.get(G_username=username)
         # posts=GroupPost.objects.filter(G_username=group)
         groups=GroupMember.objects.filter(member_id=Owner.objects.get(username=username),accept=1).values_list('G_username',flat=True).distinct()
-        posts=GroupPost.objects.filter(G_username__in=groups)
+        posts=GroupPost.objects.filter(G_username__in=groups).order_by('-GPost_date','-GPost_Time')
         posts_data=[]
         for post in posts:
             posts_data.append({
@@ -1896,7 +1897,7 @@ class AddGroupPost(CreateAPIView):
         #print(blog_img)
         if blog_img is not None:
             blog = GroupPost.objects.create(
-                    G_username=Group.objects.get(G_username=data['group_username']),
+                    G_username=Group.objects.get(G_username=data['gp']),
                     p_username=user,
                     GPost_contents=data['content'],
                     GPost_date=data['post_date'],
@@ -2800,3 +2801,47 @@ class Addinfo(APIView):
                 'content': a.content
             })
         return Response(add_data)
+class UpdateGroup(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        img=request.FILES.get('img')
+        group=Group.objects.get(G_username=data['username'])
+        group.G_name=data['name']
+        group.Privacy=data['privacy']
+        group.Topic=data['topic']
+        if(img):
+            group.img=img
+       # group.G_description=data['gdescription']
+        group.save()
+        return Response({"message": "Group updated successfully"}, status=status.HTTP_201_CREATED)
+class BoxImg(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        img=request.FILES.get('img')
+        box.img=BoxIMG.create(img=img)
+        print(box)
+        user.save()
+        
+        return Response({"message": "Image updated successfully",'img':box.img}, status=status.HTTP_201_CREATED)
+
+
+from api.models import Division,Thana,District
+class FindThana(APIView):
+    def get(self,request):
+        data=request.GET.get('district')
+        thana_names = [thana for thana in Thana.objects.filter(division_id=data).values_list('thana', flat=True)]
+        #.values('thana')
+        
+        return Response(thana_names)
+class FindDistrict(APIView):
+    def get(self,request):
+        data=request.GET.get('division')
+        district=District.objects.filter(division_id=data)
+        #.values('district')
+        print(district)
+        district_data=[]
+        district_names = [district for district in District.objects.filter(division_id=data).values_list('district', flat=True)]
+        print(district_names)
+        return JsonResponse(district_names, safe=False)

@@ -88,6 +88,9 @@ urlpatterns=[
     path('posts',views.PostUpdate.as_view(), name='posts'),
     path('searchfndbox',views.SearchFndBox.as_view(), name='searchfndbox'),
     path('addinfo',views.Addinfo.as_view(), name='addinfo'),
+    path('updategroup',views.UpdateGroup.as_view(), name='updategroup'),
+    path('findthana',views.FindThana.as_view(), name='findthana'),
+    path('finddistrict',views.FindDistrict.as_view(), name='finddistrict'),
     ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

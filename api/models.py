@@ -248,7 +248,7 @@ class Group(models.Model):
     Privacy = models.CharField(max_length=255)
     time = models.TimeField()
     Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
-
+    img=models.ImageField(upload_to='group_images/', null=True, blank=True)
     def __str__(self):
         return self.G_name
 
