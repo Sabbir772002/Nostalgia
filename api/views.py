@@ -2831,10 +2831,10 @@ from api.models import Division,Thana,District
 class FindThana(APIView):
     def get(self,request):
         data=request.GET.get('district')
-        thana_names = [thana for thana in Thana.objects.filter(division_id=data).values_list('thana', flat=True)]
+        thana_names = [thana for thana in Thana.objects.filter(district_id=data).values_list('thana', flat=True)]
         #.values('thana')
-        
-        return Response(thana_names)
+        print(thana_names)
+        return JsonResponse(thana_names,safe=False)
 class FindDistrict(APIView):
     def get(self,request):
         data=request.GET.get('division')
