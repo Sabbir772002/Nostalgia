@@ -8,7 +8,6 @@ from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorld
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
-
 urlpatterns=[
     # path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
     path('orm', MyAPIView.as_view(), name='MyAPIView'),
@@ -75,6 +74,7 @@ urlpatterns=[
     path('event!members', views.EventNotMember.as_view(), name='event!members'),
     path('handle_eventmember', views.HandleEventmember.as_view(), name='handle_eventmember'),
     path('trip', views.TripListView.as_view(), name='trip'),
+    path('tripupdate', views.TripUpdate.as_view(), name='tripupdate'),
     path('tripmembers', views.TripMembers.as_view(), name='trip_members'),
     path('trip_request', views.Trip_request.as_view(), name='trip_request'),
     path('trip!members', views.TripNotMember.as_view(), name='trip!members'),

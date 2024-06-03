@@ -154,7 +154,6 @@ class login_api(views.APIView):
         #serializer = UserLoginSerializer(data=data)
         print(data)
         #logout(request)
-
         if username and password:
             user = authenticate(request, username=username, password=password)
             print(user)
@@ -165,6 +164,12 @@ class login_api(views.APIView):
                     serializer = OwnerSerializer(user[0])
                     return Response({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
                 serializer = OverseerSerializer(Overseer.objects.get(username=username))
+                username_part = username.split("@")[1]
+                owner = Owner.objects.filter(username=username_part).first()
+                if owner:
+                    serializer.data['pp'] = owner.p_image.url
+                else:
+                    serializer.data['pp'] = "media/image/download_lX6bjA6.jpeg"
 
                 return JsonResponse({'auth': True,'user':serializer.data}, status=status.HTTP_200_OK)
         
@@ -389,13 +394,11 @@ class FriendList(APIView):
         return Response({"users": serialized_data, "message": "User information retrieved successfully"}, status=status.HTTP_200_OK)
 
 
-
 class FindFriend(APIView):
     def get(self, request):
         userid=request.GET.get('user_id')
        # users = Owner.objects.exclude(id=userid)
         users = Owner.objects.all()
-
         # Serialize the data
         serialized_data = []
         for user in users:
@@ -515,7 +518,6 @@ class FriendSuggestion(APIView):
         vector2 = self.text_to_vector(text2)
         return cosine_similarity([vector1], [vector2])[0][0]
 
-
     def preprocess_text(self, text):
         # Tokenize text
         tokens = word_tokenize(text)
@@ -563,7 +565,6 @@ class FriendSuggestion(APIView):
         text1=user_text
         # Preprocess user text
         # user_text = preprocess_text(user_text)
-        
         # # Retrieve other users excluding friends
         users = Owner.objects.exclude(id__in=friend_ids)
         
@@ -864,7 +865,6 @@ from .serializers import FriendSerializer
 from django.core.paginator import Paginator
 from rest_framework.response import Response
 from rest_framework import status
-
 class FriendListView(generics.ListAPIView):
     serializer_class = FriendSerializer
     #permission_classes = [IsAuthenticated]  # Requires authentication
@@ -1088,7 +1088,6 @@ class CompareImages(APIView):
         # Return the comparison result as JSON response
         return JsonResponse({'result': result})
 
-
 class WalkingBuddyList(APIView):
     def get(self, request):
         users = Owner.objects.all()
@@ -1206,7 +1205,7 @@ class UpvoteAPIView(APIView):
                 upvote_instance = Upvote(Username=Owner.objects.get(username=username), blogid=blog)
                 upvote_instance.save()
                 #this have to think, bcz, user knwo who withdraw his upvote
-                Noti=Notification(noti_type="Upvote",noti_msg="reupvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
+                Noti=Notification(noti_type="Upvote",noti_msg="upvoted your blog",noti_sender=Owner.objects.get(username=username),noti_receiver=Owner.objects.get(username=blog.author),noti_status=0)
                 Noti.save()
             else: 
                 upvote_instance = Upvote.objects.filter(Username=owner, blogid=blog).first()
@@ -1236,7 +1235,6 @@ class BlogSingleView(APIView):
             queryset = Blog.objects.filter(author=Owner.objects.get(username=username).id).order_by('-post_date', '-post_time')
             blogs_data = []
             print(Owner.objects.get(username=username).id)
-
             for blog in queryset:
                 #print(blog.author)
                 blog_data = {
@@ -1251,7 +1249,6 @@ class BlogSingleView(APIView):
                 blogs_data.append(blog_data)
 
             return JsonResponse(blogs_data, safe=False)
-
 @method_decorator(csrf_exempt, name='dispatch')
 class BlogCreateView(CreateAPIView):
     #serializer_class = BlogSerializer
@@ -1267,8 +1264,8 @@ class BlogCreateView(CreateAPIView):
             blog = Blog.objects.create(
                     author=user,
                     content=data['content'],
-                    post_date=data['post_date'],
-                    post_time=data['post_time'],
+                    post_date=datetime.now().date(),
+                    post_time=datetime.now().time(),
                     blog_img=blog_img if blog_img else None
                 )
                 # Save the blog instance
@@ -1329,18 +1326,40 @@ from .models import Walk
 from .serializers import WalkSerializer
 from datetime import datetime
 from django.db.models import Q
-
 class WalkListView(APIView):
     def get(self, request):
         username = request.GET.get('username')
         print("ami hatar manush khujte assi.....")
+        if(('@' in username)):
+            username=username.split('@')[1]
         user = Owner.objects.get(username=username)
-        print(user.username)
         #walks = Walk.objects.filter(Q(w_creator=user) | Q(walkmember__username=user)).order_by('walk_date').distinct()
-        walks=Walk.objects.all()
+          # Retrieve the IDs of the user's friends where user1 is the given user
+        friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
+        # Retrieve the IDs of the user's friends where user2 is the given user
+        friend_ids2 = Friend.objects.filter(user2=user, is_fnf=1).values_list('user1_id', flat=True)
+        # Convert QuerySets to lists
+        friend_ids = list(friend_ids)
+        friend_ids2 = list(friend_ids2)
+        # Include the user's ID in the friend list
+        friend_ids.append(user.id)
+        # Combine the friend IDs
+        friend_ids.extend(friend_ids2)
+        friend_ids.extend([user.id])
+        walks=Walk.objects.all().filter(w_creator__in=friend_ids).order_by('-walk_date','-end_date').distinct()
         walks_data = []
         for walk in walks:
             #print(walk.w_creator.p_image)
+            fd=Friend.objects.filter(user1=user, user2=walk.w_creator)
+            if(len(fd)==0):
+                fd=Friend.objects.filter(user2=user, user1=walk.w_creator)
+            if(len(fd)>0):
+                fd=fd[0]
+                if(fd.type!=walk.privacy and walk.privacy=="Bondhu"):
+                    continue
+            if(walk.end_date<datetime.now().date()):
+                continue
+
             walk_data = {
                 'id': walk.walk_id,
                 'w_creator': walk.w_creator.username,
@@ -1363,6 +1382,7 @@ class WalkListView(APIView):
     @csrf_exempt
     def post(self, request):
         data = request.data
+        print("in walk post update")
         print(data)
         username = data.get('w_creator')
         user = Owner.objects.get(username=username)
@@ -1370,6 +1390,15 @@ class WalkListView(APIView):
         data['privacy'] = "Bondhu"
         data['w_creator'] = user.id
         serializer = WalkSerializer(data=data)
+        if(serializer.is_valid()) and data['type']=="Update":
+            walk=Walk.objects.get(walk_id=data['id'])
+            walk.walk_name=data['walk_name']
+            walk.walk_date=data['walk_date']
+            walk.end_date=data['end_date']
+            walk.address=data['address']
+            walk.time=data['time']
+            walk.save()
+            return Response({"message": "Walk updated successfully"}, status=status.HTTP_201_CREATED)
     
         if serializer.is_valid():
             print(serializer)
@@ -1514,9 +1543,11 @@ from django.db.models import FloatField
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from datetime import datetime, timedelta
+from django.shortcuts import render
+from .models import Blog
 
 class HTimeline(APIView):
-    
     def get(self, request):
         username = request.GET.get("username")
         user = User.objects.get(username=username)
@@ -1527,7 +1558,6 @@ class HTimeline(APIView):
             user_content.append(blog.content)
         for comment in user_comments:
             user_content.append(comment.comment)
-
         # Get all blogs excluding the user's blogs
         all_blogs = Blog.objects.exclude(author__username=username)
         # Combine the content of all blogs and comments
@@ -1606,15 +1636,29 @@ class HTimeline(APIView):
         # Sort posts based on similarity scores
         sorted_posts = sorted(similarities, key=lambda x: x[1], reverse=True)
         sorted_posts = [post for post, similarity in sorted_posts]
-
+        userbox=Friend.objects.filter()
         blogs_data = []
+        # Retrieve the IDs of the user's friends where user1 is the given user
+        friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
+        # Retrieve the IDs of the user's friends where user2 is the given user
+        friend_ids2 = Friend.objects.filter(user2=user, is_fnf=1).values_list('user1_id', flat=True)
+        # Convert QuerySets to lists
+        friend_ids = list(friend_ids)
+        friend_ids2 = list(friend_ids2)
+        # Include the user's ID in the friend list
+        friend_ids.append(user.id)
+        # Combine the friend IDs
+        friend_ids.extend(friend_ids2)
+        ninety_days_ago = datetime.now().date() - timedelta(days=90)
+        date= datetime.now().date()
         for post in sorted_posts:
             blog = Blog.objects.filter(blogid=post.blogid)
             if blog.exists():
                 blog = blog[0]
-                if blog.author.username == username:
+                if blog.author.id not in friend_ids and blog.author.username != username:
                     continue
-
+                if blog.post_date + timedelta(days=90) < date:
+                    continue
                 blog_data = {
                     'id': blog.blogid,
                     'author': blog.author.username,
@@ -1778,9 +1822,32 @@ class Not_My_Group(APIView):
         user=Owner.objects.get(id=username)
         groups=GroupMember.objects.filter(member_id=user,accept=1).values_list('G_username',flat=True).distinct()
         print(groups)
+          # Retrieve the IDs of the user's friends where user1 is the given user
+        friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
+        # Retrieve the IDs of the user's friends where user2 is the given user
+        friend_ids2 = Friend.objects.filter(user2=user, is_fnf=1).values_list('user1_id', flat=True)
+        # Convert QuerySets to lists
+        friend_ids = list(friend_ids)
+        friend_ids2 = list(friend_ids2)
+        # Include the user's ID in the friend list
+        friend_ids.append(user.id)
+        # Combine the friend IDs
+        friend_ids.extend(friend_ids2)
         groups=Group.objects.exclude(G_username__in=groups)
+        print(groups)
         groups_data=[]
         for group in groups:
+            fd=Friend.objects.filter(user1=user, user2=group.Creator)
+            if(len(fd)==0):
+                fd=Friend.objects.filter(user2=user, user1=group.Creator)
+            if(len(fd)>0):
+                fd=fd[0]
+                if(fd.type!=group.Privacy and group.Privacy=="Bondhu" and group.Privacy!="Public"):
+                    print("continue 1")
+                    continue
+            if group.Creator.id not in friend_ids and group.Privacy!="Public":
+                    print("continue 2")
+                    continue
             groups_data.append({
                 'username': group.G_username,
                 'name': group.G_name,
@@ -1792,6 +1859,8 @@ class Not_My_Group(APIView):
                 'img': group.img.url if group.img else "/media/image/download_lsX6bjA6.jpeg",
                 'member': 1 if GroupMember.objects.filter(G_username=group,member_id=user,accept=1).exists() else 0
             })
+        print("in group list")
+        print(groups_data)
         return Response(groups_data)
 from .models import GroupMember
 class GroupProfile(APIView):
@@ -2391,12 +2460,30 @@ class Event_request(APIView):
         return Response({"message": "Request sent successfully"}, status=status.HTTP_201_CREATED)
 class TripListView(APIView):
     def get(self, request):
-        trips = Trip.objects.all()
         # Serialize the data
         serialized_data = []
+        user = Owner.objects.get(username=request.GET.get('username'))
+        print(user)
+        print("in trip list view... ")
+        # Retrieve the IDs of the user's friends where user1 is the given user
+        friend_ids = Friend.objects.filter(user1=user, is_fnf=1).values_list('user2_id', flat=True)
+        # Retrieve the IDs of the user's friends where user2 is the given user
+        friend_ids2 = Friend.objects.filter(user2=user, is_fnf=1).values_list('user1_id', flat=True)
+        # Convert QuerySets to lists
+        friend_ids = list(friend_ids)
+        friend_ids2 = list(friend_ids2)
+        # Include the user's ID in the friend list
+        friend_ids.append(user.id)
+        # Combine the friend IDs
+        friend_ids.extend(friend_ids2)
+        friend_ids.extend([user.id]) 
+        trips = Trip.objects.filter(Creator__in=friend_ids,end_date__gte=datetime.now())
         for trip in trips:
+            if trip.Creator.id not in friend_ids and trip.creator != user:
+                continue
             serialized_data.append({
                 'id': trip.TripID,
+                'name': trip.name,
                 'location': trip.Location,
                 'start_date': trip.start_date,
                 'end_date': trip.end_date,
@@ -2417,6 +2504,7 @@ class TripListView(APIView):
         print("ay to he event ayegi...")
         print(data)
         trip = Trip.objects.create(
+            name=data['trip_name'],
             Creator=Owner.objects.get(username=data['t_creator']),
             Location=data['address'],
             start_date=data['start_date'],
@@ -2430,18 +2518,38 @@ class TripListView(APIView):
         trip.save()
         print("ye he to hamari...")
         return Response({"message": "Trip Created successfully"}, status=status.HTTP_200_OK)
-    
 
+class TripUpdate(APIView):
+    def post(self,request):
+        data=request.data
+        print(data)
+        trip=Trip.objects.get(TripID=data['id'])
+        if(data['type']=='Delete'):
+            trip.delete()
+            return Response({"message": "Trip deleted successfully"}, status=status.HTTP_201_CREATED)
+        if(data['type']=='Update'):
+            trip.name=data['trip_name']
+            trip.Location=data['address']
+            trip.start_date=data['start_date']
+            trip.propose_date=data['propose_date']
+            trip.end_date=data['end_date']
+            trip.Privacy=data['privacy']
+            trip.Thana=Thana.objects.get(thana=data['thana'])
+            trip.guide=data['guide']
+            trip.save()
+            return Response({"message": "Trip updated successfully"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+        
 from .models import TripMember
 class TripMembers(APIView):
     def get_age(self, dob):
         today = datetime.today()
         age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
         return age
-
     def get(self,request):
         trip_id=request.GET.get('id')
-        trip=TripMember.objects.get(TripID=trip_id)
+        # trip=TripMember.objects.get(TripID=trip_id)
         members=TripMember.objects.filter(TripID=trip_id,cancel=0,Approve=1)
         members_data=[]
         print("ami hatar manush khuji akhon!")
