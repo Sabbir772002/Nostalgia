@@ -834,20 +834,18 @@ class OTPAPI(APIView):
             # Send verification email with the verification code
 
             #uncomment when send mail....
-            #self.send_verification_email(email_address, verification_code)
+            # self.send_verification_email(email_address, verification_code)
             return Response({"message": "Verification email sent successfully", "code": verification_code,"username":user.username}, status=status.HTTP_200_OK)
         except Owner.DoesNotExist:
                 print("User not found")
                 return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-
+                
     def send_verification_email(self, email_address, verification_code):
         # Send verification email using Django's email functionality
         subject = 'Email Verification Code from Nostalgia'
         message = f'Your verification code is: {verification_code}'
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [email_address]
-
         send_mail(subject, message, from_email, recipient_list)
 
 
@@ -1413,7 +1411,7 @@ class NotificationView(APIView):
         username = request.GET.get('username')
         print("notification Bro....")
         print(username)
-        noti = Notification.objects.filter(noti_receiver=Owner.objects.get(username=username)).order_by('noti_date','-noti_time')
+        noti = Notification.objects.filter(noti_receiver=Owner.objects.get(username=username)).order_by('-noti_date','-noti_time')
         noti_data = []
         for n in noti:
             noti_data.append({
