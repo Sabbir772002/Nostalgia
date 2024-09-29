@@ -153,7 +153,8 @@ LOGIN_URL = 'log_in'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-fields
 AUTH_USER_MODEL = 'api.User'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-ALLOWED_HOSTS =  ['10.10.202.81','localhost', '127.0.0.1','http://localhost:3000','http://127.0.0.1:3000','10.0.2.2','10.10.200.137']
+# ALLOWED_HOSTS =  ['10.10.202.81','localhost', '127.0.0.1','http://localhost:3000','http://127.0.0.1:3000','10.0.2.2','10.10.200.137']
+ALLOWED_HOSTS=['*']
 SESSION_COOKIE_AGE = 180000
 CORS_ORIGIN_ALLOW_ALL = True
 import os
