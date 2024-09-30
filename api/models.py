@@ -445,3 +445,15 @@ class GroupReply(models.Model):
     def __str__(self):
         return f"GroupComment ID: {self.cmnt_id}, Post ID: {self.Reply_id}, Username: {self.user}, Name: {self.Reply_msg}"        
 
+class GhureAshi(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=255)
+    email = models.EmailField()
+    address = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='image/', null=True)
+    thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    rating = models.FloatField()
+    def __str__(self):
+        return self.name
+
