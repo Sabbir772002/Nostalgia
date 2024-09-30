@@ -91,9 +91,6 @@ urlpatterns=[
     path('updategroup',views.UpdateGroup.as_view(), name='updategroup'),
     path('findthana',views.FindThana.as_view(), name='findthana'),
     path('finddistrict',views.FindDistrict.as_view(), name='finddistrict'),
-    path('findone',views.FindDistrict.as_view(), name='finddistrict'),
-    path('findbig',views.FindDistrict.as_view(), name='finddistrict'),
-    path('findwow',views.FindDistrict.as_view(), name='finddistrict'),
     ]
 
 
