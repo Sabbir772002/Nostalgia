@@ -1198,11 +1198,10 @@ def main():
 
     primes = generate_primes(100)
     print("Primes up to 100:", primes)
-
     llist = LinkedList()
     for i in range(5):
         llist.insert(i)
     llist.display()
-
+    
 if __name__ == "__main__":
     main()
