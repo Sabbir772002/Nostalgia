@@ -354,7 +354,7 @@ def send_email(request):
         return render(request, 'index.html')
 
 
-                        from django.shortcuts import render
+from django.shortcuts import render
 import requests
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -710,7 +710,7 @@ def send_email(request):
         return render(request, 'index.html')
 
 
-                        from django.shortcuts import render
+from django.shortcuts import render
 import requests
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -1066,7 +1066,7 @@ def send_email(request):
         return render(request, 'index.html')
 
 
-                        from django.shortcuts import render
+from django.shortcuts import render
 import requests
 from django.http import HttpResponse
 from django.http import JsonResponse

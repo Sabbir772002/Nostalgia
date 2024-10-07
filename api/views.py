@@ -820,7 +820,7 @@ class OTPAPI(APIView):
         # Extract the email address from the request data
         #print(request.data)
         username = request.data.get('input')
-
+        
         # Verify the email address using an email verification API (optional)
         # You can skip the verification API and directly send the email
         # is_email_valid = self.verify_email(email_address)
