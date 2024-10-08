@@ -80,7 +80,6 @@ class Thana(models.Model):
     def __str__(self):
         return self.thana
 
-
 class Owner(User):
     walk_type = models.CharField(max_length=100)
 
@@ -92,6 +91,16 @@ class Owner(User):
         # Update other common fields
         self.password = make_password(self.password)
         super().save(*args, **kwargs)
+
+
+class Additional(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(Owner, on_delete=models.CASCADE)
+    type= models.CharField(max_length=255)
+    content = models.CharField(max_length=255)
+    def __str__(self):
+        return self.type+":"+self.content
+
 
 class Overseer(User):
     Location = models.CharField(max_length=255)
@@ -239,7 +248,7 @@ class Group(models.Model):
     Privacy = models.CharField(max_length=255)
     time = models.TimeField()
     Creator = models.ForeignKey(Owner, on_delete=models.CASCADE)
-
+    img=models.ImageField(upload_to='group_images/', null=True, blank=True)
     def __str__(self):
         return self.G_name
 
@@ -284,6 +293,7 @@ class Guide(models.Model):
 
 class Trip(models.Model):
     TripID = models.AutoField(primary_key=True)
+    name=models.CharField(max_length=255)
     Location = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -434,4 +444,16 @@ class GroupReply(models.Model):
 
     def __str__(self):
         return f"GroupComment ID: {self.cmnt_id}, Post ID: {self.Reply_id}, Username: {self.user}, Name: {self.Reply_msg}"        
+
+class GhureAshi(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=255)
+    email = models.EmailField()
+    address = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='image/', null=True)
+    thana = models.ForeignKey(Thana, on_delete=models.CASCADE)
+    rating = models.FloatField()
+    def __str__(self):
+        return self.name
 

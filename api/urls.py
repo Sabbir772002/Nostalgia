@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import MyModelListCreateAPIView,MyAPIView,_sign,sign,login_api,ChangePass,show,friends,Owner_update,O_update,UserLogin
+from .views import MyAPIView,_sign,sign,login_api,ChangePass,show,friends,Owner_update,O_update,UserLogin
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView,add_fnf,Profile
 from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorldView
 from .views import PlanEventCreateAPIView, PlanEventListAPIView, PlanEventUpdateAPIView
@@ -8,9 +8,8 @@ from .views import CustomTokenObtainPairView, CustomTokenRefreshView, HelloWorld
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
-
 urlpatterns=[
-    path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
+    # path('', MyModelListCreateAPIView.as_view(), name='mymodel-list-create'),
     path('orm', MyAPIView.as_view(), name='MyAPIView'),
     path('changepass', ChangePass.as_view(), name='changepass'),
     path('login', login_api.as_view(), name='login'),
@@ -37,6 +36,7 @@ urlpatterns=[
     path('addblog', views.BlogCreateView.as_view(), name='addblog'),
     path('add_group', views.Add_group.as_view(), name='add_group'),
     path('my_groups', views.My_Group.as_view(), name='my_groups'),
+    path('!my_groups', views.Not_My_Group.as_view(), name='!my_groups'),
     path('g_profile/<username>', views.GroupProfile.as_view(), name='g_profile'),
     path('gp_post', views.GP_post.as_view(), name='GP_post'),
     path('gt_post', views.GT_post.as_view(), name='GT_post'),
@@ -74,6 +74,7 @@ urlpatterns=[
     path('event!members', views.EventNotMember.as_view(), name='event!members'),
     path('handle_eventmember', views.HandleEventmember.as_view(), name='handle_eventmember'),
     path('trip', views.TripListView.as_view(), name='trip'),
+    path('tripupdate', views.TripUpdate.as_view(), name='tripupdate'),
     path('tripmembers', views.TripMembers.as_view(), name='trip_members'),
     path('trip_request', views.Trip_request.as_view(), name='trip_request'),
     path('trip!members', views.TripNotMember.as_view(), name='trip!members'),
@@ -81,6 +82,19 @@ urlpatterns=[
     path('medtime', views.MedTime.as_view(), name='medtime'),
     path('search', views.Search.as_view(), name='search'),
     path('searchfnd', views.Searchfnd.as_view(), name='searchfnd'),
+    path('deletegroup', views.DeleteGroup.as_view(), name='DeleteGroup'),
+    path('doverseer', views.OverseerDelete.as_view(), name='doverseer'),
+    path('addhandle', views.AddHandler.as_view(), name='addhandler'),
+    path('posts',views.PostUpdate.as_view(), name='posts'),
+    path('searchfndbox',views.SearchFndBox.as_view(), name='searchfndbox'),
+    path('addinfo',views.Addinfo.as_view(), name='addinfo'),
+    path('updategroup',views.UpdateGroup.as_view(), name='updategroup'),
+    path('findthana',views.FindThana.as_view(), name='findthana'),
+    path('finddistrict',views.FindDistrict.as_view(), name='finddistrict'),
     ]
+
+
+
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
