@@ -1,2 +1,4 @@
 #  Nostalgia: A Social Media Platform for Elderly Users
 Nostalgia is a social media platform for elderly users, built with Django for backend APIs, React for the frontend interface, Node.js for real-time chat functionality, and MySQL for data storage. It integrates deep learning for ID verification and early-age photo matching, and machine learning for friend suggestions, interest-based recommendations, and group prioritization. Key features include secure user and overseer logins, profile management, medication alerts, walking buddy coordination, blogging, and event/trip planning, delivering a safe, personalized, and community-driven experience.   Uses DL to match users' current images with those from their youth to reconnect with old friends.
+#Frontend of Nostalgia
+https://github.com/Sabbir772002/Nostalgia-Frontend
