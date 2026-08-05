@@ -1,5 +1,6 @@
 from django.contrib.auth.backends import BaseBackend
-from api.models import User  # Import your custom user model
+
+from api.models import User
 
 class WebUserBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None):
@@ -8,7 +9,6 @@ class WebUserBackend(BaseBackend):
             if user.check_password(password):
                 return user
         except User.DoesNotExist:
-            print("User nai")
-            pass
+            return None
 
         return None

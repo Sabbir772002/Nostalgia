@@ -1,0 +1,13 @@
+# Don't copy these into the Docker image
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.gitignore
+.env
+*.sqlite3
+db.sqlite3
+media/
+node_modules/
+.DS_Store

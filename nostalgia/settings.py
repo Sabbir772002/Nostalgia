@@ -10,25 +10,81 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
+import socket
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-uquu05q^e)!3s#h58)030ka8bs&y33w8##cn0-5*!pvto6dckw"
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+def env(name, default=None):
+    return os.environ.get(name, default)
 
 
+def env_bool(name, default=False):
+    value = env(name)
+    if value is None:
+        return default
+    return value.lower() in {"1", "true", "yes", "on"}
 
-# Application definition
+
+def resolve_database_port(db_host):
+    db_port = env("DB_PORT")
+    if db_port:
+        return db_port
+    if db_host == "db":
+        return "5432"
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(0.5)
+    res = sock.connect_ex(("127.0.0.1", 5433))
+    sock.close()
+    return "5433" if res == 0 else "5432"
+
+
+def build_database_config():
+    db_engine = env("DB_ENGINE", "postgresql")
+    if db_engine == "sqlite3":
+        return {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
+
+    if db_engine == "mysql":
+        return {
+            "default": {
+                "ENGINE": "django.db.backends.mysql",
+                "NAME": env("DB_NAME", "nostalgia"),
+                "USER": env("DB_USER", "root"),
+                "PASSWORD": env("DB_PASSWORD", ""),
+                "HOST": env("DB_HOST", "localhost"),
+                "PORT": env("DB_PORT", "3306"),
+            }
+        }
+
+    db_host = env("DB_HOST", "127.0.0.1")
+    return {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME", "nostalgia"),
+            "USER": env("DB_USER", "postgres"),
+            "PASSWORD": env("DB_PASSWORD", "postgres"),
+            "HOST": db_host,
+            "PORT": resolve_database_port(db_host),
+        }
+    }
+
+
+SECRET_KEY = env("SECRET_KEY", "django-insecure-uquu05q^e)!3s#h58)030ka8bs&y33w8##cn0-5*!pvto6dckw")
+
+DEBUG = env_bool("DEBUG", True)
+
+
+                        
 INSTALLED_APPS = [
+    'daphne',
     "django.contrib.admin",
     "web",
     "api",
@@ -36,12 +92,21 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'rest_framework',
     'corsheaders',
+    'django_tasks_db',
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
+
+TASKS = {
+    "default": {
+        "BACKEND": "django_tasks_db.DatabaseBackend",
+        "QUEUES": ["default", "emails", "ai_processing"],
+    }
+}
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -52,8 +117,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-            'django.middleware.csrf.CsrfViewMiddleware',
-
 ]
 
 REST_FRAMEWORK = {
@@ -61,7 +124,6 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
-
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -84,40 +146,44 @@ TEMPLATES = [
         },
     },
 ]
+
 AUTHENTICATION_BACKENDS = [
-    # 'api.backends.UserBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
 
+ASGI_APPLICATION = "nostalgia.asgi.application"
 WSGI_APPLICATION = "nostalgia.wsgi.application"
 
+DATABASES = build_database_config()
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'nostalgia',
-        'USER': 'root',
-        'PASSWORD':'',
-        'HOST': 'localhost',    # Or your MySQL host address
-        'PORT': '3306',         # Or your MySQL port
+REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
+if REDIS_HOST:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [(REDIS_HOST, 6379)],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
     }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:6379/1",
+        "KEY_PREFIX": "nostalgia",
+        "TIMEOUT": 300,
+    }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -134,40 +200,33 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
+
 LOGIN_URL = 'log_in'
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-fields
 AUTH_USER_MODEL = 'api.User'
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-# ALLOWED_HOSTS =  ['10.10.202.81','localhost', '127.0.0.1','http://localhost:3000','http://127.0.0.1:3000','10.0.2.2','10.10.200.137']
-ALLOWED_HOSTS=['*']
+
+ALLOWED_HOSTS = ['*']
+
 SESSION_COOKIE_AGE = 180000
+
 CORS_ORIGIN_ALLOW_ALL = True
-import os
+
 STATIC_URL = "/static/"
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static/'),
+    BASE_DIR / 'static',
 ]
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-#ensure less secure uses on gmail....
-EMAIL_HOST_USER = "" 
-EMAIL_HOST_PASSWORD = ""  
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', '')

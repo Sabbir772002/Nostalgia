@@ -20,25 +20,29 @@ Welcome to Nostalgia, the social media platform dedicated to the elderly communi
 Nostalgia is a comprehensive Django-based backend API for a social media platform specifically tailored for elderly users. It provides features for social connectivity, health management, friend discovery using AI, and community engagement. The platform includes both user and overseer (caregiver) roles for enhanced safety and support.
 
 **Key Technologies:**
-- **Django 5.0.3** - Web framework for backend development
+- **Django 5.0.2** - Web framework for backend development
 - **Django REST Framework 3.15.1** - RESTful API development
 - **SimpleJWT** - JWT-based authentication
-- **MySQL** - Database management
+- **PostgreSQL (recommended)** - Database management (use with `pgvector` extension for vector storage)
 - **Python** - Backend programming language
 
 ## 🛠 Tech Stack
 
 ### Backend Framework
-- **Django 5.0.3** - High-level Python web framework
+- **Django 5.0.2** - High-level Python web framework
 - **Django REST Framework 3.15.1** - Powerful and flexible toolkit for building REST APIs
 - **djangorestframework-simplejwt 5.3.1** - JWT authentication for secure API access
 
 ### Database
-- **MySQL/mysqlclient 2.2.4** - Relational database management system
+- **PostgreSQL (recommended) / MySQL** - Relational database management system; PostgreSQL is recommended for `pgvector` integration
 
 ### Security & Authentication
 - **PyJWT 2.8.0** - JSON Web Token library
 - **django-cors-headers 4.3.1** - CORS support for cross-origin requests
+
+### Vector & Task Integration
+- **pgvector** - PostgreSQL vector column support for storing embeddings used by the recommender
+- **django-tasks** - Background task framework used for embedding generation (`api/tasks.py`)
 
 ### Media & Processing
 - **Pillow 10.2.0** - Python Imaging Library for image processing
@@ -129,7 +133,7 @@ Nostalgia/
 
 ### Prerequisites
 - Python 3.8 or higher
-- MySQL Server
+- PostgreSQL Server (recommended, with `pgvector` extension) or MySQL
 - pip (Python package manager)
 
 ### Steps

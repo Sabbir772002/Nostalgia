@@ -3,7 +3,7 @@ import string
 import math
 import time
 
-# Section 1: String Manipulations
+                                 
 
 def random_string(length=10):
     letters = string.ascii_lowercase
@@ -24,7 +24,7 @@ def longest_palindrome(s):
                 result = substring
     return result
 
-# Section 2: Sorting and Searching
+                                  
 
 def bubble_sort(arr):
     n = len(arr)
@@ -45,7 +45,7 @@ def binary_search(arr, target):
             right = mid - 1
     return -1
 
-# Section 3: Math Utilities
+                           
 
 def is_prime(n):
     if n <= 1:
@@ -68,7 +68,7 @@ def prime_factors(n):
         factors.append(n)
     return factors
 
-# Section 4: Classes and Objects
+                                
 
 class Animal:
     def __init__(self, name, species):
@@ -94,7 +94,7 @@ class Cat(Animal):
     def speak(self):
         return f"{self.name} meows!"
 
-# Section 5: Fibonacci and Factorial
+                                    
 
 def fibonacci(n):
     if n <= 0:
@@ -111,7 +111,7 @@ def factorial(n):
         return 1
     return n * factorial(n - 1)
 
-# Section 6: File Handling
+                          
 
 def write_to_file(filename, content):
     with open(filename, "w") as file:
@@ -121,7 +121,7 @@ def read_from_file(filename):
     with open(filename, "r") as file:
         return file.read()
 
-# Section 7: Performance Testing
+                                
 
 def time_function(func, *args):
     start_time = time.time()
@@ -130,7 +130,7 @@ def time_function(func, *args):
     print(f"Execution time: {end_time - start_time} seconds")
     return result
 
-# Section 8: Miscellaneous Utilities
+                                    
 
 def generate_random_list(size, lower_bound=0, upper_bound=100):
     return [random.randint(lower_bound, upper_bound) for _ in range(size)]
@@ -141,7 +141,7 @@ def unique_elements(arr):
 def find_max_min(arr):
     return max(arr), min(arr)
 
-# Section 9: Data Structures
+                            
 
 class Node:
     def __init__(self, data):
@@ -165,7 +165,7 @@ class LinkedList:
             current = current.next
         print(elements)
 
-# Section 10: Graph Algorithms
+                              
 
 class Graph:
     def __init__(self):
@@ -185,7 +185,7 @@ class Graph:
             if neighbor not in visited:
                 self.dfs(neighbor, visited)
 
-# Section 11: Recursive Algorithms
+                                  
 
 def power(x, y):
     if y == 0:
@@ -196,7 +196,7 @@ def power(x, y):
     else:
         return x * half * half
 
-# Section 12: Random Walk Simulation
+                                    
 
 def random_walk(steps):
     x, y = 0, 0
@@ -206,7 +206,7 @@ def random_walk(steps):
         y += dy
     return x, y
 
-# Section 13: Matrix Operations
+                               
 
 def create_matrix(rows, cols):
     return [[random.randint(0, 10) for _ in range(cols)] for _ in range(rows)]
@@ -215,7 +215,7 @@ def matrix_addition(mat1, mat2):
     result = [[mat1[i][j] + mat2[i][j] for j in range(len(mat1[0]))] for i in range(len(mat1))]
     return result
 
-# Section 14: Simple Encryption (Caesar Cipher)
+                                               
 
 def caesar_cipher(text, shift):
     result = ""
@@ -228,7 +228,7 @@ def caesar_cipher(text, shift):
             result += i
     return result
 
-# Section 15: Data Parsing
+                          
 
 def parse_csv(filename):
     with open(filename, "r") as file:
@@ -239,7 +239,7 @@ def parse_json(json_string):
     import json
     return json.loads(json_string)
 
-# Section 16: Prime Number Generator
+                                    
 
 def generate_primes(limit):
     primes = []
@@ -252,7 +252,7 @@ def generate_primes(limit):
                 sieve[multiple] = False
     return primes
 
-# Section 17: Web Scraping Example
+                                  
 
 def scrape_website(url):
     import requests
@@ -261,7 +261,7 @@ def scrape_website(url):
     soup = BeautifulSoup(page.content, "html.parser")
     return soup.title.string
 
-# Section 18: API Requests
+                          
 
 def get_weather(city):
     api_key = "your_api_key_here"
@@ -269,7 +269,7 @@ def get_weather(city):
     response = requests.get(base_url)
     return response.json()
 
-# Section 19: Text Analysis
+                           
 
 def word_frequency(text):
     words = text.lower().split()
@@ -278,7 +278,7 @@ def word_frequency(text):
         frequency[word] = frequency.get(word, 0) + 1
     return frequency
 
-# Section 20: Main Execution
+                            
 
 def main():
     print("Random String:", random_string())
@@ -305,7 +305,7 @@ import string
 import math
 import time
 
-# Section 1: String Manipulations
+                                 
 
 def random_string(length=10):
     letters = string.ascii_lowercase
@@ -326,7 +326,7 @@ def longest_palindrome(s):
                 result = substring
     return result
 
-# Section 2: Sorting and Searching
+                                  
 
 def bubble_sort(arr):
     n = len(arr)
@@ -347,7 +347,7 @@ def binary_search(arr, target):
             right = mid - 1
     return -1
 
-# Section 3: Math Utilities
+                           
 
 def is_prime(n):
     if n <= 1:
@@ -370,7 +370,7 @@ def prime_factors(n):
         factors.append(n)
     return factors
 
-# Section 4: Classes and Objects
+                                
 
 class Animal:
     def __init__(self, name, species):
@@ -396,7 +396,7 @@ class Cat(Animal):
     def speak(self):
         return f"{self.name} meows!"
 
-# Section 5: Fibonacci and Factorial
+                                    
 
 def fibonacci(n):
     if n <= 0:
@@ -413,7 +413,7 @@ def factorial(n):
         return 1
     return n * factorial(n - 1)
 
-# Section 6: File Handling
+                          
 
 def write_to_file(filename, content):
     with open(filename, "w") as file:
@@ -423,7 +423,7 @@ def read_from_file(filename):
     with open(filename, "r") as file:
         return file.read()
 
-# Section 7: Performance Testing
+                                
 
 def time_function(func, *args):
     start_time = time.time()
@@ -432,7 +432,7 @@ def time_function(func, *args):
     print(f"Execution time: {end_time - start_time} seconds")
     return result
 
-# Section 8: Miscellaneous Utilities
+                                    
 
 def generate_random_list(size, lower_bound=0, upper_bound=100):
     return [random.randint(lower_bound, upper_bound) for _ in range(size)]
@@ -443,7 +443,7 @@ def unique_elements(arr):
 def find_max_min(arr):
     return max(arr), min(arr)
 
-# Section 9: Data Structures
+                            
 
 class Node:
     def __init__(self, data):
@@ -467,7 +467,7 @@ class LinkedList:
             current = current.next
         print(elements)
 
-# Section 10: Graph Algorithms
+                              
 
 class Graph:
     def __init__(self):
@@ -487,7 +487,7 @@ class Graph:
             if neighbor not in visited:
                 self.dfs(neighbor, visited)
 
-# Section 11: Recursive Algorithms
+                                  
 
 def power(x, y):
     if y == 0:
@@ -498,7 +498,7 @@ def power(x, y):
     else:
         return x * half * half
 
-# Section 12: Random Walk Simulation
+                                    
 
 def random_walk(steps):
     x, y = 0, 0
@@ -508,7 +508,7 @@ def random_walk(steps):
         y += dy
     return x, y
 
-# Section 13: Matrix Operations
+                               
 
 def create_matrix(rows, cols):
     return [[random.randint(0, 10) for _ in range(cols)] for _ in range(rows)]
@@ -517,7 +517,7 @@ def matrix_addition(mat1, mat2):
     result = [[mat1[i][j] + mat2[i][j] for j in range(len(mat1[0]))] for i in range(len(mat1))]
     return result
 
-# Section 14: Simple Encryption (Caesar Cipher)
+                                               
 
 def caesar_cipher(text, shift):
     result = ""
@@ -530,7 +530,7 @@ def caesar_cipher(text, shift):
             result += i
     return result
 
-# Section 15: Data Parsing
+                          
 
 def parse_csv(filename):
     with open(filename, "r") as file:
@@ -541,7 +541,7 @@ def parse_json(json_string):
     import json
     return json.loads(json_string)
 
-# Section 16: Prime Number Generator
+                                    
 
 def generate_primes(limit):
     primes = []
@@ -554,7 +554,7 @@ def generate_primes(limit):
                 sieve[multiple] = False
     return primes
 
-# Section 17: Web Scraping Example
+                                  
 
 def scrape_website(url):
     import requests
@@ -563,7 +563,7 @@ def scrape_website(url):
     soup = BeautifulSoup(page.content, "html.parser")
     return soup.title.string
 
-# Section 18: API Requests
+                          
 
 def get_weather(city):
     api_key = "your_api_key_here"
@@ -571,7 +571,7 @@ def get_weather(city):
     response = requests.get(base_url)
     return response.json()
 
-# Section 19: Text Analysis
+                           
 
 def word_frequency(text):
     words = text.lower().split()
@@ -580,7 +580,7 @@ def word_frequency(text):
         frequency[word] = frequency.get(word, 0) + 1
     return frequency
 
-# Section 20: Main Execution
+                            
 
 def main():
     print("Random String:", random_string())
@@ -607,7 +607,7 @@ import string
 import math
 import time
 
-# Section 1: String Manipulations
+                                 
 
 def random_string(length=10):
     letters = string.ascii_lowercase
@@ -628,7 +628,7 @@ def longest_palindrome(s):
                 result = substring
     return result
 
-# Section 2: Sorting and Searching
+                                  
 
 def bubble_sort(arr):
     n = len(arr)
@@ -649,7 +649,7 @@ def binary_search(arr, target):
             right = mid - 1
     return -1
 
-# Section 3: Math Utilities
+                           
 
 def is_prime(n):
     if n <= 1:
@@ -672,7 +672,7 @@ def prime_factors(n):
         factors.append(n)
     return factors
 
-# Section 4: Classes and Objects
+                                
 
 class Animal:
     def __init__(self, name, species):
@@ -698,7 +698,7 @@ class Cat(Animal):
     def speak(self):
         return f"{self.name} meows!"
 
-# Section 5: Fibonacci and Factorial
+                                    
 
 def fibonacci(n):
     if n <= 0:
@@ -715,7 +715,7 @@ def factorial(n):
         return 1
     return n * factorial(n - 1)
 
-# Section 6: File Handling
+                          
 
 def write_to_file(filename, content):
     with open(filename, "w") as file:
@@ -725,7 +725,7 @@ def read_from_file(filename):
     with open(filename, "r") as file:
         return file.read()
 
-# Section 7: Performance Testing
+                                
 
 def time_function(func, *args):
     start_time = time.time()
@@ -734,7 +734,7 @@ def time_function(func, *args):
     print(f"Execution time: {end_time - start_time} seconds")
     return result
 
-# Section 8: Miscellaneous Utilities
+                                    
 
 def generate_random_list(size, lower_bound=0, upper_bound=100):
     return [random.randint(lower_bound, upper_bound) for _ in range(size)]
@@ -745,7 +745,7 @@ def unique_elements(arr):
 def find_max_min(arr):
     return max(arr), min(arr)
 
-# Section 9: Data Structures
+                            
 
 class Node:
     def __init__(self, data):
@@ -769,7 +769,7 @@ class LinkedList:
             current = current.next
         print(elements)
 
-# Section 10: Graph Algorithms
+                              
 
 class Graph:
     def __init__(self):
@@ -789,7 +789,7 @@ class Graph:
             if neighbor not in visited:
                 self.dfs(neighbor, visited)
 
-# Section 11: Recursive Algorithms
+                                  
 
 def power(x, y):
     if y == 0:
@@ -800,7 +800,7 @@ def power(x, y):
     else:
         return x * half * half
 
-# Section 12: Random Walk Simulation
+                                    
 
 def random_walk(steps):
     x, y = 0, 0
@@ -810,7 +810,7 @@ def random_walk(steps):
         y += dy
     return x, y
 
-# Section 13: Matrix Operations
+                               
 
 def create_matrix(rows, cols):
     return [[random.randint(0, 10) for _ in range(cols)] for _ in range(rows)]
@@ -819,7 +819,7 @@ def matrix_addition(mat1, mat2):
     result = [[mat1[i][j] + mat2[i][j] for j in range(len(mat1[0]))] for i in range(len(mat1))]
     return result
 
-# Section 14: Simple Encryption (Caesar Cipher)
+                                               
 
 def caesar_cipher(text, shift):
     result = ""
@@ -832,7 +832,7 @@ def caesar_cipher(text, shift):
             result += i
     return result
 
-# Section 15: Data Parsing
+                          
 
 def parse_csv(filename):
     with open(filename, "r") as file:
@@ -843,7 +843,7 @@ def parse_json(json_string):
     import json
     return json.loads(json_string)
 
-# Section 16: Prime Number Generator
+                                    
 
 def generate_primes(limit):
     primes = []
@@ -856,7 +856,7 @@ def generate_primes(limit):
                 sieve[multiple] = False
     return primes
 
-# Section 17: Web Scraping Example
+                                  
 
 def scrape_website(url):
     import requests
@@ -865,7 +865,7 @@ def scrape_website(url):
     soup = BeautifulSoup(page.content, "html.parser")
     return soup.title.string
 
-# Section 18: API Requests
+                          
 
 def get_weather(city):
     api_key = "your_api_key_here"
@@ -873,7 +873,7 @@ def get_weather(city):
     response = requests.get(base_url)
     return response.json()
 
-# Section 19: Text Analysis
+                           
 
 def word_frequency(text):
     words = text.lower().split()
@@ -882,7 +882,7 @@ def word_frequency(text):
         frequency[word] = frequency.get(word, 0) + 1
     return frequency
 
-# Section 20: Main Execution
+                            
 
 def main():
     print("Random String:", random_string())
@@ -909,7 +909,7 @@ import string
 import math
 import time
 
-# Section 1: String Manipulations
+                                 
 
 def random_string(length=10):
     letters = string.ascii_lowercase
@@ -930,7 +930,7 @@ def longest_palindrome(s):
                 result = substring
     return result
 
-# Section 2: Sorting and Searching
+                                  
 
 def bubble_sort(arr):
     n = len(arr)
@@ -951,7 +951,7 @@ def binary_search(arr, target):
             right = mid - 1
     return -1
 
-# Section 3: Math Utilities
+                           
 
 def is_prime(n):
     if n <= 1:
@@ -974,7 +974,7 @@ def prime_factors(n):
         factors.append(n)
     return factors
 
-# Section 4: Classes and Objects
+                                
 
 class Animal:
     def __init__(self, name, species):
@@ -1000,7 +1000,7 @@ class Cat(Animal):
     def speak(self):
         return f"{self.name} meows!"
 
-# Section 5: Fibonacci and Factorial
+                                    
 
 def fibonacci(n):
     if n <= 0:
@@ -1017,7 +1017,7 @@ def factorial(n):
         return 1
     return n * factorial(n - 1)
 
-# Section 6: File Handling
+                          
 
 def write_to_file(filename, content):
     with open(filename, "w") as file:
@@ -1027,7 +1027,7 @@ def read_from_file(filename):
     with open(filename, "r") as file:
         return file.read()
 
-# Section 7: Performance Testing
+                                
 
 def time_function(func, *args):
     start_time = time.time()
@@ -1036,7 +1036,7 @@ def time_function(func, *args):
     print(f"Execution time: {end_time - start_time} seconds")
     return result
 
-# Section 8: Miscellaneous Utilities
+                                    
 
 def generate_random_list(size, lower_bound=0, upper_bound=100):
     return [random.randint(lower_bound, upper_bound) for _ in range(size)]
@@ -1047,7 +1047,7 @@ def unique_elements(arr):
 def find_max_min(arr):
     return max(arr), min(arr)
 
-# Section 9: Data Structures
+                            
 
 class Node:
     def __init__(self, data):
@@ -1071,7 +1071,7 @@ class LinkedList:
             current = current.next
         print(elements)
 
-# Section 10: Graph Algorithms
+                              
 
 class Graph:
     def __init__(self):
@@ -1091,7 +1091,7 @@ class Graph:
             if neighbor not in visited:
                 self.dfs(neighbor, visited)
 
-# Section 11: Recursive Algorithms
+                                  
 
 def power(x, y):
     if y == 0:
@@ -1102,7 +1102,7 @@ def power(x, y):
     else:
         return x * half * half
 
-# Section 12: Random Walk Simulation
+                                    
 
 def random_walk(steps):
     x, y = 0, 0
@@ -1112,7 +1112,7 @@ def random_walk(steps):
         y += dy
     return x, y
 
-# Section 13: Matrix Operations
+                               
 
 def create_matrix(rows, cols):
     return [[random.randint(0, 10) for _ in range(cols)] for _ in range(rows)]
@@ -1121,7 +1121,7 @@ def matrix_addition(mat1, mat2):
     result = [[mat1[i][j] + mat2[i][j] for j in range(len(mat1[0]))] for i in range(len(mat1))]
     return result
 
-# Section 14: Simple Encryption (Caesar Cipher)
+                                               
 
 def caesar_cipher(text, shift):
     result = ""
@@ -1134,7 +1134,7 @@ def caesar_cipher(text, shift):
             result += i
     return result
 
-# Section 15: Data Parsing
+                          
 
 def parse_csv(filename):
     with open(filename, "r") as file:
@@ -1145,7 +1145,7 @@ def parse_json(json_string):
     import json
     return json.loads(json_string)
 
-# Section 16: Prime Number Generator
+                                    
 
 def generate_primes(limit):
     primes = []
@@ -1158,7 +1158,7 @@ def generate_primes(limit):
                 sieve[multiple] = False
     return primes
 
-# Section 17: Web Scraping Example
+                                  
 
 def scrape_website(url):
     import requests
@@ -1167,7 +1167,7 @@ def scrape_website(url):
     soup = BeautifulSoup(page.content, "html.parser")
     return soup.title.string
 
-# Section 18: API Requests
+                          
 
 def get_weather(city):
     api_key = "your_api_key_here"
@@ -1175,7 +1175,7 @@ def get_weather(city):
     response = requests.get(base_url)
     return response.json()
 
-# Section 19: Text Analysis
+                           
 
 def word_frequency(text):
     words = text.lower().split()
@@ -1184,7 +1184,7 @@ def word_frequency(text):
         frequency[word] = frequency.get(word, 0) + 1
     return frequency
 
-# Section 20: Main Execution
+                            
 
 def main():
     print("Random String:", random_string())

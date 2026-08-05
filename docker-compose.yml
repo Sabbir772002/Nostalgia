@@ -1,0 +1,98 @@
+services:
+
+  # PostgreSQL database with pgvector support
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: nostalgia_db
+    environment:
+      POSTGRES_DB: nostalgia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"   # host:container (5433 avoids port conflict)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis (Django Channels / WebSockets)
+  redis:
+    image: redis:7
+    container_name: nostalgia_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Django Backend (Daphne ASGI Server)
+  web:
+    build: .
+    container_name: nostalgia_web
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        echo 'Running seed data...' &&
+        python manage.py seed_data &&
+        echo 'Starting server...' &&
+        daphne -b 0.0.0.0 -p 8000 nostalgia.asgi:application
+      "
+    volumes:
+      - .:/app
+      - media_data:/app/media
+    environment:
+      - AI_SERVICE_URL=http://host.docker.internal:8002
+    ports:
+      - "8001:8000"   # host:container (8001 avoids port conflict)
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Django Database Task Worker for Background Tasks (AI Vector / Email Processing)
+  db_worker:
+    build: .
+    container_name: nostalgia_db_worker
+    command: python manage.py db_worker
+    volumes:
+      - .:/app
+      - media_data:/app/media
+    environment:
+      - AI_SERVICE_URL=http://host.docker.internal:8002
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # React Frontend
+  frontend:
+    build:
+      context: ../Nostalgia-Frontend
+    container_name: nostalgia_frontend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ../Nostalgia-Frontend:/app
+      - /app/node_modules
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  media_data:
